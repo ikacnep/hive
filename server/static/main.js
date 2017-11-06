@@ -53,16 +53,9 @@ jQuery(function ($) {
     function DrawHex(options) {
         log('DrawHex:', options);
 
-        if (!options.player) {
-            var piece_on_board = FindPieceAt(options.coordinates);
-            options.player = piece_on_board && piece_on_board.player;
-        }
-
         var hex_color = HEX_COLOR[options.player || 'nobody'];
         var text_color = TEXT_COLOR[options.player || 'nobody'];
         var border_color = options.border || BORDER[options.player || 'nobody'];
-
-        log('DrawHex', options, '->', hex_color, text_color, border_color);
 
         var r = options.coordinates[0];
         var q = options.coordinates[1];
@@ -89,8 +82,6 @@ jQuery(function ($) {
     }
 
     function DoDrawHex(x, y, b, g, fill_style) {
-        log('DoDrawHex', [].slice.apply(arguments));
-
         canvas.beginPath();
         canvas.fillStyle = fill_style;
         canvas.strokeStyle = fill_style;
@@ -107,18 +98,24 @@ jQuery(function ($) {
 
     function DrawPiece(piece, border) {
         log('DrawPiece', [].slice.apply(arguments));
+
+        if (!piece.player) {
+            var piece_on_board = FindPieceAt(piece.coordinates);
+
+            if (piece_on_board) {
+                piece = piece_on_board;
+            }
+        }
        
         DrawHex({
             coordinates: piece.coordinates,
             player: piece.player,
-            text: piece.figure[0] + ':' + piece.id + '/' + (piece.coordinates[2] || 0),
+            text: piece.figure ? (piece.figure[0] + ':' + (piece.id) + '/' + (piece.coordinates[2] || 0)) : '',
             border: border
         });
     }
 
     function SortBoard() {
-        log('SortBoard', [].slice.apply(arguments));
-        
         game.board.sort(function(a, b) {
             return a.coordinates[2] - b.coordinates[2];
         });
@@ -133,9 +130,9 @@ jQuery(function ($) {
     }
 
     function FindPieceAt(coordinates) {
-        log('FindPieceAt', [].slice.apply(arguments));
+        for (var i = game.board.length; i > 0; --i) {
+            var piece = game.board[i - 1];
 
-        for (var piece of game.board) {
             if (piece.coordinates[0] == coordinates[0] && piece.coordinates[1] == coordinates[1]) {
                 return piece;
             }
@@ -150,6 +147,10 @@ jQuery(function ($) {
             contentType: 'application/json',
             type: 'POST'
         });
+    }
+
+    function CoordinatesEqual(c1, c2) {
+        return c1[0] === c2[0] && c1[1] === c2[1];
     }
 
     function OnHexClick(r, q) {
@@ -195,17 +196,20 @@ jQuery(function ($) {
                         .done(function(data) {
                             game.state = data.state;
 
-                            game.board = game.board.filter(function(piece) { return piece.id != data.piece.id; } );
+                            game.board = game.board.filter(piece => piece.id != data.piece.id);
                             game.board.push(data.piece);
 
                             SortBoard();
 
-                            DrawPiece(data.piece, BORDER.moved);
-                            DrawHex({coordinates: game.selected_piece.coordinates});
+                            DrawPiece({coordinates: game.selected_piece.coordinates});
 
-                            if (game.last_highlighted_piece) {
+                            if (game.last_highlighted_piece &&
+                                    !CoordinatesEqual(game.last_highlighted_piece.coordinates, game.selected_piece.coordinates)
+                            ) {
                                 DrawPiece(game.last_highlighted_piece);
                             }
+
+                            DrawPiece(data.piece, BORDER.moved);
 
                             game.selected_piece = null;
                             game.last_highlighted_piece = data.piece;
@@ -222,7 +226,7 @@ jQuery(function ($) {
     }
 
     $(document).ajaxError(function(event, jqxhr, settings, error) {
-        console.log('Ajax error', arguments);
+        log('Ajax error', arguments);
 
         var error_message = 'Well, fuck.';
 

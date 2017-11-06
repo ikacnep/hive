@@ -55,7 +55,7 @@ def add():
     board = app.hive.board
     state = app.hive.state
 
-    pieces_at_these_coordinates = [piece for piece in board if piece['coordinates'][0:1] == data['coordinates']]
+    pieces_at_these_coordinates = [piece for piece in board if piece['coordinates'][0:2] == data['coordinates'][0:2]]
 
     if pieces_at_these_coordinates:
         raise IncorrectMove("Nope, can't place atop of hive")
@@ -78,7 +78,7 @@ def add():
     }
 
     board.append(piece)
-    board.sort(key=lambda piece: piece['coordinates'][2])
+    board.sort(key=lambda piece: -piece['coordinates'][2])
     
     state['current_turn'] = 'white' if state['current_turn'] == 'black' else 'black'
 
@@ -97,14 +97,20 @@ def move():
 
     piece = next(piece for piece in app.hive.board if piece['id'] == data['id'])
 
+    if piece['coordinates'][0:2] == data['coordinates'][0:2]:
+        raise IncorrectMove('You cannot enter the same river twice')
+
+    try:
+        top_piece_at_these_coordinates = next(p for p in app.hive.board if p['coordinates'][0:2] == data['coordinates'][0:2])
+    except StopIteration:
+        top_piece_at_these_coordinates = None
+
     piece['coordinates'] = data['coordinates'] + [0]
 
-    pieces_at_these_coordinates = [piece for piece in app.hive.board if piece['coordinates'][0:1] == data['coordinates']]
+    if top_piece_at_these_coordinates:
+        piece['coordinates'][2] = top_piece_at_these_coordinates['coordinates'][2] + 1
 
-    if pieces_at_these_coordinates:
-        piece['coordinates'][2] = pieces_at_these_coordinates[0][2] + 1
-
-    app.hive.board.sort(key=lambda piece: piece['coordinates'][2])
+    app.hive.board.sort(key=lambda piece: -piece['coordinates'][2])
 
     state['current_turn'] = 'white' if state['current_turn'] == 'black' else 'black'
 
