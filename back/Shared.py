@@ -1,6 +1,6 @@
 def ReallyEqual(a, b):
-    if (not isinstance(a, list)):
-        if (not isinstance(b, list)):
+    if not isinstance(a, list) and not isinstance(a, tuple):
+        if not isinstance(b, list) and not isinstance(a, tuple):
             return a == b
         return False
 

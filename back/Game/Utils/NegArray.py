@@ -1,9 +1,4 @@
 class NegArray:
-    innerArr = [0, []]
-    dimentions = 2
-    count = []
-    mod = []
-
     def __init__(self, dim = 2):
         self.innerArr = [0, []]
         self.dimentions = dim

@@ -2,6 +2,7 @@ from Game.Utils.Exceptions import *
 import Shared
 
 class LadybugFigure:
+    canOthers = False
 
     @staticmethod
     def AvailableTurns(me, field):

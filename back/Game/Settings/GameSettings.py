@@ -1,9 +1,6 @@
 from Game.Settings.Figures.FigureTypes import FigureType
 
 class GameSettings:
-    figures = [[],[]]
-    limitations = []
-
     def __init__(self, figures, limitations = []):
         self.figures = figures
         self.limitations = limitations
@@ -16,17 +13,24 @@ class GameSettings:
         if ladybug:
             figures += [FigureType.Ladybug]
         if pillbug:
-            figures += [FigureType.PillBug]
+            figures += [FigureType.Pillbug]
 
-        limitations = []
+        limitations = [GameSettings.DefaultLimit]
         if (tourney):
             limitations += [GameSettings.TourneyLimit]
 
         return GameSettings([figures, figures.copy()], limitations)
 
     @staticmethod
-    def TourneyLimit(field, placementAction):
-        if (field.turn < 2 and placementAction[0] == FigureType.Queen):
+    def TourneyLimit(field, player, figure):
+        if (field.turn < 2 and figure == FigureType.Queen):
+            return False
+
+        return  True
+
+    @staticmethod
+    def DefaultLimit(field, player, figure):
+        if (field.turn >= 5 and field.queens[player] == None and figure != FigureType.Queen):
             return False
 
         return  True

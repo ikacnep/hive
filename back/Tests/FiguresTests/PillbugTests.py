@@ -45,10 +45,9 @@ class PillbugTests(unittest.TestCase):
         turns = pillbug.AvailableTurns(field)
         self.assertEqual(len(turns), 0)
 
-
     def putPillbug(self, pos, field):
         q = FigureType.Pillbug.GetFigure(0, pos)
-        field.Put(q, pos)
+        field.Put(q)
         return q
 
 if __name__ == '__main__':

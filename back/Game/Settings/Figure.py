@@ -2,22 +2,16 @@ from Game.Utils import *
 import Shared
 
 class Figure:
-    figType = None
-    figClass = None
-    player = 0
-    position = None
-    availActions = None
-    id = -1
-
     def __init__(self, t, c, p, pos):
         self.figType = t
         self.figClass = c
         self.player = p
         self.position = pos
-        self.availTurns = None
+        self.availActions = None
+        self.id = -1
 
     def Act(self, pos, nextPos):
-        if (self.availTurns == None):
+        if (self.availActions == None):
             return False
 
         action = [pos, nextPos]
@@ -27,12 +21,20 @@ class Figure:
                 self.availActions = None
                 return True
 
-        self.availActions = None
         return False
 
     def AvailableTurns(self, field):
         self.availActions = self.figClass.AvailableTurns(self, field)
         return self.availActions
+
+    def AvailableOthers(self, field):
+        self.availActions = None
+
+        if self.figClass.canOthers:
+            self.availActions = self.figClass.AvailableOthers(self, field)
+            return self.availActions
+
+        return None
 
     def ResetAvailTurns(self):
         self.availActions = None
