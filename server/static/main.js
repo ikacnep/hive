@@ -133,7 +133,7 @@ jQuery(function ($) {
         for (var i = game.board.length; i > 0; --i) {
             var piece = game.board[i - 1];
 
-            if (piece.coordinates[0] == coordinates[0] && piece.coordinates[1] == coordinates[1]) {
+            if (piece.coordinates[0] === coordinates[0] && piece.coordinates[1] === coordinates[1]) {
                 return piece;
             }
         }
@@ -156,12 +156,14 @@ jQuery(function ($) {
     function OnHexClick(r, q) {
         log('OnHexClick', [].slice.apply(arguments));
 
-        var adding_figure = $('#add').val();
+        var adding_figure_element = $('.add_piece.selected');
+        var adding_figure = adding_figure_element.data('figure');
 
         if (adding_figure) {
             Post('/action/add', {
                 figure: adding_figure,
-                coordinates: [r, q]
+                coordinates: [r, q],
+                player_key: game.player_key
             })
                 .done(function(data) {
                     game.state = data.state;
@@ -176,6 +178,12 @@ jQuery(function ($) {
                     DrawPiece(data.piece, BORDER.placed);
 
                     game.last_highlighted_piece = data.piece;
+
+                    adding_figure_element.removeClass('selected');
+
+                    if (game.state[game.player_color].available_figures[adding_figure] === 0) {
+                        adding_figure_element.addClass('disabled');
+                    }
                 });
         } else {
             if (game.selected_piece) {
@@ -191,7 +199,8 @@ jQuery(function ($) {
                 } else {
                     Post('/action/move', {
                         id: game.selected_piece.id,
-                        coordinates: [r, q]
+                        coordinates: [r, q],
+                        player_key: game.player_key
                     })
                         .done(function(data) {
                             game.state = data.state;
@@ -238,11 +247,32 @@ jQuery(function ($) {
     });
 
     $.getJSON('/board')
-        .done(function(state) {
-            game = state;
-            SortBoard()
-            DrawBoard(state.board);
+        .done(function(game_response) {
+            game = game_response;
+            SortBoard();
+            DrawBoard(game_response.board);
+
+            log('Setting player key to', game.player_key, 'and color to', game.player_color);
+
+            $('#your_player').text(game.player_key).addClass(game.player_color);
+            $('.add_piece').addClass(game.player_color);
+
+            let available_figures = game.state[game.player_color].available_figures;
+
+            for (var figure in available_figures) {
+                if (available_figures[figure] === 0) {
+                    $('.add_piece[data-figure=' + figure + ']').addClass('disabled');
+                }
+            }
         });
+
+    $(document).on('click', '.add_piece:not(.disabled)', function() {
+        var selected = $('.add_piece.selected').removeClass('selected');
+
+        if (!$(this).is(selected)) {
+            $(this).addClass('selected');
+        }
+    });
 
     $('#canvas').click(function (event) {
         var offset = $(this).offset();

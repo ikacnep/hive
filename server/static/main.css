@@ -4,9 +4,49 @@ html, body { width:100%; height:100%; } /* just to be sure these are full screen
 
 canvas { display:block; } /* To remove the scrollbars */
 
-#add {
+form#right {
     position: fixed;
     top: 40px;
     right: 20px;
     font-size: 20px;
+    width: 250px;
+}
+
+#right p {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.add_piece {
+    display: inline-block;
+    padding: 4px 8px;
+    border: 4px solid silver;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+.add_piece.selected {
+    border-color: magenta;
+}
+
+#right .add_piece.disabled {
+    background-color: silver;
+    color: grey;
+}
+
+#your_player {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid silver;
+}
+
+#right .black {
+    color: white;
+    background-color: black;
+}
+
+#right .white {
+    color: black;
+    background-color: white;
 }

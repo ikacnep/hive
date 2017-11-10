@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import flask
+import os
 
 app = flask.Flask(__name__)
 
@@ -17,30 +18,54 @@ def handle_incorrect_move(error):
     return response
 
 
+def random_string():
+    return os.urandom(10).hex()
+
+
 class Hive:
+    joined_players = set()
+    player_keys = {
+        random_string(): 'white',
+        random_string(): 'black'
+    }
+    player_by_color = {
+        value: key for key, value in player_keys.items()
+    }
+
+    all_figures = {
+            'queen': 1,
+            'ant': 3,
+            'spider': 2,
+            'beetle': 2,
+            'grasshopper': 3,
+            'mosquito': 1,
+            'ladybug': 1,
+            'pillbug': 1
+    }
+
     board = []
     state = {
             'current_turn': 'white',
             'is_opening_move': True,
             'white': {
-                'available_figures': {
-                    'ant': 3,
-                    'spider': 2,
-                    'beetle': 2,
-                    'grasshopper': 3,
-                    'queen': 1,
-                }
+                'available_figures': all_figures.copy()
             },
             'black': {
-                'available_figures': {
-                    'ant': 3,
-                    'spider': 2,
-                    'beetle': 2,
-                    'grasshopper': 3,
-                    'queen': 1,
-                }
+                'available_figures': all_figures.copy()
             }
     }
+
+
+def check_player(data):
+    if 'player_key' not in data:
+        raise IncorrectMove('Player key not supplied')
+
+    player = app.hive.player_keys.get(data['player_key'])
+
+    if not player:
+        raise IncorrectMove("Player key is incorrect")
+
+    return player
 
 
 @app.route('/')
@@ -52,15 +77,20 @@ def hello_world():
 def add():
     data = flask.request.json
 
+    player_color = check_player(data)
+
     board = app.hive.board
     state = app.hive.state
+
+    if player_color != state['current_turn']:
+        raise IncorrectMove("Hey, that's not your turn!")
 
     pieces_at_these_coordinates = [piece for piece in board if piece['coordinates'][0:2] == data['coordinates'][0:2]]
 
     if pieces_at_these_coordinates:
         raise IncorrectMove("Nope, can't place atop of hive")
 
-    available_figures = state[state['current_turn']]['available_figures']
+    available_figures = state[player_color]['available_figures']
 
     if not available_figures[data['figure']]:
         raise IncorrectMove("You don't have any more %s to place" % data['figure'])
@@ -71,7 +101,7 @@ def add():
         state['is_opening_move'] = False
 
     piece = {
-            'player': state['current_turn'],
+            'player': player_color,
             'id': len(board),
             'figure': data['figure'],
             'coordinates': data['coordinates'] + [0]
@@ -80,7 +110,7 @@ def add():
     board.append(piece)
     board.sort(key=lambda piece: -piece['coordinates'][2])
     
-    state['current_turn'] = 'white' if state['current_turn'] == 'black' else 'black'
+    state['current_turn'] = 'white' if player_color == 'black' else 'black'
 
     return flask.jsonify(
             piece=piece,
@@ -92,8 +122,12 @@ def add():
 def move():
     data = flask.request.json
 
-    board = app.hive.board
+    player_color = check_player(data)
+
     state = app.hive.state
+
+    if player_color != state['current_turn']:
+        raise IncorrectMove("Hey, that's not your turn!")
 
     piece = next(piece for piece in app.hive.board if piece['id'] == data['id'])
 
@@ -120,9 +154,34 @@ def move():
     )
 
 
-@app.route('/board')
+@app.route('/board', methods=['GET'])
 def get_board():
-    return flask.jsonify(board=app.hive.board, state=app.hive.state)
+    data = flask.request.args
+    print('request data', data)
+
+    if 'player_key' in data:
+        current_player = data['player_key']
+    else:
+        # TODO: raise IncorrectMove("You can't join a game like THAT")
+
+        if 'white' not in app.hive.joined_players:
+            current_player = app.hive.player_by_color['white']
+        elif 'black' not in app.hive.joined_players:
+            current_player = app.hive.player_by_color['black']
+        else:
+            raise IncorrectMove("The game already started, you're late")
+
+    if current_player not in app.hive.player_keys.keys():
+        raise IncorrectMove('This player key is invalid')
+
+    app.hive.joined_players.add(app.hive.player_keys[current_player])
+
+    return flask.jsonify(
+        board=app.hive.board,
+        state=app.hive.state,
+        player_key=current_player,
+        player_color=app.hive.player_keys[current_player]
+    )
 
 
 if __name__ == '__main__':
