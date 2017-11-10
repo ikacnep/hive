@@ -60,6 +60,11 @@ class GameState:
         self.figId += 1
         fig = act[0].GetFigure(player, act[1])
         fig.id = self.figId
+        pos = self.Get(fig.position)
+        if (pos != None):
+            for key in pos:
+                key.layer += 1
+        fig.layer = 0
         self.lastMoved = fig
         self.Put(fig)
         self.availFigures[player].remove(act[0])
@@ -90,14 +95,20 @@ class GameState:
         it = place.pop(0)
         if len(place) == 0:
             self.Remove(f)
+        else:
+            for key in place:
+                key.layer -= 1
 
         moveTo = self.Get(t)
         if moveTo != None:
+            for key in moveTo:
+                key.layer += 1
             moveTo.insert(0, it)
         else:
             it.position = t
             self.Put(it)
 
+        it.layer = 0
         self.lastMoved = it
         self.RefreshPossibilities()
         self.turn += 1
@@ -210,6 +221,14 @@ class GameState:
                 rv[pos[0].player] = True
                 if (rv[0] == rv[1]):
                     return rv
+
+        return rv
+
+    def FiguresHash(self, player):
+        rv = {}
+        for kvp in self.figures.items():
+            if (kvp[1].player == player):
+                rv[kvp[0]] = kvp[1].ToHash()
 
         return rv
 

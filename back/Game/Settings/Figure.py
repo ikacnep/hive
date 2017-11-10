@@ -9,6 +9,15 @@ class Figure:
         self.position = pos
         self.availActions = None
         self.id = -1
+        self.layer = 0
+
+    def ToHash(self):
+        return {
+            "type": self.figType,
+            "position": self.position,
+            "layer": self.layer,
+            "id": self.id
+        }
 
     def Act(self, pos, nextPos):
         if (self.availActions == None):

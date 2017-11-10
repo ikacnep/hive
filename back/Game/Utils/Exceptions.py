@@ -6,3 +6,9 @@ class NoActions(Exception):
 
 class FigureMiss(Exception):
     pass
+
+class UnknownAction(Exception):
+    pass
+
+class PlayerIDException(Exception):
+    pass

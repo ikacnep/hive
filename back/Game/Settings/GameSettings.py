@@ -1,9 +1,10 @@
 from Game.Settings.Figures.FigureTypes import FigureType
 
 class GameSettings:
-    def __init__(self, figures, limitations = []):
+    def __init__(self, figures, limitations, parameters):
         self.figures = figures
         self.limitations = limitations
+        self.parameters = parameters
 
     @staticmethod
     def GetSettings(mosquito=False, ladybug=False, pillbug=False, tourney=False):
@@ -19,7 +20,14 @@ class GameSettings:
         if (tourney):
             limitations += [GameSettings.TourneyLimit]
 
-        return GameSettings([figures, figures.copy()], limitations)
+        parameters = {
+            "mosquito" : mosquito,
+            "ladybug" : ladybug,
+            "pillbug" : pillbug,
+            "tourney" : tourney
+        }
+
+        return GameSettings([figures, figures.copy()], limitations, parameters)
 
     @staticmethod
     def TourneyLimit(field, player, figure):
