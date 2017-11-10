@@ -15,13 +15,18 @@
 
 <canvas id="canvas" width="800" height="700"></canvas>
 
-<form>
-    <select id="add">
-        <option value="">--</option>
-        <option value="queen">Королева</option>
-        <option value="ant">Муравей</option>
-        <option value="spider">Паук</option>
-        <option value="beetle">Жук</option>
-        <option value="grasshopper">Кузнечик</option>
-    </select>
+<form id="right">
+    <p>Добавить:</p>
+
+    <span class="add_piece" data-figure="queen">Королева</span>
+    <span class="add_piece" data-figure="ant">Муравей</span>
+    <span class="add_piece" data-figure="spider">Паук</span>
+    <span class="add_piece" data-figure="beetle">Жук</span>
+    <span class="add_piece" data-figure="grasshopper">Кузнечик</span>
+    <span class="add_piece" data-figure="mosquito">Комар</span>
+    <span class="add_piece" data-figure="ladybug">Божья коровка</span>
+    <span class="add_piece" data-figure="pillbug">Мокрица</span>
+
+    <p>Игрок:</p>
+    <span id="your_player"></span>
 </form>
