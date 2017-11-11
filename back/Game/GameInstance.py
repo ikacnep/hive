@@ -108,6 +108,11 @@ class GameInstance:
                 np = self.player0
             rv["nextPlayer"] = np
             rv["turn"] = self.game.turn
+            rv["ended"] = self.game.gameEnded
+            rv["lost"] = {
+                self.player0: self.game.hasLost[0],
+                self.player1: self.game.hasLost[1]
+            }
             if addState:
                 rv["state"] = self.GetState()
             if addActions:
