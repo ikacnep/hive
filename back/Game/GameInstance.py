@@ -73,7 +73,7 @@ class GameInstance:
             elif (act == Action.Place):
                 figure = action["figure"]
                 position = action["position"]
-                id = self.game.Place(pid, (figure, position))
+                id = self.game.Place(pid, figure, position)
                 rv["fid"] = id
             elif (act == Action.Move):
                 fid = action["fid"]

@@ -10,22 +10,26 @@ class GameState:
         self.limitations = settings.limitations
         self.availFigures = settings.figures
         self.availActions = [{},{}]
-        self.availPlacements = [[],[]]
+        self.availPlacements = [[[],[]],[[],[]]]
         self.turn = 0
         self.figId = 0
         self.lastMoved = None
         self.queens = [None, None]
         self.hasLost = [False, False]
         self.gameEnded = False
-        for fig in self.availFigures[0]:
-            canBeUsed = True
-            act = (fig, (0, 0))
-            for lim in self.limitations:
-                if (not lim(self, 0, fig)):
-                    canBeUsed = False
-                    break
-            if canBeUsed:
-                self.availPlacements[0].append(act)
+        self.FillPlacementFigures(0)
+        self.availPlacements[0][1].append((0, 0))
+
+    def FillPlacementFigures(self, id):
+        for fig in self.availFigures[id]:
+            if (not fig in self.availPlacements[id][0]):
+                canBeUsed = True
+                for lim in self.limitations:
+                    if (not lim(self, 0, fig)):
+                        canBeUsed = False
+                        break
+                if canBeUsed:
+                    self.availPlacements[id][0].append(fig)
 
     def Get(self, pos):
         return self.field.Get(pos)
@@ -41,7 +45,7 @@ class GameState:
     def Remove(self, pos):
         return self.field.Put(None, pos)
 
-    def Place(self, player, act):
+    def Place(self, player, figure, position):
         if (player != self.turn % 2):
             raise ActionImpossible("Wrong player turn")
 
@@ -49,16 +53,19 @@ class GameState:
             raise ActionImpossible("The game has already ended")
 
         canBeDone = False
-        for key in self.availPlacements[player]:
-            if (Shared.ReallyEqual(key, act)):
+        for key in self.availPlacements[player][1]:
+            if (Shared.ReallyEqual(key, position)):
                 canBeDone = True
                 break
 
         if not canBeDone:
             raise ActionImpossible("Specified placement is impossible")
 
+        if not figure in self.availPlacements[player][0]:
+            raise ActionImpossible("Specified placement is not available")
+
         self.figId += 1
-        fig = act[0].GetFigure(player, act[1])
+        fig = figure.GetFigure(player, position)
         fig.id = self.figId
         pos = self.Get(fig.position)
         if (pos != None):
@@ -67,11 +74,11 @@ class GameState:
         fig.layer = 0
         self.lastMoved = fig
         self.Put(fig)
-        self.availFigures[player].remove(act[0])
+        self.availFigures[player].remove(figure)
         self.figures[fig.id] = fig
         self.RefreshPossibilities()
 
-        if (act[0] == FigureType.Queen):
+        if (figure == FigureType.Queen):
             self.queens[player] = fig
 
         self.turn += 1
@@ -121,7 +128,7 @@ class GameState:
         if (self.gameEnded):
             raise ActionImpossible("The game has already ended")
 
-        if (len(self.availPlacements[player]) + len(self.availPlacements[player])) > 0:
+        if (len(self.availPlacements[player][1]) * len(self.availPlacements[player][0]) + len(self.availActions[player])) > 0:
             raise ActionImpossible("Cannot skip turn if there are available actions")
 
         self.turn += 1
@@ -131,12 +138,15 @@ class GameState:
 
     def RefreshPossibilities(self):
         self.availActions = [{}, {}]
-        self.availPlacements = [[], []]
-        placePos = [[],[]]
+        self.availPlacements = [[[],[]], [[],[]]]
 
         for kvp in self.figures.items():
             if self.queens[kvp[1].player] != None and self.CheckIntegrity(kvp[1]):
-                self.availActions[kvp[1].player][kvp[0]] = kvp[1].AvailableTurns(self)
+                ac = kvp[1].AvailableTurns(self)
+                if ac != None and len(ac) > 0:
+                    self.availActions[kvp[1].player][kvp[0]] = kvp[1].AvailableTurns(self)
+                else:
+                    kvp[1].ResetAvailTurns()
             else:
                 otherActions = kvp[1].AvailableOthers(self)
                 if otherActions != None and len(otherActions) > 0:
@@ -153,18 +163,11 @@ class GameState:
                         id = kvp[1].player
                         if (self.turn == 0):
                             id = 1
-                        placePos[id] = Shared.Union(placePos[id], [cell])
+                        self.availPlacements[id][1] = Shared.Union(self.availPlacements[id][1], [cell])
 
-        for id in range(0,2):
-            for fig in self.availFigures[id]:
-                canBeUsed = True
-                for lim in self.limitations:
-                    if (not lim(self, id, fig)):
-                        canBeUsed = False
-                        break
-                if canBeUsed:
-                    for place in placePos[id]:
-                        self.availPlacements[id].append((fig, place))
+
+        self.FillPlacementFigures(0)
+        self.FillPlacementFigures(1)
 
         for i in range(0, 2):
             q = self.queens[i]
@@ -180,6 +183,7 @@ class GameState:
                         break
 
         self.gameEnded = self.hasLost[0] or self.hasLost[1]
+
 
         return True
 

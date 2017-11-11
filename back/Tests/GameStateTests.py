@@ -9,77 +9,88 @@ class GameStateTests(unittest.TestCase):
     def testPlacement(self):
         game = GameState(GameSettings.GetSettings())
         with self.assertRaises(ActionImpossible):
-            game.Place(1, (FigureType.Ant, (0, 0)))
+            game.Place(1, FigureType.Ant, (0, 0))
         self.assertEqual(game.turn, 0)
 
-        self.assertEqual(len(game.availPlacements[0]), 11)
-        game.Place(0, (FigureType.Ant, (0, 0)))
+        self.assertEqual(len(game.availPlacements[0][0]), 5)
+        self.assertEqual(len(game.availPlacements[0][1]), 1)
+        game.Place(0, FigureType.Ant, (0, 0))
         self.assertEqual(game.turn, 1)
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Ant, (0, 1)))
+            game.Place(0, FigureType.Ant, (0, 1))
 
-        self.assertEqual(len(game.availPlacements[1]), 66)
-        game.Place(1, (FigureType.Ant, (0, 1)))
+        self.assertEqual(len(game.availPlacements[1][0]), 5)
+        self.assertEqual(len(game.availPlacements[1][1]), 6)
+        game.Place(1, FigureType.Ant, (0, 1))
         self.assertEqual(game.turn, 2)
 
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Ant, (1, 0)))
+            game.Place(0, FigureType.Ant, (1, 0))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Ant, (-1, 1)))
+            game.Place(0, FigureType.Ant, (-1, 1))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Ant, (0, 2)))
+            game.Place(0, FigureType.Ant, (0, 2))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Ant, (0, 0)))
+            game.Place(0, FigureType.Ant, (0, 0))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Ant, (0, 1)))
+            game.Place(0, FigureType.Ant, (0, 1))
 
-        self.assertEqual(len(game.availPlacements[0]), 30)
-        game.Place(0, (FigureType.Ant, (-1, 0)))
+
+        self.assertEqual(len(game.availPlacements[0][0]), 5)
+        self.assertEqual(len(game.availPlacements[0][1]), 3)
+        game.Place(0, FigureType.Ant, (-1, 0))
         self.assertEqual(game.turn, 3)
 
-        self.assertEqual(len(game.availPlacements[1]), 30)
-        game.Place(1, (FigureType.Ant, (-1, 2)))
+
+        self.assertEqual(len(game.availPlacements[1][0]), 5)
+        self.assertEqual(len(game.availPlacements[1][1]), 3)
+        game.Place(1, FigureType.Ant, (-1, 2))
         self.assertEqual(game.turn, 4)
 
-        self.assertEqual(len(game.availPlacements[0]), 45)
-        game.Place(0, (FigureType.Ant, (-2, 1)))
+        self.assertEqual(len(game.availPlacements[0][0]), 5)
+        self.assertEqual(len(game.availPlacements[0][1]), 5)
+        game.Place(0, FigureType.Ant, (-2, 1))
         self.assertEqual(game.turn, 5)
 
         with self.assertRaises(ActionImpossible):
-            game.Place(1, (FigureType.Ant, (-2, 2)))
+            game.Place(1, FigureType.Ant, (-2, 2))
 
-        self.assertEqual(len(game.availPlacements[1]), 36)
-        game.Place(1, (FigureType.Ant, (0, 2)))
+        self.assertEqual(len(game.availPlacements[1][0]), 5)
+        self.assertEqual(len(game.availPlacements[1][1]), 4)
+        game.Place(1, FigureType.Ant, (0, 2))
         self.assertEqual(game.turn, 6)
 
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Beetle, (0, -1)))
+            game.Place(0, FigureType.Beetle, (0, -1))
 
-        self.assertEqual(len(game.availPlacements[0]), 6)
-        game.Place(0, (FigureType.Queen, (0, -1)))
+        self.assertEqual(len(game.availPlacements[0][0]), 1)
+        self.assertEqual(len(game.availPlacements[0][1]), 6)
+        game.Place(0, FigureType.Queen, (0, -1))
         self.assertEqual(game.turn, 7)
 
         with self.assertRaises(ActionImpossible):
-            game.Place(1, (FigureType.Beetle, (0, 2)))
+            game.Place(1, FigureType.Beetle, (0, 2))
 
-        self.assertEqual(len(game.availPlacements[1]), 5)
-        game.Place(1, (FigureType.Queen, (0, 3)))
+        self.assertEqual(len(game.availPlacements[1][0]), 1)
+        self.assertEqual(len(game.availPlacements[1][1]), 5)
+        game.Place(1, FigureType.Queen, (0, 3))
         self.assertEqual(game.turn, 8)
 
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Ant, (0, -2)))
+            game.Place(0, FigureType.Ant, (0, -2))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Queen, (0, -2)))
+            game.Place(0, FigureType.Queen, (0, -2))
 
-        self.assertEqual(len(game.availPlacements[0]), 49)
-        game.Place(0, (FigureType.Beetle, (0, -2)))
+        self.assertEqual(len(game.availPlacements[0][0]), 3)
+        self.assertEqual(len(game.availPlacements[0][1]), 7)
+        game.Place(0, FigureType.Beetle, (0, -2))
         self.assertEqual(game.turn, 9)
 
     def testLockAndSkip(self):
         game = GameState(GameSettings.GetSettings())
 
-        game.Place(0, (FigureType.Ant, (0, 0)))
-        game.Place(1, (FigureType.Ant, (0, 1)))
+        game.Place(0, FigureType.Ant, (0, 0))
+        game.Place(1, FigureType.Ant, (0, 1))
 
         game.Put(FigureType.Ant.GetFigure(1, (-1, 2)))
         game.Put(FigureType.Ant.GetFigure(1, (-2, 1)))
@@ -90,7 +101,7 @@ class GameStateTests(unittest.TestCase):
 
         game.RefreshPossibilities()
 
-        self.assertEqual(len(game.availPlacements[0]), 0)
+        self.assertEqual(len(game.availPlacements[0][1]), 0)
 
         self.assertTrue(game.Skip(0))
         self.assertEqual(game.turn, 3)
@@ -98,16 +109,16 @@ class GameStateTests(unittest.TestCase):
     def testMovement(self):
         game = GameState(GameSettings.GetSettings(pillbug=True))
 
-        q1 = game.Place(0, (FigureType.Queen, (0, 0)))
-        q2 = game.Place(1, (FigureType.Queen, (0, 1)))
+        q1 = game.Place(0, FigureType.Queen, (0, 0))
+        q2 = game.Place(1, FigureType.Queen, (0, 1))
 
         self.assertEqual(len(game.availActions[0]), 1)
         self.assertEqual(len(game.availActions[0][q1]), 2)
-        ant1 = game.Place(0, (FigureType.Ant, (0, -1)))
+        ant1 = game.Place(0, FigureType.Ant, (0, -1))
 
         self.assertEqual(len(game.availActions[1]), 1)
         self.assertEqual(len(game.availActions[1][q2]), 2)
-        ant2 = game.Place(1, (FigureType.Ant, (0, 2)))
+        ant2 = game.Place(1, FigureType.Ant, (0, 2))
 
         self.assertEqual(len(game.availActions[0]), 1)
         self.assertEqual(len(game.availActions[0][ant1]), 9)
@@ -131,10 +142,10 @@ class GameStateTests(unittest.TestCase):
         self.assertEqual(game.turn, 5)
 
         self.assertEqual(len(game.availActions[1]), 0)
-        ant22 = game.Place(1, (FigureType.Ant, (-1, 2)))
+        ant22 = game.Place(1, FigureType.Ant, (-1, 2))
 
         self.assertEqual(len(game.availActions[0]), 2)
-        ant12 = game.Place(0, (FigureType.Ant, (0, -1)))
+        ant12 = game.Place(0, FigureType.Ant, (0, -1))
 
         self.assertEqual(len(game.availActions[1]), 1)
         self.assertEqual(len(game.availActions[1][ant22]), 13)
@@ -152,10 +163,10 @@ class GameStateTests(unittest.TestCase):
 
         self.assertEqual(len(game.availActions[0]), 1)
         self.assertEqual(len(game.availActions[0][ant12]), 13)
-        pill = game.Place(0, (FigureType.Pillbug, (1, -1)))
-        g2 = game.Place(1, (FigureType.Grasshopper, (1, 1)))
+        pill = game.Place(0, FigureType.Pillbug, (1, -1))
+        g2 = game.Place(1, FigureType.Grasshopper, (1, 1))
 
-        g1 = game.Place(0, (FigureType.Grasshopper, (0, -2)))
+        g1 = game.Place(0, FigureType.Grasshopper, (0, -2))
         game.Move(1, ant22, (0, 4), (2, -2))
 
         self.assertEqual(len(game.availActions[0]), 2)
@@ -166,16 +177,16 @@ class GameStateTests(unittest.TestCase):
         with self.assertRaises(ActionImpossible):
             game.Move(0, pill, (2, -2), (1, 0))
 
-        g1 = game.Place(0, (FigureType.Grasshopper, (0, -3)))
-        g2 = game.Place(1, (FigureType.Grasshopper, (2, 1)))
+        g1 = game.Place(0, FigureType.Grasshopper, (0, -3))
+        g2 = game.Place(1, FigureType.Grasshopper, (2, 1))
 
         self.assertEqual(len(game.availActions[0]), 3)
         self.assertEqual(game.Move(0, pill, (2, -2), (1, 0)), ant22)
 
     def testWinCondition(self):
         game = GameState(GameSettings.GetSettings())
-        game.Place(0, (FigureType.Queen, (0, 0)))
-        game.Place(1, (FigureType.Queen, (0, 1)))
+        game.Place(0, FigureType.Queen, (0, 0))
+        game.Place(1, FigureType.Queen, (0, 1))
 
         af = FigureType.Ant.GetFigure(0, (-1, 1))
         game.Put(af)
@@ -217,67 +228,67 @@ class GameStateTests(unittest.TestCase):
 
     def testSettings(self):
         game = GameState(GameSettings.GetSettings())
-        self.assertEqual(len(game.availPlacements[0]), 11)
+        self.assertEqual(len(game.availPlacements[0][0]), 5)
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Mosquito, (0, 0)))
+            game.Place(0, FigureType.Mosquito, (0, 0))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Ladybug, (0, 0)))
+            game.Place(0, FigureType.Ladybug, (0, 0))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Pillbug, (0, 0)))
+            game.Place(0, FigureType.Pillbug, (0, 0))
 
-        game.Place(0, (FigureType.Queen, (0, 0)))
+        game.Place(0, FigureType.Queen, (0, 0))
         self.assertEqual(game.turn, 1)
 
         game = GameState(GameSettings.GetSettings(tourney=True))
-        self.assertEqual(len(game.availPlacements[0]), 10)
+        self.assertEqual(len(game.availPlacements[0][0]), 4)
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Mosquito, (0, 0)))
+            game.Place(0, FigureType.Mosquito, (0, 0))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Ladybug, (0, 0)))
+            game.Place(0, FigureType.Ladybug, (0, 0))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Pillbug, (0, 0)))
+            game.Place(0, FigureType.Pillbug, (0, 0))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Queen, (0, 0)))
+            game.Place(0, FigureType.Queen, (0, 0))
 
         self.assertEqual(game.turn, 0)
-        game.Place(0, (FigureType.Ant, (0, 0)))
+        game.Place(0, FigureType.Ant, (0, 0))
         self.assertEqual(game.turn, 1)
 
         game = GameState(GameSettings.GetSettings(mosquito=True))
-        self.assertEqual(len(game.availPlacements[0]), 12)
+        self.assertEqual(len(game.availPlacements[0][0]), 6)
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Ladybug, (0, 0)))
+            game.Place(0, FigureType.Ladybug, (0, 0))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Pillbug, (0, 0)))
+            game.Place(0, FigureType.Pillbug, (0, 0))
 
-        game.Place(0, (FigureType.Mosquito, (0, 0)))
+        game.Place(0, FigureType.Mosquito, (0, 0))
         self.assertEqual(game.turn, 1)
 
         game = GameState(GameSettings.GetSettings(ladybug=True))
-        self.assertEqual(len(game.availPlacements[0]), 12)
+        self.assertEqual(len(game.availPlacements[0][0]), 6)
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Mosquito, (0, 0)))
+            game.Place(0, FigureType.Mosquito, (0, 0))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Pillbug, (0, 0)))
+            game.Place(0, FigureType.Pillbug, (0, 0))
 
-        game.Place(0, (FigureType.Ladybug, (0, 0)))
+        game.Place(0, FigureType.Ladybug, (0, 0))
         self.assertEqual(game.turn, 1)
 
         game = GameState(GameSettings.GetSettings(pillbug=True))
-        self.assertEqual(len(game.availPlacements[0]), 12)
+        self.assertEqual(len(game.availPlacements[0][0]), 6)
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Mosquito, (0, 0)))
+            game.Place(0, FigureType.Mosquito, (0, 0))
         with self.assertRaises(ActionImpossible):
-            game.Place(0, (FigureType.Ladybug, (0, 0)))
+            game.Place(0, FigureType.Ladybug, (0, 0))
 
-        game.Place(0, (FigureType.Pillbug, (0, 0)))
+        game.Place(0, FigureType.Pillbug, (0, 0))
         self.assertEqual(game.turn, 1)
 
         game = GameState(GameSettings.GetSettings(mosquito=True, ladybug=True, pillbug=True))
-        self.assertEqual(len(game.availPlacements[0]), 14)
-        game.Place(0, (FigureType.Mosquito, (0, 0)))
-        game.Place(1, (FigureType.Ladybug, (1, 0)))
-        game.Place(0, (FigureType.Pillbug, (0, -1)))
+        self.assertEqual(len(game.availPlacements[0][0]), 8)
+        game.Place(0, FigureType.Mosquito, (0, 0))
+        game.Place(1, FigureType.Ladybug, (1, 0))
+        game.Place(0, FigureType.Pillbug, (0, -1))
         self.assertEqual(game.turn, 3)
 
 if __name__ == '__main__':
