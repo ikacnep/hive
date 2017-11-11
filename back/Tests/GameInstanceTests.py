@@ -23,7 +23,7 @@ class GameInstanceTests(unittest.TestCase):
         self.assertEqual(rv["reason"], ActionImpossible)
         self.assertIsNotNone(rv["message"])
 
-        self.assertEqual(len(actions["placements"][10][0]), 5)
+        self.assertEqual(len(actions["placements"][10]["figures"]), 5)
         self.assertEqual(actions["nextPlayer"], 10)
         placeAction["player"] = 10
         rv = game.Act(placeAction)
@@ -32,8 +32,8 @@ class GameInstanceTests(unittest.TestCase):
         self.assertEqual(rv["nextPlayer"], 11)
         actions = rv["actions"]
 
-        self.assertEqual(len(actions["placements"][11][0]), 5)
-        self.assertEqual(len(actions["placements"][11][1]), 6)
+        self.assertEqual(len(actions["placements"][11]["figures"]), 5)
+        self.assertEqual(len(actions["placements"][11]["places"]), 6)
 
         placeAction["position"] = (0, 1)
         rv = game.Act(placeAction)

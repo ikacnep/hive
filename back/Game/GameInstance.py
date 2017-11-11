@@ -41,8 +41,14 @@ class GameInstance:
         if (self.game.turn % 2 == 0):
             np = self.player0
         return {"placements":{
-                    self.player0:self.game.availPlacements[0],
-                    self.player1:self.game.availPlacements[1]
+                    self.player0:{
+                        "figures":self.game.availPlacements[0][0],
+                        "places":self.game.availPlacements[0][1]
+                    },
+                    self.player1:{
+                        "figures":self.game.availPlacements[1][0],
+                        "places":self.game.availPlacements[1][1]
+                    },
                 },
                 "turns":{
                     self.player0:self.game.availActions[0],
