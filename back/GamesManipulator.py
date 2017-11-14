@@ -232,6 +232,9 @@ class GamesManipulator:
         if "premium" in action:
             premium = action["premium"]
 
+        if (login == None and telegramId == None):
+            raise PlayerCreationException("Cannot create player without login and telegram id. No way for him to join the club")
+
         p = GamesManipulator.players.create(
             name=name,
             login=login,
@@ -284,6 +287,8 @@ class GamesManipulator:
             game.delete_instance()
             p1.rating += ratingChange[0]
             p2.rating += ratingChange[1]
+            p1.lastGame = datetime.datetime.now()
+            p2.lastGame = datetime.datetime.now()
             p1.save()
             p2.save()
             rv["rateChange"] = {
