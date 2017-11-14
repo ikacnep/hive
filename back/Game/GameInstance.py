@@ -1,5 +1,3 @@
-#TODO: requires more tests
-
 from Game.GameState import GameState
 from Game.Utils.Action import Action
 from Game.Utils.Exceptions import *
@@ -60,8 +58,9 @@ class GameInstance:
                 },
                 "nextPlayer":np}
 
-    def Act(self, action, addState = False, addActions = True):
-        rv = {"action":action}
+    def Act(self, action, addState = False, addActions = True, rv = None):
+        if rv == None:
+            rv = {"action":action}
 
         try:
             player = action["player"]
@@ -81,26 +80,38 @@ class GameInstance:
                 position = action["position"]
                 id = self.game.Place(pid, figure, position)
                 rv["fid"] = id
+                self.noone[0] = False
+                self.noone[1] = False
             elif (act == Action.Move):
                 fid = action["fid"]
                 f = action["from"]
                 t = action["to"]
                 id = self.game.Move(pid, fid, f, t)
                 rv["fid"] = id
+                self.noone[0] = False
+                self.noone[1] = False
             elif (act == Action.Skip):
                 self.game.Skip(pid)
+                self.noone[0] = False
+                self.noone[1] = False
             elif (act == Action.Concede):
                 self.game.gameEnded = True
                 self.game.hasLost[pid] = True
+                self.noone[0] = False
+                self.noone[1] = False
             elif (act == Action.ForceEnd):
                 self.game.gameEnded = True
                 self.game.hasLost[pid] = True
+                self.noone[0] = False
+                self.noone[1] = False
             elif (act == Action.Suggest):
                 self.noone[pid] = True
                 if (self.noone[0] == self.noone[1]):
                     self.game.gameEnded = True
                     self.game.hasLost[0] = True
                     self.game.hasLost[1] = True
+            else:
+                raise UnknownAction("Specified action is unknown")
 
             rv["result"] = True
             np = self.player1

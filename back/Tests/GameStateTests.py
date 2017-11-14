@@ -291,5 +291,22 @@ class GameStateTests(unittest.TestCase):
         game.Place(0, FigureType.Pillbug, (0, -1))
         self.assertEqual(game.turn, 3)
 
+    def testBeetleBug(self):
+        game = GameState(GameSettings.GetSettings())
+        game.Place(0, FigureType.Queen, (0, 0))
+        game.Place(1, FigureType.Queen, (0, 1))
+        b1 = game.Place(0, FigureType.Beetle, (1, -1))
+        a = game.Place(1, FigureType.Ant, (0, 2))
+        b2 = game.Place(0, FigureType.Beetle, (-1, 0))
+        game.Move(1, a, (0, 2), (1, 1))
+        game.Move(0, b1, (1, -1), (0, 0))
+        game.Move(1, a, (1, 1), (0, 2))
+        game.Move(0, b2, (-1, 0), (0, 0))
+        game.Move(1, a, (0, 2), (1, 1))
+        game.Move(0, b2, (0, 0), (0, 1))
+        game.Move(1, a, (1, 1), (-1, 1))
+        game.Move(0, b1, (0, 0), (-1, 1))
+        game.Skip(1)
+
 if __name__ == '__main__':
     unittest.main()

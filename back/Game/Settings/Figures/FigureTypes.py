@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import IntEnum
 from Game.Settings.Figure import *
 from Game.Settings.Figures.Queen import *
 from Game.Settings.Figures.Spider import *
@@ -9,7 +9,7 @@ from Game.Settings.Figures.Mosquito import *
 from Game.Settings.Figures.Ladybug import *
 from Game.Settings.Figures.Pillbug import *
 
-class FigureType(Enum):
+class FigureType(IntEnum):
     Undefined = 0
     Queen = 1
     Spider = 2

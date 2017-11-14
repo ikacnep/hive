@@ -42,23 +42,23 @@ class SharedTests(unittest.TestCase):
 
     def testNearby(self):
         pos = Shared.CellsNearby((0, 0))
-        ans = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1)]
+        ans = [(0, 1), (1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1)]
         self.assertTrue((Shared.ReallyEqual(Shared.Intersect(ans, pos), ans)))
 
         pos = Shared.CellsNearby((1, 0))
-        ans = [(0, 0), (2, 0), (1, -1), (1, 1), (0, -1), (0, 1)]
+        ans = [(0, 0), (0, 1), (1, 1), (2, 0), (2, -1), (1, 1)]
         self.assertTrue((Shared.ReallyEqual(Shared.Intersect(ans, pos), ans)))
 
         pos = Shared.CellsNearby((-1, 0))
-        ans = [(-2, 0), (0, 0), (-1, -1), (-1, 1), (-2, -1), (-2, 1)]
+        ans = [(0, 0), (0, -1), (-1, -1), (-2, 0), (-2, 1), (-1, 1)]
         self.assertTrue((Shared.ReallyEqual(Shared.Intersect(ans, pos), ans)))
 
         pos = Shared.CellsNearby((0, 1))
-        ans = [(-1, 1), (1, 1), (0, 0), (0, 2), (1, 0), (1, 2)]
+        ans = [(0, 0), (-1, 1), (-1, 2), (0, 2), (1, 1), (1, 0)]
         self.assertTrue((Shared.ReallyEqual(Shared.Intersect(ans, pos), ans)))
 
         pos = Shared.CellsNearby((0, -1))
-        ans = [(-1, -1), (1, -1), (0, -2), (0, 0), (1, -2), (1, 0)]
+        ans = [(0, 0), (1, -1), (1, -2), (0, -2), (-1, -1), (-1, 0)]
         self.assertTrue((Shared.ReallyEqual(Shared.Intersect(ans, pos), ans)))
 
 if __name__ == '__main__':

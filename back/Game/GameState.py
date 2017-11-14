@@ -106,13 +106,13 @@ class GameState:
             for key in place:
                 key.layer -= 1
 
+        it.position = t
         moveTo = self.Get(t)
         if moveTo != None:
             for key in moveTo:
                 key.layer += 1
             moveTo.insert(0, it)
         else:
-            it.position = t
             self.Put(it)
 
         it.layer = 0

@@ -1,8 +1,12 @@
 def ReallyEqual(a, b):
     if not isinstance(a, list) and not isinstance(a, tuple):
-        if not isinstance(b, list) and not isinstance(a, tuple):
+        if not isinstance(b, list) and not isinstance(b, tuple):
             return a == b
         return False
+    if not isinstance(b, list) and not isinstance(b, tuple):
+        return False
+    if a == None or b == None:
+        return a == b
 
     if (len(a) != len(b)):
         return False
