@@ -35,7 +35,7 @@ def echo(bot, update):
 
 def game(bot, update):
     logger.info("Game request: {}".format(update))
-    bot.answer_callback_query(update.callback_query.id, url='https://s.codepen.io/boomerang/iFrameKey-1840ee92-132a-e540-1c1b-0025af3c5df5/index.html')
+    bot.answer_callback_query(update.callback_query.id, url='https://playhive.club')
 
 
 def error(bot, update, error):

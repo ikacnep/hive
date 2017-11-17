@@ -153,38 +153,81 @@ jQuery(function ($) {
         return c1[0] === c2[0] && c1[1] === c2[1];
     }
 
+    function AddPieceToBoard(data) {
+        game.state = data.state;
+
+        for (var piece of game.board) {
+            if (piece.id === data.piece.id) {
+                return;
+            }
+        }
+
+        if (game.last_highlighted_piece) {
+            DrawPiece(game.last_highlighted_piece);
+        }
+
+        game.board.push(data.piece);
+        SortBoard();
+
+        DrawPiece(data.piece, BORDER.placed);
+
+        game.last_highlighted_piece = data.piece;
+
+        var adding_figure_element = $('.add_piece.selected');
+        adding_figure_element.removeClass('selected');
+
+        if (game.state[game.player_color].available_figures[data.piece.figure] === 0) {
+            adding_figure_element.addClass('disabled');
+        }
+    }
+
+    function MovePiece(data) {
+        game.state = data.state;
+
+        var old_piece = null;
+
+        for (var piece of game.board) {
+            if (piece.id === data.piece.id) {
+                old_piece = piece;
+
+                if (CoordinatesEqual(piece.coordinates, data.piece.coordinates)) {
+                    return;
+                }
+
+                break;
+            }
+        }
+
+        game.board = game.board.filter(piece => piece.id != data.piece.id);
+        game.board.push(data.piece);
+
+        SortBoard();
+
+        DrawPiece({coordinates: old_piece.coordinates});
+
+        if (game.last_highlighted_piece
+                && !CoordinatesEqual(game.last_highlighted_piece.coordinates, old_piece.coordinates)
+        ) {
+            DrawPiece(game.last_highlighted_piece);
+        }
+
+        DrawPiece(data.piece, BORDER.moved);
+
+        game.selected_piece = null;
+        game.last_highlighted_piece = data.piece;
+    }
+
     function OnHexClick(r, q) {
         log('OnHexClick', [].slice.apply(arguments));
 
-        var adding_figure_element = $('.add_piece.selected');
-        var adding_figure = adding_figure_element.data('figure');
+        var adding_figure = $('.add_piece.selected').data('figure');
 
         if (adding_figure) {
             Post('/action/add', {
                 figure: adding_figure,
                 coordinates: [r, q],
                 player_key: game.player_key
-            })
-                .done(function(data) {
-                    game.state = data.state;
-
-                    if (game.last_highlighted_piece) {
-                        DrawPiece(game.last_highlighted_piece);
-                    }
-
-                    game.board.push(data.piece);
-                    SortBoard();
-
-                    DrawPiece(data.piece, BORDER.placed);
-
-                    game.last_highlighted_piece = data.piece;
-
-                    adding_figure_element.removeClass('selected');
-
-                    if (game.state[game.player_color].available_figures[adding_figure] === 0) {
-                        adding_figure_element.addClass('disabled');
-                    }
-                });
+            }).done(AddPieceToBoard);
         } else {
             if (game.selected_piece) {
                 var coordinates = game.selected_piece.coordinates;
@@ -201,28 +244,7 @@ jQuery(function ($) {
                         id: game.selected_piece.id,
                         coordinates: [r, q],
                         player_key: game.player_key
-                    })
-                        .done(function(data) {
-                            game.state = data.state;
-
-                            game.board = game.board.filter(piece => piece.id != data.piece.id);
-                            game.board.push(data.piece);
-
-                            SortBoard();
-
-                            DrawPiece({coordinates: game.selected_piece.coordinates});
-
-                            if (game.last_highlighted_piece &&
-                                    !CoordinatesEqual(game.last_highlighted_piece.coordinates, game.selected_piece.coordinates)
-                            ) {
-                                DrawPiece(game.last_highlighted_piece);
-                            }
-
-                            DrawPiece(data.piece, BORDER.moved);
-
-                            game.selected_piece = null;
-                            game.last_highlighted_piece = data.piece;
-                        });
+                    }).done(MovePiece);
                 }
             } else {
                 game.selected_piece = FindPieceAt([r, q]);
@@ -291,4 +313,26 @@ jQuery(function ($) {
 
         OnHexClick(r, q);
     });
+
+    function PollForChanges() {
+        if (game.state.current_turn === game.player_color) {
+            return;
+        }
+
+        $.getJSON('/moves', function(data) {
+            log('other player action:', data.action);
+
+            if (!data.action) {
+                return;
+            }
+
+            if (data.action === 'add') {
+                AddPieceToBoard(data);
+            } else if (data.action === 'move') {
+                MovePiece(data);
+            }
+        });
+    }
+
+    window.setInterval(PollForChanges, 1000);
 });
