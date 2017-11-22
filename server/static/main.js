@@ -39,9 +39,9 @@ if (window.console && console.log) {
 jQuery(function ($) {
     log('initializing');
 
-    var canvas = $('canvas')[0].getContext('2d'),
-        b = 50,
-        d = 20;
+    var b = 120;
+    var d = 8;
+    var board = $('.table .board');
 
     var game = 'not loaded yet';
 
@@ -50,54 +50,35 @@ jQuery(function ($) {
     var a = b - d / sqrt3;
     var g = sqrt3 / 2 * b;
 
-    function DrawHex(options) {
-        log('DrawHex:', options);
-
-        var hex_color = HEX_COLOR[options.player || 'nobody'];
-        var text_color = TEXT_COLOR[options.player || 'nobody'];
-        var border_color = options.border || BORDER[options.player || 'nobody'];
-
-        var r = options.coordinates[0];
-        var q = options.coordinates[1];
+    function MoveToCoordinates(hex, coordinates) {
+        var r = coordinates[0];
+        var q = coordinates[1];
 
         var x = g * (1 + r + 2 * q);
         var y = b * (1 + 1.5 * r);
 
-        DoDrawHex(x, y, b, g, border_color);
+        hex.css({top: x, left: y});
+    }
 
-        if (hex_color !== border_color) {
-            DoDrawHex(x, y, a, sqrt3 / 2 * a, hex_color);
+    function AddHex(options) {
+        log('AddHex:', options);
+
+        var hex = $('<hex><b><i></b></i>');
+
+        hex.addClass(options.player || '');
+        hex.addClass(options.figure || '');
+        hex.addClass(options.state || '');
+
+        if (options.id) {
+            hex.attr({id: 'piece_' + options.id});
         }
 
-        var font_size = b / 2 - d / 4;
-
-        canvas.fillStyle = text_color;
-        canvas.textAlign = 'center';
-        canvas.textBaseline = 'middle';
-        canvas.font = font_size + 'px sans-serif';
-
-        var text = options.text || '';
-
-        canvas.fillText(text, x, y);
+        MoveToCoordinates(hex, options.coordinates);
+        board.append(hex);
     }
 
-    function DoDrawHex(x, y, b, g, fill_style) {
-        canvas.beginPath();
-        canvas.fillStyle = fill_style;
-        canvas.strokeStyle = fill_style;
-
-        canvas.moveTo(x - g, y + b / 2);
-        canvas.lineTo(x, y + b);
-        canvas.lineTo(x + g, y + b / 2);
-        canvas.lineTo(x + g, y - b / 2);
-        canvas.lineTo(x, y - b);
-        canvas.lineTo(x - g, y - b / 2);
-        canvas.lineTo(x - g, y + b / 2);
-        canvas.fill();
-    }
-
-    function DrawPiece(piece, border) {
-        log('DrawPiece', [].slice.apply(arguments));
+    function AddPiece(piece, state) {
+        log('AddPiece', [].slice.apply(arguments));
 
         if (!piece.player) {
             var piece_on_board = FindPieceAt(piece.coordinates);
@@ -107,11 +88,11 @@ jQuery(function ($) {
             }
         }
        
-        DrawHex({
+        AddHex({
             coordinates: piece.coordinates,
             player: piece.player,
-            text: piece.figure ? (piece.figure[0] + ':' + (piece.id) + '/' + (piece.coordinates[2] || 0)) : '',
-            border: border
+            figure: piece.figure,
+            state: state
         });
     }
 
@@ -125,7 +106,7 @@ jQuery(function ($) {
         log('DrawBoard', [].slice.apply(arguments));
 
         for (var piece of game.board) {
-            DrawPiece(piece);
+            AddPiece(piece);
         }
     }
 
@@ -162,16 +143,12 @@ jQuery(function ($) {
             }
         }
 
-        if (game.last_highlighted_piece) {
-            DrawPiece(game.last_highlighted_piece);
-        }
+        board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
 
         game.board.push(data.piece);
         SortBoard();
 
-        DrawPiece(data.piece, BORDER.placed);
-
-        game.last_highlighted_piece = data.piece;
+        AddPiece(data.piece, 'placed');
 
         var adding_figure_element = $('.add_piece.selected');
         adding_figure_element.removeClass('selected');
@@ -198,23 +175,16 @@ jQuery(function ($) {
             }
         }
 
+        board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
+
         game.board = game.board.filter(piece => piece.id != data.piece.id);
         game.board.push(data.piece);
 
         SortBoard();
 
-        DrawPiece({coordinates: old_piece.coordinates});
-
-        if (game.last_highlighted_piece
-                && !CoordinatesEqual(game.last_highlighted_piece.coordinates, old_piece.coordinates)
-        ) {
-            DrawPiece(game.last_highlighted_piece);
-        }
-
-        DrawPiece(data.piece, BORDER.moved);
-
-        game.selected_piece = null;
-        game.last_highlighted_piece = data.piece;
+        var piece = board.find('hex#piece_' + piece.id);
+        MoveToCoordinates(piece, piece.coordinates);
+        piece.addClass('moved');
     }
 
     function OnHexClick(r, q) {
@@ -296,10 +266,10 @@ jQuery(function ($) {
         }
     });
 
-    $('#canvas').click(function (event) {
+    $('.table').click(function (event) {
         var offset = $(this).offset();
-        var x = event.pageX - offset.left;
-        var y = event.pageY - offset.top;
+        var y = event.pageX - offset.left;
+        var x = event.pageY - offset.top;
 
         var x1 = x - g;
         var y1 = y - b;
