@@ -54,8 +54,9 @@ hex {
     margin: 0px 30px;
     width: 60px;
     height: 104px;
-    position: relative;
+    position: absolute;
     display: inline-block;
+    z-index: 1;
 }
 
 hex:before, hex:after, hex b:before, hex b:after {
@@ -192,4 +193,8 @@ hex.pillbug i {
     width: 800px;
     height: 600px;
     overflow: hidden;
+}
+
+.board {
+    position: relative;
 }

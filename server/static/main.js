@@ -1,35 +1,3 @@
-const PLAYER = {
-    white: 'white',
-    black: 'black',
-    nobody: ''
-};
-
-const HEX_COLOR = {
-    white: '#FFF',
-    black: '#333',
-    nobody: '#FFF'
-};
-
-const TEXT_COLOR = {
-    white: '#555',
-    black: '#DDD',
-    nobody: '#FFF'
-};
-
-const BORDER = {
-    reset: '-',
-
-    white: '#DDD',
-    black: '#000',
-    nobody: '#FFF',
-
-    placed: 'magenta',
-    selected: 'green',
-    moved: 'yellow',
-    can_move_here: 'blue',
-    cant_move_here: 'red'
-};
-
 if (window.console && console.log) {
     window.log = function() {
         console.log.apply(console.log, arguments);
@@ -39,7 +7,7 @@ if (window.console && console.log) {
 jQuery(function ($) {
     log('initializing');
 
-    var b = 120;
+    var b = 60;
     var d = 8;
     var board = $('.table .board');
 
@@ -55,7 +23,7 @@ jQuery(function ($) {
         var q = coordinates[1];
 
         var x = g * (1 + r + 2 * q);
-        var y = b * (1 + 1.5 * r);
+        var y = b * (1 + 1.5 * r) + b / 2;
 
         hex.css({top: x, left: y});
     }
@@ -69,7 +37,7 @@ jQuery(function ($) {
         hex.addClass(options.figure || '');
         hex.addClass(options.state || '');
 
-        if (options.id) {
+        if (options.id !== undefined) {
             hex.attr({id: 'piece_' + options.id});
         }
 
@@ -92,6 +60,7 @@ jQuery(function ($) {
             coordinates: piece.coordinates,
             player: piece.player,
             figure: piece.figure,
+            id: piece.id,
             state: state
         });
     }
@@ -135,6 +104,8 @@ jQuery(function ($) {
     }
 
     function AddPieceToBoard(data) {
+        log('AddPieceToBoard', [].slice.apply(arguments));
+        
         game.state = data.state;
 
         for (var piece of game.board) {
@@ -159,6 +130,8 @@ jQuery(function ($) {
     }
 
     function MovePiece(data) {
+        log('MovePiece', [].slice.apply(arguments));
+
         game.state = data.state;
 
         var old_piece = null;
@@ -183,8 +156,11 @@ jQuery(function ($) {
         SortBoard();
 
         var piece = board.find('hex#piece_' + piece.id);
-        MoveToCoordinates(piece, piece.coordinates);
+        board.append(piece);
+        MoveToCoordinates(piece, data.piece.coordinates);
         piece.addClass('moved');
+
+        game.selected_piece = null;
     }
 
     function OnHexClick(r, q) {
@@ -203,12 +179,8 @@ jQuery(function ($) {
                 var coordinates = game.selected_piece.coordinates;
 
                 if (coordinates[0] === r && coordinates[1] === q) {
-                    DrawPiece(game.selected_piece);
+                    board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
                     game.selected_piece = null;
-
-                    if (game.last_highlighted_piece) {
-                        DrawPiece(game.last_highlighted_piece);
-                    }
                 } else {
                     Post('/action/move', {
                         id: game.selected_piece.id,
@@ -217,10 +189,12 @@ jQuery(function ($) {
                     }).done(MovePiece);
                 }
             } else {
+                board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
+
                 game.selected_piece = FindPieceAt([r, q]);
 
                 if (game.selected_piece) {
-                    DrawPiece(game.selected_piece, BORDER.selected);
+                    board.find('#piece_' + game.selected_piece.id).addClass('selected');
                 }
             }
         }
@@ -268,17 +242,17 @@ jQuery(function ($) {
 
     $('.table').click(function (event) {
         var offset = $(this).offset();
-        var y = event.pageX - offset.left;
-        var x = event.pageY - offset.top;
+        var x = event.pageX - offset.left;
+        var y = event.pageY - offset.top;
 
-        var x1 = x - g;
-        var y1 = y - b;
+        var x1 = x - b;
+        var y1 = y - g;
 
-        var m = Math.ceil(x1 / g);
-        var v = Math.ceil(1 / (2 * g) * (x1 + sqrt3 * y1));
-        var l = Math.ceil(1 / (2 * g) * (x1 - sqrt3 * y1));
+        var m = Math.ceil(y1 / g);
+        var v = Math.ceil(1 / (2 * g) * (y1 + sqrt3 * x1));
+        var l = Math.ceil(1 / (2 * g) * (y1 - sqrt3 * x1));
 
-        var r = Math.floor((v - l + 1) / 3);
+        var r = Math.floor((v - l - 2) / 3);
         var q = Math.floor((m + l) / 3);
 
         OnHexClick(r, q);
