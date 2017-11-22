@@ -252,4 +252,10 @@ if __name__ == '__main__':
 
     context = ('../conf/fullchain.pem', '../conf/privkey.pem')
 
+    for path in context:
+        if not os.path.exists(path):
+            print('Cannot create TLS context: {} does not exist'.format(path))
+            context = None
+            break
+
     app.run('0.0.0.0', debug=True, port=5443, threaded=True, ssl_context=context)
