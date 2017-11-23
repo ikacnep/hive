@@ -242,8 +242,8 @@ jQuery(function ($) {
 
     $('.table').click(function (event) {
         var offset = $(this).offset();
-        var x = event.pageX - offset.left;
-        var y = event.pageY - offset.top;
+        var x = event.pageX - offset.left - board_position.x;
+        var y = event.pageY - offset.top - board_position.y;
 
         var x1 = x - b;
         var y1 = y - g;
@@ -279,4 +279,54 @@ jQuery(function ($) {
     }
 
     window.setInterval(PollForChanges, 1000);
+
+    // Движение доски
+    var board_position = {
+        scale: 1,
+        x: 0,
+        y: 0,
+    };
+
+    var table = $('.table');
+    var controls = $('#right .controls');
+
+    function BoardMovement(action_on_board_position) {
+        return function() {
+            var table_width = table.width();
+            var table_height = table.height();
+            var step = table_width / 6;
+
+            action_on_board_position(table_width, table_height, step);
+
+            Apply();
+
+            return false;
+        }
+
+        function Apply() {
+            log('Board movement: ' + board_position);
+
+            board.css({
+                'transform': 'translate(' + board_position.x + 'px, ' + board_position.y + 'px)' + ' scale(' + board_position.scale + ')'
+            });
+        }
+    }
+
+    function ChangeScale(is_out) {
+        var new_scale = is_out ? board_position.scale / 1.1 : board_position.scale * 1.1;
+
+        // TODO: придумать правильную формулу для интуитивно понятного приближения/удаления, как в картах
+        // Плюс вылезают артефакты на гексах. Пока что отключено.
+        // board_position.scale = new_scale;
+    }
+
+    controls.find('.left').click(BoardMovement(function(w, h, step) { board_position.x -= step / board_position.scale; }));
+    controls.find('.right').click(BoardMovement(function(w, h, step) { board_position.x += step / board_position.scale; }));
+    controls.find('.up').click(BoardMovement(function(w, h, step) { board_position.y -= step / board_position.scale; }));
+    controls.find('.down').click(BoardMovement(function(w, h, step) { board_position.y += step / board_position.scale; }));
+
+    controls.find('.out').click(BoardMovement(function(w, h, step) { ChangeScale(true); }));
+    controls.find('.in').click(BoardMovement(function(w, h, step) { ChangeScale(false); }));
+
+    BoardMovement();
 });

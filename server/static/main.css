@@ -12,7 +12,7 @@ form#right {
 
 #right p {
     display: block;
-    margin-bottom: 10px;
+    margin: 10px 0px;
 }
 
 .add_piece {
@@ -47,6 +47,11 @@ form#right {
 #right .white {
     color: black;
     background-color: white;
+}
+
+#right .controls button {
+    font-size: 20px;
+    padding: 4px 8px;
 }
 
 /* hex */
