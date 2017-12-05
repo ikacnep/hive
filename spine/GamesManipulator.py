@@ -9,49 +9,40 @@ import zlib
 import json
 import uuid
 
+
 class GamesManipulator:
     players = None
     games = None
     archive = None
     runningGames = {}
-    initialized = False
 
-    @staticmethod
-    def Init(playerType=Player, gameType=Game, archType=GameArchieved):
-        if GamesManipulator.initialized:
-            return
+    def __init__(self, playerType=Player, gameType=Game, archType=GameArchieved):
+        self.players = playerType
+        if not self.players.table_exists():
+            self.players.create_table()
 
-        GamesManipulator.players = playerType
-        if not GamesManipulator.players.table_exists():
-            GamesManipulator.players.create_table()
+        self.games = gameType
+        if not self.games.table_exists():
+            self.games.create_table()
 
-        GamesManipulator.games = gameType
-        if not GamesManipulator.games.table_exists():
-            GamesManipulator.games.create_table()
+        self.archive = archType
+        if not self.archive.table_exists():
+            self.archive.create_table()
 
-        GamesManipulator.archive = archType
-        if not GamesManipulator.archive.table_exists():
-            GamesManipulator.archive.create_table()
+        self.runningGames = {}
 
-        GamesManipulator.runningGames = {}
-        GamesManipulator.initialized = True
-
-    @staticmethod
-    def CreateGame(player1, player2, mosquito, ladybug, pillbug, tourney, rv):
-        if not GamesManipulator.initialized:
-            GamesManipulator.Init()
-
+    def CreateGame(self, player1, player2, mosquito, ladybug, pillbug, tourney, rv):
         try:
-            p1 = GamesManipulator.players.get(GamesManipulator.players.id == player1)
-            p2 = GamesManipulator.players.get(GamesManipulator.players.id == player2)
+            p1 = self.players.get(self.players.id == player1)
+            p2 = self.players.get(self.players.id == player2)
         except Exception as ex:
             raise PlayerNotFoundException("Player not found.", ex.args)
 
-        game = GamesManipulator.games.create(player1=p1, player2=p2)
+        game = self.games.create(player1=p1, player2=p2)
         actualGame = GameInstance(player1, player2,
                                   GameSettings.GetSettings(mosquito=mosquito, ladybug=ladybug, pillbug=pillbug,
                                                            tourney=tourney))
-        GamesManipulator.runningGames[game.id] = actualGame
+        self.runningGames[game.id] = actualGame
 
         rv["gid"] = game.id
         rv["player1"] = player1
@@ -59,8 +50,7 @@ class GamesManipulator:
 
         return actualGame
 
-    @staticmethod
-    def Act_CreateGame(action, rv):
+    def Act_CreateGame(self, action, rv):
         p1 = action["player1"]
         p2 = action["player2"]
         turn = None
@@ -69,7 +59,7 @@ class GamesManipulator:
             if turn != p1 and turn != p2:
                 turn = None
 
-        if turn == None:
+        if turn is None:
             if bool(random.getrandbits(0)):
                 turn = p2
 
@@ -94,10 +84,9 @@ class GamesManipulator:
         if "tourney" in action:
             tourney = action["tourney"]
 
-        return GamesManipulator.CreateGame(p1, p2, mosquito, ladybug, pillbug, tourney, rv)
+        return self.CreateGame(p1, p2, mosquito, ladybug, pillbug, tourney, rv)
 
-    @staticmethod
-    def Act_GetGames(action, rv):
+    def Act_GetGames(self, action, rv):
         try:
             includeArch = False
             if "archived" in action:
@@ -106,62 +95,61 @@ class GamesManipulator:
             rv["games"] = []
             if "gid" in action:
                 gid = action["gid"]
-                if gid in GamesManipulator.runningGames:
-                    theGame = GamesManipulator.games.get(GamesManipulator.games.id == gid)
+                if gid in self.runningGames:
+                    theGame = self.games.get(self.games.id == gid)
                     rv["games"].append(Game.ToHash(theGame))
                 elif includeArch:
-                    theGame = GamesManipulator.archive.get(GamesManipulator.archive.gameid == gid)
+                    theGame = self.archive.get(self.archive.gameid == gid)
                     rv["games"].append(GameArchieved.ToHash(theGame))
             else:
                 if "players" in action:
                     players = action["players"]
                     try:
-                        p1 = GamesManipulator.players.get(GamesManipulator.players.id == players[0])
+                        p1 = self.players.get(self.players.id == players[0])
                         p2 = None
-                        if (len(players) > 1):
-                            p2 = GamesManipulator.players.get(GamesManipulator.players.id == players[1])
+                        if len(players) > 1:
+                            p2 = self.players.get(self.players.id == players[1])
                     except Exception as ex:
                         raise PlayerNotFoundException("Player with specified ID not found", ex.args)
 
-                    if p2 == None:
+                    if p2 is None:
                         try:
-                            for theGame in GamesManipulator.games.select().where(
-                                                    GamesManipulator.games.player1 == p1 or GamesManipulator.games.player2 == p1):
+                            for theGame in self.games.select().where(self.games.player1 == p1 or self.games.player2 == p1):
                                 rv["games"].append(Game.ToHash(theGame))
                         except Exception as ex:
                             pass
                         if includeArch:
                             try:
-                                for theGame in GamesManipulator.archive.select().where(
-                                                        GamesManipulator.archive.player1 == p1 or GamesManipulator.archive.player2 == p1):
+                                for theGame in self.archive.select().where(
+                                                        self.archive.player1 == p1 or self.archive.player2 == p1):
                                     rv["games"].append(GameArchieved.ToHash(theGame))
                             except:
                                 pass
                     else:
                         try:
-                            for theGame in GamesManipulator.games.select().where((
-                                                         GamesManipulator.games.player1 == p1 and GamesManipulator.games.player2 == p2) or
-                                                         (
-                                                                 GamesManipulator.games.player1 == p2 and GamesManipulator.games.player2 == p1)):
+                            for theGame in self.games.select().where((
+                                                         self.games.player1 == p1 and self.games.player2 == p2) or
+                                                         (self.games.player1 == p2 and self.games.player2 == p1)):
                                 rv["games"].append(Game.ToHash(theGame))
                         except:
                             pass
+
                         if includeArch:
                             try:
-                                for theGame in GamesManipulator.archive.select().where(
+                                for theGame in self.archive.select().where(
                                                 (
-                                                        GamesManipulator.archive.player1 == p1 and GamesManipulator.archive.player2 == p2) or
+                                                        self.archive.player1 == p1 and self.archive.player2 == p2) or
                                                 (
-                                                        GamesManipulator.archive.player1 == p2 and GamesManipulator.archive.player2 == p1)):
+                                                        self.archive.player1 == p2 and self.archive.player2 == p1)):
                                     rv["games"].append(GameArchieved.ToHash(theGame))
                             except:
                                 pass
                 else:
                     rv["games"] = []
-                    for theGame in GamesManipulator.games.select():
+                    for theGame in self.games.select():
                         rv["games"].append(Game.ToHash(theGame))
                     if includeArch:
-                        for theGame in GamesManipulator.archive.select():
+                        for theGame in self.archive.select():
                             rv["games"].append(GameArchieved.ToHash(theGame))
 
             if len(rv["games"]) == 0:
@@ -171,36 +159,35 @@ class GamesManipulator:
         except Exception as ex:
             raise GameNotFoundException("Game with specified parameters not found", ex.args)
 
-    @staticmethod
-    def Act_GetPlayer(action, rv):
+    def Act_GetPlayer(self, action, rv):
         player = None
         try:
             if "token" in action:
                 token = action["token"]
-                player = GamesManipulator.players.get(GamesManipulator.players.token == token)
+                player = self.players.get(self.players.token == token)
             elif "telegramId" in action:
                 telegramId = action["telegramId"]
-                player = GamesManipulator.players.get(GamesManipulator.players.telegramId == telegramId)
+                player = self.players.get(self.players.telegramId == telegramId)
             elif "login" in action and "password" in action:
                 login = action["login"]
                 password = action["password"]
-                player = GamesManipulator.players.get(
-                    GamesManipulator.players.login == login and GamesManipulator.players.password == password)
+                player = self.players.get(
+                    self.players.login == login and self.players.password == password)
         except Exception as ex:
             raise PlayerNotFoundException("Player with specified parameters not found", ex.args)
-        if player == None:
+
+        if player is None:
             raise PlayerNotFoundException("Necessary parameters not specified")
 
-
         if "refreshToken" in action and action["refreshToken"]:
-            player.token = str(GamesManipulator.GetToken())
+            player.token = str(self.GetToken())
             player.save()
+
         rv["player"] = Player.ToHash(player)
 
         return player
 
-    @staticmethod
-    def Act_CreatePlayer(action, rv):
+    def Act_CreatePlayer(self, action, rv):
         name = None
         if "name" in action:
             name = action["name"]
@@ -209,10 +196,10 @@ class GamesManipulator:
             p = None
             login = action["login"]
             try:
-                p = GamesManipulator.players.get(GamesManipulator.players.login == login)
+                p = self.players.get(self.players.login == login)
             except:
                 pass
-            if p != None:
+            if p is not None:
                 raise PlayerCreationException("Login is already in use")
         password = None
         if "password" in action:
@@ -222,47 +209,46 @@ class GamesManipulator:
             telegramId = action["telegramId"]
             p = None
             try:
-                p = GamesManipulator.players.get(GamesManipulator.players.telegramId == telegramId)
+                p = self.players.get(self.players.telegramId == telegramId)
             except Exception as ex:
                 pass
 
-            if p != None:
+            if p is not None:
                 raise PlayerCreationException("This telegramid is already in use")
         premium = False
         if "premium" in action:
             premium = action["premium"]
 
-        if (login == None and telegramId == None):
+        if login is None and telegramId is None:
             raise PlayerCreationException("Cannot create player without login and telegram id. No way for him to join the club")
 
-        p = GamesManipulator.players.create(
+        p = self.players.create(
             name=name,
             login=login,
             password=password,
             telegramId=telegramId,
             premium=premium,
-            token=str(GamesManipulator.GetToken())
+            token=str(self.GetToken())
         )
         rv["player"] = Player.ToHash(p)
 
-    @staticmethod
-    def Act_DoAction(action, rv):
+    def Act_DoAction(self, action, rv):
         gid = action["gid"]
-        if gid not in GamesManipulator.runningGames:
+        if gid not in self.runningGames:
             raise GameNotFoundException("No such ID in running games")
-        gameInst = GamesManipulator.runningGames[gid]
+        gameInst = self.runningGames[gid]
         gameInst.Act(action, False, False, rv)
         rv["gid"] = gid
-        if (rv["ended"]):
-            GamesManipulator.runningGames.pop(gid)
+        if rv["ended"]:
+            self.runningGames.pop(gid)
             try:
-                p1 = GamesManipulator.players.get(GamesManipulator.players.id == gameInst.player0)
-                p2 = GamesManipulator.players.get(GamesManipulator.players.id == gameInst.player1)
+                p1 = self.players.get(self.players.id == gameInst.player0)
+                p2 = self.players.get(self.players.id == gameInst.player1)
             except Exception as ex:
                 raise PlayerNotFoundException("Player not found.", ex.args)
 
             try:
-                game = GamesManipulator.games.get(GamesManipulator.games.id == gid)
+                game = self.games.get(self.games.id == gid)
             except Exception as ex:
                 raise GameNotFoundException("No such ID in database.", ex.args)
 
@@ -271,9 +257,9 @@ class GamesManipulator:
                 res += 1
             if rv["lost"][p2.id]:
                 res -= 1
-            ratingChange = GamesManipulator.GetEloRate(p1.rating, p2.rating, res)
+            ratingChange = self.GetEloRate(p1.rating, p2.rating, res)
 
-            GamesManipulator.archive.create(
+            self.archive.create(
                 player1=p1,
                 player2=p2,
                 gameid=gid,
@@ -298,10 +284,9 @@ class GamesManipulator:
 
         return gameInst
 
-    @staticmethod
-    def Act_ModifyPlayer(action, rv):
+    def Act_ModifyPlayer(self, action, rv):
         tmp = {}
-        p = GamesManipulator.Act_GetPlayer(action, tmp)
+        p = self.Act_GetPlayer(action, tmp)
 
         newVals = action["newValues"]
         if "name" in newVals:
@@ -311,10 +296,10 @@ class GamesManipulator:
             if log != p.login:
                 tmpP = None
                 try:
-                    tmpP = GamesManipulator.players.get(GamesManipulator.players.login == log)
+                    tmpP = self.players.get(self.players.login == log)
                 except:
                     pass
-                if tmpP != None:
+                if tmpP is not None:
                     raise PlayerModificationException("login is already in use")
                 p.login = log
         if "password" in newVals:
@@ -327,30 +312,36 @@ class GamesManipulator:
         p.save()
         rv["player"] = Player.ToHash(p)
 
-    @staticmethod
-    def Act(action):
-        rv = {"action":action}
+    def Act(self, action):
+        rv = {"action": action}
         try:
             act = action["action"]
             game = None
-            if (act == Action.CreateGame):
-                game = GamesManipulator.Act_CreateGame(action, rv)
+            if act == Action.CreateGame:
+                game = self.Act_CreateGame(action, rv)
             elif act == Action.GetGames:
-                GamesManipulator.Act_GetGames(action, rv)
+                self.Act_GetGames(action, rv)
             elif act == Action.GetPlayer:
-                GamesManipulator.Act_GetPlayer(action, rv)
+                self.Act_GetPlayer(action, rv)
             elif act == Action.CreatePlayer:
-                GamesManipulator.Act_CreatePlayer(action, rv)
+                self.Act_CreatePlayer(action, rv)
             elif act == Action.ModifyPlayer:
-                GamesManipulator.Act_ModifyPlayer(action, rv)
+                self.Act_ModifyPlayer(action, rv)
+            elif act == Action.CreatePlayer:
+                try:
+                    self.Act_GetPlayer(action, rv)
+                except:
+                    self.Act_CreatePlayer(action, rv)
             elif act in (Action.Move, Action.Place, Action.ForceEnd, Action.Suggest, Action.Concede, Action.Skip):
-                game = GamesManipulator.Act_DoAction(action, rv)
+                game = self.Act_DoAction(action, rv)
             elif act == Action.Undefined:
                 raise UnknownAction("Undefined action is not allowed")
+            else:
+                raise UnknownAction("Unknown action: %s" % act)
 
-            if "addActions" in action and game != None and action["addActions"]:
+            if "addActions" in action and game is not None and action["addActions"]:
                 rv["actions"] = game.GetActions()
-            if "addState" in action and game != None and action["addState"]:
+            if "addState" in action and game is not None and action["addState"]:
                 addAllActions = False
                 if "addAllActions" in action:
                     addAllActions = action["addAllActions"]
@@ -363,7 +354,6 @@ class GamesManipulator:
             rv["reason"] = type(ex)
             rv["message"] = ex.args
             return rv
-
 
     @staticmethod
     def GetEloRate(rate1, rate2, result):
@@ -391,13 +381,13 @@ class GamesManipulator:
 
         return rv
 
-    @staticmethod
-    def GetToken():
+    def GetToken(self):
         while True:
             newToken = uuid.uuid4()
             try:
-                p = GamesManipulator.players.get(GamesManipulator.players.token == newToken)
-                if (p == None):
+                p = self.players.get(self.players.token == newToken)
+
+                if not p:
                     return newToken
             except:
                 return newToken

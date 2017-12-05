@@ -1,9 +1,12 @@
 import flask
 import os
 
+from spine.Game.Utils.Action import Action
 from spine.GamesManipulator import GamesManipulator
 
 app = flask.Flask(__name__)
+
+games_manipulator = GamesManipulator()
 
 
 class IncorrectMove(Exception):
@@ -18,41 +21,36 @@ def handle_incorrect_move(error):
     return response
 
 
-def random_string():
-    return os.urandom(10).hex()
-
-
-def check_player():
-    if 'player_key' not in flask.session:
-        raise IncorrectMove("You haven't joined the game yet")
-
-    player = app.hive.player_keys.get(flask.session['player_key'])
-
-    if not player:
-        raise IncorrectMove("Player key is incorrect")
-
-    return player
-
-
 @app.route('/')
 def hello_world():
     data = flask.request.args
     session = flask.session
 
-    if 'player_key' in data:
-        session['player_key'] = data['player_key']
-        return flask.redirect('/')
+    player_id = None
 
-    try:
-        session['player_key'] = choose_player_key(True)
-    except:
-        pass
+    if 'player_id' in session:  # Already logged-in users
+        player_id = session['player_id']
+    else:
+        if 'telegram_id' in data or 'token' in data:  # opened link from telegram
+            find_player = games_manipulator.Act({
+                'action': Action.GetOrCreatePlayer,
+                'telegramId': data('telegram_id'),
+                'token': data.get('token')
+            })
+        else:
+            return flask.redirect('/login')  # TODO login/password auth :D
+
+        player_id = find_player['player']['token']
+        session['player_id'] = player_id
+
+    # TODO как будем игру начинать?
 
     return flask.render_template('index.html')
 
 
 @app.route('/action/add', methods=['POST'])
 def add():
+    # TODO
     data = flask.request.json
 
     player_color = check_player()
@@ -100,6 +98,7 @@ def add():
 
 @app.route('/action/move', methods=['POST'])
 def move():
+    # TODO
     data = flask.request.json
 
     player_color = check_player()
@@ -138,6 +137,7 @@ def move():
 
 @app.route('/moves', methods=['GET'])
 def get_moves():
+    # TODO
     player_color = check_player()
 
     if app.hive.last_move.get('player') == player_color:
@@ -154,55 +154,23 @@ def get_moves():
 
 @app.route('/board', methods=['GET'])
 def get_board():
+    # TODO
     print('get_board')
-    current_player = choose_player_key()
+    current_player = choose_player_id()
 
     return flask.jsonify(
         board=app.hive.board,
         state=app.hive.state,
-        player_key=current_player,
-        player_color=app.hive.player_keys[current_player]
+        player_id=current_player,
+        player_color=app.hive.player_ids[current_player]
     )
-
-
-def choose_player_key(can_start=False):
-    print('choose_player_key(%s)' % can_start)
-    current_player = None
-
-    if 'player_key' in flask.request.args:
-        current_player = flask.request.args['player_key']
-        print('Got player from args: %s' % current_player)
-
-    if 'player_key' in flask.session:
-        current_player = flask.session['player_key']
-        print('Got player from session: %s' % current_player)
-
-    print('Player keys: {}'.format(list(app.hive.player_keys.keys())))
-
-    if can_start and current_player not in app.hive.player_keys.keys():
-        current_player = generate_player_key()
-        flask.session['player_key'] = current_player
-        print('Generated new player: %s' % current_player)
-
-    if current_player not in app.hive.player_keys.keys():
-        raise IncorrectMove('This player key is invalid')
-
-    app.hive.joined_players.add(app.hive.player_keys[current_player])
-
-    return current_player
-
-
-def generate_player_key():
-    if 'white' not in app.hive.joined_players:
-        return app.hive.player_by_color['white']
-    elif 'black' not in app.hive.joined_players:
-        return app.hive.player_by_color['black']
-    else:
-        raise IncorrectMove("The game already started, you're late")
 
 
 @app.route('/.well-known/acme-challenge/<string:challenge>')
 def letsencrypt(challenge):
+    if '/' in challenge or '..' in challenge:
+        return ''
+
     try:
         return open('.well-known/acme-challenge/' + challenge).read()
     except:
@@ -210,8 +178,6 @@ def letsencrypt(challenge):
 
 
 def start(tls_cert, tls_key, secret_key):
-    GamesManipulator.Init()
-
     try:
         app.secret_key = open(secret_key, 'rb').read()
     except IOError:
