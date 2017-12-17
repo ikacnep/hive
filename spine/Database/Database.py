@@ -1,4 +1,6 @@
 from peewee import *
+from ..JsonPYAdaptors.GetGamesResult import *
+from ..JsonPYAdaptors.GetPlayerResult import PlayerResult
 import datetime
 
 db = SqliteDatabase("hive.db")
@@ -30,6 +32,19 @@ class Player(BaseModel):
             "id": player.id
         }
 
+    @staticmethod
+    def ToClass(player):
+        rv = PlayerResult()
+        rv.name = player.name
+        rv.creationDate = player.creationDate
+        rv.lastGame = player.lastGame
+        rv.token = player.token
+        rv.rating = player.rating
+        rv.premium = player.premium
+        rv.id = player.id
+
+        return  rv
+
 class Game(BaseModel):
     player1 = ForeignKeyField(Player, related_name="games1", null=False)
     player2 = ForeignKeyField(Player, related_name="games2", null=False)
@@ -44,6 +59,15 @@ class Game(BaseModel):
             "gid":game.id,
             "hasEnded":False
         }
+
+    @staticmethod
+    def ToClass(game):
+        rv = GameResult()
+        rv.player1 = game.player1.id
+        rv.player2 = game.player2.id
+        rv.start = game.start
+        rv.gid = game.id
+        return rv
 
 class GameArchieved(BaseModel):
     player1 = ForeignKeyField(Player, related_name="endedgames1", null=False)
@@ -69,3 +93,16 @@ class GameArchieved(BaseModel):
             "end":arch.end,
             "hasEnded":True
         }
+
+    @staticmethod
+    def ToClass(arch):
+        rv = ArchGameResult()
+        rv.player1 = arch.player1.id
+        rv.player2 = arch.player2.id
+        rv.gid = arch.gameid
+        rv.length = arch.length
+        rv.result1 = arch.result1
+        rv.result2 = arch.result2
+        rv.start = arch.start
+        rv.end = arch.end
+        return rv

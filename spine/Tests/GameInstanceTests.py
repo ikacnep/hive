@@ -11,7 +11,7 @@ class GameInstanceTests(unittest.TestCase):
         action = {
             "action": Action.Undefined
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertNotEqual(result["reason"], UnknownAction)
         self.assertIsNotNone(result["message"])
@@ -20,7 +20,7 @@ class GameInstanceTests(unittest.TestCase):
             "player": 0,
             "action": Action.Undefined
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertNotEqual(result["reason"], UnknownAction)
         self.assertIsNotNone(result["message"])
@@ -29,7 +29,7 @@ class GameInstanceTests(unittest.TestCase):
             "player": 10,
             "action": -1
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertEqual(result["reason"], UnknownAction)
         self.assertIsNotNone(result["message"])
@@ -40,7 +40,7 @@ class GameInstanceTests(unittest.TestCase):
             "player":10,
             "action":Action.Undefined
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertEqual(result["reason"], UnknownAction)
         self.assertIsNotNone(result["message"])
@@ -51,7 +51,7 @@ class GameInstanceTests(unittest.TestCase):
             "player":10,
             "action":Action.Place
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -61,7 +61,7 @@ class GameInstanceTests(unittest.TestCase):
             "action":Action.Place,
             "figure":FigureType.Queen
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -71,7 +71,7 @@ class GameInstanceTests(unittest.TestCase):
             "action": Action.Place,
             "figure": FigureType.Ant
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -81,7 +81,7 @@ class GameInstanceTests(unittest.TestCase):
             "action": Action.Place,
             "position": (0, 0)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -92,7 +92,7 @@ class GameInstanceTests(unittest.TestCase):
             "figure": -1,
             "position": (0, 0)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -103,7 +103,7 @@ class GameInstanceTests(unittest.TestCase):
             "figure": FigureType.Ant,
             "position": (0, 0)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], True)
         self.assertIsNotNone(result["fid"])
 
@@ -115,12 +115,12 @@ class GameInstanceTests(unittest.TestCase):
             "figure": FigureType.Queen,
             "position": (0, 0)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         q1 = result["fid"]
 
         action["player"] = 11
         action["position"] = (1, 0)
-        result = game.Act(action)
+        result = game.ActJS(action)
         q2 = result["fid"]
         self.assertNotEqual(q1, q2)
 
@@ -131,7 +131,7 @@ class GameInstanceTests(unittest.TestCase):
             "from": (0, 0),
             "to": (0, 1)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -143,7 +143,7 @@ class GameInstanceTests(unittest.TestCase):
             "from": (0, 0),
             "to": (0, 1)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -155,7 +155,7 @@ class GameInstanceTests(unittest.TestCase):
             "from": (0, 1),
             "to": (0, 1)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -167,7 +167,7 @@ class GameInstanceTests(unittest.TestCase):
             "from": (0, 0),
             "to": (1, 1)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -178,7 +178,7 @@ class GameInstanceTests(unittest.TestCase):
             "from": (0, 0),
             "to": (0, 1)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -189,7 +189,7 @@ class GameInstanceTests(unittest.TestCase):
             "fid": q1,
             "to": (0, 1)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -200,7 +200,7 @@ class GameInstanceTests(unittest.TestCase):
             "fid": q1,
             "from": (0, 0)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
         self.assertEqual(result["result"], False)
         self.assertIsNotNone(result["reason"])
         self.assertIsNotNone(result["message"])
@@ -212,7 +212,9 @@ class GameInstanceTests(unittest.TestCase):
             "from":(0, 0),
             "to":(0, 1)
         }
-        result = game.Act(action)
+        result = game.ActJS(action)
+        if ("reason" in result):
+            self.assertEqual(result["message"], None)
         self.assertEqual(result["result"], True)
         self.assertEqual(result["fid"], q1)
 
@@ -325,12 +327,12 @@ class GameInstanceTests(unittest.TestCase):
 
         for i in range(0, len(preliminaryActions)):
             act = preliminaryActions[i]
-            result = game.Act(act)
+            result = game.ActJS(act)
             self.assertEqual(result["result"], True, msg="error in iteration " + str(i))
 
             if i != len(preliminaryActions) - 2:
                 for skip in skipActions:
-                    result = game.Act(skip)
+                    result = game.ActJS(skip)
                     self.assertEqual(result["result"], False)
 
     def testConcede(self):
@@ -340,7 +342,7 @@ class GameInstanceTests(unittest.TestCase):
             "action":Action.Concede,
             "player":10
         }
-        rv = game.Act(action1)
+        rv = game.ActJS(action1)
         self.assertEqual(rv["result"], True)
         self.assertEqual(rv["lost"][10], True)
         self.assertEqual(rv["lost"][11], False)
@@ -351,7 +353,7 @@ class GameInstanceTests(unittest.TestCase):
             "player": 11
         }
 
-        rv = game.Act(action2)
+        rv = game.ActJS(action2)
         self.assertEqual(rv["result"], True)
         self.assertEqual(rv["lost"][10], True)
         self.assertEqual(rv["lost"][11], True)
@@ -359,7 +361,7 @@ class GameInstanceTests(unittest.TestCase):
 
         game = GameInstance(10, 11, GameSettings.GetSettings())
 
-        rv = game.Act(action2)
+        rv = game.ActJS(action2)
         self.assertEqual(rv["result"], True)
         self.assertEqual(rv["lost"][10], False)
         self.assertEqual(rv["lost"][11], True)
@@ -372,7 +374,7 @@ class GameInstanceTests(unittest.TestCase):
             "action": Action.ForceEnd,
             "player": 10
         }
-        rv = game.Act(action)
+        rv = game.ActJS(action)
         self.assertEqual(rv["result"], True)
         self.assertEqual(rv["lost"][10], True)
         self.assertEqual(rv["lost"][11], False)
@@ -383,7 +385,7 @@ class GameInstanceTests(unittest.TestCase):
             "player": 11
         }
 
-        rv = game.Act(action)
+        rv = game.ActJS(action)
         self.assertEqual(rv["result"], True)
         self.assertEqual(rv["lost"][10], True)
         self.assertEqual(rv["lost"][11], True)
@@ -391,7 +393,7 @@ class GameInstanceTests(unittest.TestCase):
 
         game = GameInstance(10, 11, GameSettings.GetSettings())
 
-        rv = game.Act(action)
+        rv = game.ActJS(action)
         self.assertEqual(rv["result"], True)
         self.assertEqual(rv["lost"][10], False)
         self.assertEqual(rv["lost"][11], True)
@@ -404,7 +406,7 @@ class GameInstanceTests(unittest.TestCase):
             "action": Action.Suggest,
             "player": 10
         }
-        rv = game.Act(action1)
+        rv = game.ActJS(action1)
         self.assertEqual(rv["result"], True)
         self.assertEqual(rv["lost"][10], False)
         self.assertEqual(rv["lost"][11], False)
@@ -414,7 +416,7 @@ class GameInstanceTests(unittest.TestCase):
             "action": Action.Suggest,
             "player": 11
         }
-        rv = game.Act(action2)
+        rv = game.ActJS(action2)
         self.assertEqual(rv["result"], True)
         self.assertEqual(rv["lost"][10], True)
         self.assertEqual(rv["lost"][11], True)
@@ -422,13 +424,13 @@ class GameInstanceTests(unittest.TestCase):
 
         game = GameInstance(10, 11, GameSettings.GetSettings())
 
-        rv = game.Act(action2)
+        rv = game.ActJS(action2)
         self.assertEqual(rv["result"], True)
         self.assertEqual(rv["lost"][10], False)
         self.assertEqual(rv["lost"][11], False)
         self.assertEqual(rv["ended"], False)
 
-        rv = game.Act(action1)
+        rv = game.ActJS(action1)
         self.assertEqual(rv["result"], True)
         self.assertEqual(rv["lost"][10], True)
         self.assertEqual(rv["lost"][11], True)

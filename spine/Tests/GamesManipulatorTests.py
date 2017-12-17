@@ -33,7 +33,7 @@ class GameInstanceTests(unittest.TestCase):
             "telegramId":1,
             "premium":True
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         p1 = rv["player"]
         self.assertIsNotNone(p1)
@@ -46,7 +46,7 @@ class GameInstanceTests(unittest.TestCase):
             "login" : "logger2",
             "password" : "ffs"
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         p2 = rv["player"]
         self.assertIsNotNone(p2)
@@ -57,7 +57,7 @@ class GameInstanceTests(unittest.TestCase):
             "action" : Action.CreatePlayer,
             "telegramId" : 2
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         p3 = rv["player"]
         self.assertIsNotNone(p3)
@@ -68,7 +68,7 @@ class GameInstanceTests(unittest.TestCase):
             "action" : Action.CreatePlayer,
             "telegramId" : 2
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
         self.assertIsNotNone(rv["reason"])
         self.assertIsNotNone(rv["message"])
@@ -78,7 +78,7 @@ class GameInstanceTests(unittest.TestCase):
             "login": "logger1",
             "password": "pass"
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
         self.assertIsNotNone(rv["reason"])
         self.assertIsNotNone(rv["message"])
@@ -89,7 +89,7 @@ class GameInstanceTests(unittest.TestCase):
             "login":"logger2",
             "password":"wrong"
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
         self.assertIsNotNone(rv["reason"])
         self.assertIsNotNone(rv["message"])
@@ -99,7 +99,7 @@ class GameInstanceTests(unittest.TestCase):
             "login": "logger1",
             "password": "ffs"
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         for kvp in p1.items():
             self.assertEqual(kvp[1], rv["player"][kvp[0]])
@@ -108,7 +108,7 @@ class GameInstanceTests(unittest.TestCase):
             "action": Action.GetPlayer,
             "telegramId": 2
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         for kvp in p3.items():
             self.assertEqual(kvp[1], rv["player"][kvp[0]])
@@ -118,7 +118,7 @@ class GameInstanceTests(unittest.TestCase):
             "token": p2["token"],
             "refreshToken": True
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         self.assertNotEqual(p2["token"], rv["player"]["token"])
         p2["token"] = rv["player"]["token"]
@@ -133,7 +133,7 @@ class GameInstanceTests(unittest.TestCase):
             },
             "token":p1["token"]
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         self.assertEqual(rv["player"]["name"], "p1")
         p1["name"] = rv["player"]["name"]
@@ -147,7 +147,7 @@ class GameInstanceTests(unittest.TestCase):
             "player2":p2["id"],
             "turn":p1["id"]
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         gid1 = rv["gid"]
         self.assertIsNotNone(gid1)
@@ -159,7 +159,7 @@ class GameInstanceTests(unittest.TestCase):
             "player1": -1,
             "player2":p3["id"]
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
         self.assertIsNotNone(rv["reason"])
         self.assertIsNotNone(rv["message"])
@@ -170,7 +170,7 @@ class GameInstanceTests(unittest.TestCase):
             "player2": p3["id"],
             "turn": p3["id"]
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         gid2 = rv["gid"]
         self.assertIsNotNone(gid1)
@@ -181,7 +181,7 @@ class GameInstanceTests(unittest.TestCase):
         action = {
             "action":Action.GetGames,
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         games = rv["games"]
         self.assertEqual(len(games), 2)
@@ -199,7 +199,7 @@ class GameInstanceTests(unittest.TestCase):
             "action":Action.GetGames,
             "players":[p1["id"]]
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         games = rv["games"]
         for key in games:
@@ -216,7 +216,7 @@ class GameInstanceTests(unittest.TestCase):
             "action": Action.GetGames,
             "players":[ p1["id"], p2["id"] ]
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         self.assertEqual(len(rv["games"]), 1)
         self.assertEqual(rv["games"][0]["gid"], gid1)
@@ -226,7 +226,7 @@ class GameInstanceTests(unittest.TestCase):
             "action": Action.GetGames,
             "players": [-1]
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
         self.assertIsNotNone(rv["message"])
         self.assertIsNotNone(rv["reason"])
@@ -239,7 +239,7 @@ class GameInstanceTests(unittest.TestCase):
             "figure":FigureType.Queen,
             "position":(0, 1)
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
         self.assertIsNotNone(rv["message"])
         self.assertIsNotNone(rv["reason"])
@@ -251,7 +251,7 @@ class GameInstanceTests(unittest.TestCase):
             "figure": FigureType.Queen,
             "position": (0, 0)
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
 
         action = {
@@ -261,7 +261,7 @@ class GameInstanceTests(unittest.TestCase):
             "figure": FigureType.Queen,
             "position": (0, 0)
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
         self.assertIsNotNone(rv["message"])
         self.assertIsNotNone(rv["reason"])
@@ -271,7 +271,9 @@ class GameInstanceTests(unittest.TestCase):
             "gid":gid1,
             "player":p1["id"]
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
+        if ("message" in rv):
+            self.assertEqual(rv["message"], None)
         self.assertEqual(rv["result"], True)
         self.assertTrue(rv["ended"])
         self.assertTrue(rv["rateChange"][p1["id"]] < 0)
@@ -284,7 +286,7 @@ class GameInstanceTests(unittest.TestCase):
             "figure": FigureType.Queen,
             "position": (0, 1)
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
         self.assertIsNotNone(rv["message"])
         self.assertIsNotNone(rv["reason"])
@@ -293,7 +295,7 @@ class GameInstanceTests(unittest.TestCase):
         action = {
             "action": Action.GetGames,
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         games = rv["games"]
         self.assertEqual(len(games), 1)
@@ -303,7 +305,7 @@ class GameInstanceTests(unittest.TestCase):
             "action": Action.GetGames,
             "archived": True
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         games = rv["games"]
         self.assertEqual(len(games), 2)
@@ -325,7 +327,7 @@ class GameInstanceTests(unittest.TestCase):
             "login": "logger1",
             "password": "ffs"
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         p1 = rv["player"]
 
@@ -333,7 +335,7 @@ class GameInstanceTests(unittest.TestCase):
             "action": Action.GetPlayer,
             "telegramId": 2
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         p3 = rv["player"]
 
@@ -342,7 +344,7 @@ class GameInstanceTests(unittest.TestCase):
             "token": p2["token"],
             "refreshToken": True
         }
-        rv = manipulator.Act(action)
+        rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
         p2 = rv["player"]
 
