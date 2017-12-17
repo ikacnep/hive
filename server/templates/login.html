@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+
+    <title>Залогин в офигенный улей</title>
+
+    <link rel="stylesheet" href="//aui-cdn.atlassian.com/aui-adg/6.0.6/css/aui.min.css" media="all">
+    <script src="//aui-cdn.atlassian.com/aui-adg/6.0.6/js/aui.min.js"></script>
+</head>
+
+<body class="aui-page-focused aui-page-size-medium">
+    <div id="page">
+        <section id="content" role="main">
+            <header class="aui-page-header" style="width: 300px">
+                <h1>Залогин</h1>
+            </header>
+            <div class="aui-page-panel" style="width: 300px">
+                <div class="aui-page-panel-inner">
+                    <section class="aui-page-panel-content">
+                        <form class="aui top-label" method="post" action="{{ url_for('do_login') }}">
+                            {% if error %}
+                                <div class="aui-message aui-message-error">
+                                    <p class="title">Ошибка</p>
+                                    <p>{{ error }}</p>
+                                </div>
+                            {% endif %}
+
+                            <div class="field-group">
+                                <input name="login" type="text" class="text long-field" placeholder="Логинчик" required>
+                            </div>
+
+                            <div class="field-group">
+                                <input name="password" type="password" class="password long-field" placeholder="Парольчик" required>
+                            </div>
+
+                            <div class="buttons-container">
+                                <div class="buttons">
+                                    <button name="action" class="aui-button aui-button-primary" type="submit" value="login">Логнуться</button>
+                                    <button name="action" class="aui-button aui-button-link" type="submit" value="register">Регнуться</button>
+                                </div>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

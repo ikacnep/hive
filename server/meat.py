@@ -1,5 +1,6 @@
 import flask
 import os
+import traceback
 
 from spine.Game.Utils.Action import Action
 from spine.GamesManipulator import GamesManipulator
@@ -22,7 +23,7 @@ def handle_incorrect_move(error):
 
 
 @app.route('/')
-def hello_world():
+def main_page():
     data = flask.request.args
     session = flask.session
 
@@ -38,7 +39,7 @@ def hello_world():
                 'token': data.get('token')
             })
         else:
-            return flask.redirect('/login')  # TODO login/password auth :D
+            return flask.redirect(flask.url_for('login'))  # TODO login/password auth :D
 
         player_id = find_player['player']['token']
         session['player_id'] = player_id
@@ -47,6 +48,51 @@ def hello_world():
 
     return flask.render_template('index.html')
 
+
+@app.route('/login', methods=['GET'])
+def login():
+    return flask.render_template('login.html')
+
+
+@app.route('/do_login', methods=['POST'])
+def do_login():
+    data = flask.request.form
+
+    try:
+        action = data.get('action')
+        login = data.get('login')
+        password = data.get('password')
+
+        if not login:
+            raise Exception('А логинчик? :(')
+
+        if not password:
+            raise Exception('А парольчик? :(')
+
+        if action == 'login':
+            player = games_manipulator.Act({
+                'action': Action.GetPlayer,
+                'login': login,
+                'password': password,
+            })
+        elif action == 'register':
+            player = games_manipulator.Act({
+                'action': Action.CreatePlayer,
+                'login': login,
+                'password': password,
+            })
+        else:
+            raise Exception('Что-то не так!')
+
+        if not player['result']:
+            raise Exception('{0[message][0]}'.format(player))
+
+        flask.session['player_id'] = player['player']['token']
+    except Exception as error:
+        traceback.print_exc()
+        return flask.render_template('login.html', error=str(error))
+
+    return flask.redirect(flask.url_for('main_page'))
 
 @app.route('/action/add', methods=['POST'])
 def add():
