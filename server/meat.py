@@ -59,7 +59,6 @@ def do_login():
     data = flask.request.form
 
     try:
-        action = data.get('action')
         login = data.get('login')
         password = data.get('password')
 
@@ -69,28 +68,56 @@ def do_login():
         if not password:
             raise Exception('А парольчик? :(')
 
-        if action == 'login':
-            player = games_manipulator.Act({
-                'action': Action.GetPlayer,
-                'login': login,
-                'password': password,
-            })
-        elif action == 'register':
-            player = games_manipulator.Act({
-                'action': Action.CreatePlayer,
-                'login': login,
-                'password': password,
-            })
-        else:
-            raise Exception('Что-то не так!')
-
-        if not player['result']:
-            raise Exception('{0[message][0]}'.format(player))
+        player = games_manipulator.Act({
+            'action': Action.GetPlayer,
+            'login': login,
+            'password': password,
+        })
 
         flask.session['player_id'] = player['player']['token']
     except Exception as error:
         traceback.print_exc()
-        return flask.render_template('login.html', error=str(error))
+        return flask.render_template('login.html', error_message=str(error.args[0]))
+
+    return flask.redirect(flask.url_for('main_page'))
+
+
+@app.route('/register', methods=['GET'])
+def register():
+    return flask.render_template('register.html')
+
+
+@app.route('/do_register', methods=['POST'])
+def do_register():
+    data = flask.request.form
+
+    try:
+        login = data.get('login')
+        password = data.get('password')
+        confirm = data.get('confirm')
+
+        if not login:
+            raise Exception('А логинчик? :(')
+
+        if not password:
+            raise Exception('А парольчик? :(')
+
+        if not confirm:
+            raise Exception('А подтверждалку? :(')
+
+        if password != confirm:
+            raise Exception('Одинаковые пароль и подтверждалку, пожалуйста')
+
+        player = games_manipulator.Act({
+            'action': Action.CreatePlayer,
+            'login': login,
+            'password': password,
+        })
+
+        flask.session['player_id'] = player['player']['token']
+    except Exception as error:
+        traceback.print_exc()
+        return flask.render_template('register.html', error_message=str(error.args[0]))
 
     return flask.redirect(flask.url_for('main_page'))
 
@@ -226,8 +253,8 @@ def letsencrypt(challenge):
 def start(tls_cert, tls_key, secret_key):
     try:
         app.secret_key = open(secret_key, 'rb').read()
-    except IOError:
-        print('Cannot read secret key file: %s, will use developer\'s key')
+    except IOError as err:
+        print('Cannot read secret key file: %s, will use developer\'s key' % err)
         app.secret_key = "developer's key. Yup, that's it."
 
     context = (tls_cert, tls_key)
