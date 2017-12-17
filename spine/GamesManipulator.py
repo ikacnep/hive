@@ -235,6 +235,12 @@ class GamesManipulator:
 
         return rv
 
+    def GetOrCreatePlayer(self, token=None, name=None, login=None, password=None, telegramId=None, premium=False, refreshToken=False):
+        rv = self.GetPlayer(token, telegramId, login, password, refreshToken)
+        if (not rv.result):
+            rv = self.CreatePlayer(name, login, password, telegramId, premium)
+
+        return rv
 
     def ModifyPlayer(self, token=None, telegramId=None, login=None, password=None, refreshToken=False, newName=None, newLogin=None, newPassword=None, newTelegramId=None, newPremium=None):
         rv = ModifyPlayerResult()
@@ -520,6 +526,31 @@ class GamesManipulator:
         tmprv = self.CreatePlayer(name, login, password, telegramId, premium)
         tmprv.FillJson(rv)
 
+    def ActJS_GetOrCreatePlayer(self, action, rv):
+        token = None
+        if "token" in action:
+            token = action["token"]
+        telegramId = None
+        if "telegramId" in action:
+            telegramId = action["telegramId"]
+        login = None
+        password = None
+        if "login" in action and "password" in action:
+            login = action["login"]
+            password = action["password"]
+        refreshToken = None
+        if "refreshToken" in action:
+            refreshToken = action["refreshToken"]
+        name = None
+        if "name" in action:
+            name = action["name"]
+        premium = False
+        if "premium" in action:
+            premium = action["premium"]
+
+        tmprv = self.GetOrCreatePlayer(token, name, login, password, telegramId, premium, refreshToken)
+        tmprv.FillJson(rv)
+
     def ActJS_ModifyPlayer(self, action, rv):
         token = None
         if "token" in action:
@@ -576,10 +607,9 @@ class GamesManipulator:
             elif act == Action.ModifyPlayer:
                 self.ActJS_ModifyPlayer(action, rv)
             elif act == Action.CreatePlayer:
-                try:
-                    self.ActJS_GetPlayer(action, rv)
-                except:
-                    self.ActJS_CreatePlayer(action, rv)
+                self.ActJS_CreatePlayer(action, rv)
+            elif act == Action.GetOrCreatePlayer:
+                self.ActJS_GetOrCreatePlayer(action, rv)
             elif act == Action.Move:
                 pid = action["player"]
                 gid = action["gid"]
