@@ -314,46 +314,41 @@ class GamesManipulator:
 
     def Act(self, action):
         rv = {"action": action}
-        try:
-            act = action["action"]
-            game = None
-            if act == Action.CreateGame:
-                game = self.Act_CreateGame(action, rv)
-            elif act == Action.GetGames:
-                self.Act_GetGames(action, rv)
-            elif act == Action.GetPlayer:
+
+        act = action["action"]
+        game = None
+        if act == Action.CreateGame:
+            game = self.Act_CreateGame(action, rv)
+        elif act == Action.GetGames:
+            self.Act_GetGames(action, rv)
+        elif act == Action.GetPlayer:
+            self.Act_GetPlayer(action, rv)
+        elif act == Action.CreatePlayer:
+            self.Act_CreatePlayer(action, rv)
+        elif act == Action.ModifyPlayer:
+            self.Act_ModifyPlayer(action, rv)
+        elif act == Action.CreatePlayer:
+            try:
                 self.Act_GetPlayer(action, rv)
-            elif act == Action.CreatePlayer:
+            except:
                 self.Act_CreatePlayer(action, rv)
-            elif act == Action.ModifyPlayer:
-                self.Act_ModifyPlayer(action, rv)
-            elif act == Action.CreatePlayer:
-                try:
-                    self.Act_GetPlayer(action, rv)
-                except:
-                    self.Act_CreatePlayer(action, rv)
-            elif act in (Action.Move, Action.Place, Action.ForceEnd, Action.Suggest, Action.Concede, Action.Skip):
-                game = self.Act_DoAction(action, rv)
-            elif act == Action.Undefined:
-                raise UnknownAction("Undefined action is not allowed")
-            else:
-                raise UnknownAction("Unknown action: %s" % act)
+        elif act in (Action.Move, Action.Place, Action.ForceEnd, Action.Suggest, Action.Concede, Action.Skip):
+            game = self.Act_DoAction(action, rv)
+        elif act == Action.Undefined:
+            raise UnknownAction("Undefined action is not allowed")
+        else:
+            raise UnknownAction("Unknown action: %s" % act)
 
-            if "addActions" in action and game is not None and action["addActions"]:
-                rv["actions"] = game.GetActions()
-            if "addState" in action and game is not None and action["addState"]:
-                addAllActions = False
-                if "addAllActions" in action:
-                    addAllActions = action["addAllActions"]
-                rv["state"] = game.GetState(addAllActions=addAllActions)
+        if "addActions" in action and game is not None and action["addActions"]:
+            rv["actions"] = game.GetActions()
+        if "addState" in action and game is not None and action["addState"]:
+            addAllActions = False
+            if "addAllActions" in action:
+                addAllActions = action["addAllActions"]
+            rv["state"] = game.GetState(addAllActions=addAllActions)
 
-            rv["result"] = True
-            return rv
-        except Exception as ex:
-            rv["result"] = False
-            rv["reason"] = type(ex)
-            rv["message"] = ex.args
-            return rv
+        rv["result"] = True
+        return rv
 
     @staticmethod
     def GetEloRate(rate1, rate2, result):
