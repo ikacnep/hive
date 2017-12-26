@@ -1,0 +1,40 @@
+{% extends 'aui_template.html' %}
+
+{% block title %}
+    Прихожая
+{% endblock %}
+
+{% block page_class %}
+    aui-page-focused aui-page-size-small
+{% endblock %}
+
+{% block heading %}
+    Прихожая
+{% endblock %}
+
+{% block content %}
+    <p>Привет, {{ player_token }}</p>
+
+    <div>
+        {% if games.games %}
+            Ваши игры:
+            <ul>
+                {% for game in games.games %}
+                    <li><a href="{{ url_for('resume_game', game_id=game.gid) }}">
+                        № {{ game.gid }}
+                    </a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            У вас нет начатых игр.
+        {% endif %}
+    </div>
+
+    <div>
+        <form class="aui" method="post" action="{{ url_for('start_game') }}">
+            <input type="text" class="text" name="other_player_token" placeholder="С кем рубанём?">
+
+            <button class="aui-button">Начать игру</button>
+        </form>
+    </div>
+{% endblock %}

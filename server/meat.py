@@ -27,26 +27,27 @@ def main_page():
     data = flask.request.args
     session = flask.session
 
-    player_id = None
+    player = None
 
-    if 'player_id' in session:  # Already logged-in users
-        player_id = session['player_id']
+    if 'player_token' in session:  # Already logged-in users
+        player_token = session['player_token']
+        player = games_manipulator.GetPlayer(token=player_token).player
     else:
         if 'telegram_id' in data or 'token' in data:  # opened link from telegram
-            find_player = games_manipulator.Act({
-                'action': Action.GetOrCreatePlayer,
-                'telegramId': data('telegram_id'),
-                'token': data.get('token')
-            })
+            find_player = games_manipulator.GetOrCreatePlayer(
+                token=data.get('token'),
+                telegramId=data.get('telegram_id'),
+            )
         else:
-            return flask.redirect(flask.url_for('login'))  # TODO login/password auth :D
+            return flask.redirect(flask.url_for('login'))
 
-        player_id = find_player['player']['token']
-        session['player_id'] = player_id
+        player = find_player.player
+        player_token = player.token
+        session['player_token'] = player_token
 
-    # TODO как будем игру начинать?
+    games = games_manipulator.GetGames(players=[player.id])
 
-    return flask.render_template('index.html')
+    return flask.render_template('lobby.html', games=games, player_token=player_token)
 
 
 @app.route('/login', methods=['GET'])
@@ -68,13 +69,9 @@ def do_login():
         if not password:
             raise Exception('А парольчик? :(')
 
-        player = games_manipulator.Act({
-            'action': Action.GetPlayer,
-            'login': login,
-            'password': password,
-        })
+        player = games_manipulator.GetPlayer(login=login, password=password)
 
-        flask.session['player_id'] = player['player']['token']
+        flask.session['player_token'] = player.player.token
     except Exception as error:
         traceback.print_exc()
         return flask.render_template('login.html', error_message=str(error.args[0]))
@@ -108,18 +105,43 @@ def do_register():
         if password != confirm:
             raise Exception('Одинаковые пароль и подтверждалку, пожалуйста')
 
-        player = games_manipulator.Act({
-            'action': Action.CreatePlayer,
-            'login': login,
-            'password': password,
-        })
+        player = games_manipulator.CreatePlayer(login=login, password=password)
 
-        flask.session['player_id'] = player['player']['token']
+        flask.session['player_token'] = player.player.token
     except Exception as error:
         traceback.print_exc()
         return flask.render_template('register.html', error_message=str(error.args[0]))
 
     return flask.redirect(flask.url_for('main_page'))
+
+
+@app.route('/start_game', methods=['GET', 'POST'])
+def start_game():
+    data = flask.request.values
+
+    player_token = flask.session.get('player_token')
+    other_player_token = data['other_player_token']
+
+    player = games_manipulator.GetPlayer(token=player_token).player
+    other_player = games_manipulator.GetPlayer(token=other_player_token).player
+
+    game = games_manipulator.CreateGame(player.id, other_player.id, turn=player.id)
+
+    if not game.result:
+        raise Exception('something\'s wrong: {}'.format(game.message))
+
+    return flask.render_template('game.html', game_id=game.gid)
+
+
+@app.route('/resume_game/<game_id>', methods=['GET'])
+def resume_game(game_id):
+    game = games_manipulator.GetGameInst(gid=game_id)
+
+    if not game.result:
+        raise Exception('something\'s wrong: {}'.format(game.message))
+
+    return flask.render_template('game.html', game_id=game.gid)
+
 
 @app.route('/action/add', methods=['POST'])
 def add():

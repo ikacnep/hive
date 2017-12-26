@@ -91,6 +91,8 @@ jQuery(function ($) {
 
     function Post(url, data) {
         log('Post', [].slice.apply(arguments));
+
+        data.game_id = game_id;
         
         return $.ajax(url, {
             data: JSON.stringify(data),
@@ -212,7 +214,7 @@ jQuery(function ($) {
         alert(error_message);
     });
 
-    $.getJSON('/board')
+    $.getJSON('/board?game_id=' + game_id)
         .done(function(game_response) {
             game = game_response;
             SortBoard();
@@ -263,7 +265,7 @@ jQuery(function ($) {
             return;
         }
 
-        $.getJSON('/moves', function(data) {
+        $.getJSON('/moves?game_id=' + game_id, function(data) {
             log('other player action:', data.action);
 
             if (!data.action) {
