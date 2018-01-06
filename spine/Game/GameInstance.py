@@ -27,13 +27,23 @@ class GameInstance:
         )
 
     def serialize(self):
-        # Это самый тупой метод сериализации. Можно сериализовать не все поля с помощью
-        # __getstate__ и __setstate__, чтобы не гонять лишние данные туда-сюда
         return pickle.dumps(self)
 
     @staticmethod
     def deserialize(str):
         return pickle.loads(str)
+
+    def __getstate__(self):
+        # Выкидываем всю историю действий при сохранении
+        banned_attributes = {'actions'}
+
+        return {k: v for k, v in self.__dict__.items() if k not in banned_attributes}
+
+    def __setstate__(self, state):
+        for key, value in state.items():
+            setattr(self, key, value)
+
+        self.actions = [self.lastAction] if self.lastAction else []
 
     def GetState(self, addAllActions = False):
         np = self.player1
