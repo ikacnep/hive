@@ -1,29 +1,23 @@
 import unittest
+
+from spine.Game.Utils.Exceptions import GameNotFoundException
 from ..GamesManipulator import GamesManipulator
 from ..Game.Settings.Figures.FigureTypes import FigureType
 from ..Game.Utils.Action import Action
-from ..Database.TestDatabase import TestGameArchieved
-from ..Database.TestDatabase import TestGame
-from ..Database.TestDatabase import TestPlayer
+from ..Database.TestDatabase import *
 
 class GameInstanceTests(unittest.TestCase):
     def setUp(self):
-        if TestGameArchieved.table_exists():
-            TestGameArchieved.drop_table()
-
-        if TestGame.table_exists():
-            TestGame.drop_table()
-
-        if TestPlayer.table_exists():
-            TestPlayer.drop_table()
+        for table in (TestGameArchieved, TestGame, TestPlayer, TestPersistedGameState):
+            if table.table_exists():
+                table.drop_table()
 
     def tearDown(self):
-        TestGameArchieved.drop_table()
-        TestGame.drop_table()
-        TestPlayer.drop_table()
+        for table in (TestGameArchieved, TestGame, TestPlayer, TestPersistedGameState):
+            table.drop_table()
 
     def testEverything(self):
-        manipulator = GamesManipulator(playerType=TestPlayer, gameType=TestGame, archType=TestGameArchieved)
+        manipulator = GamesManipulator(playerType=TestPlayer, gameType=TestGame, archType=TestGameArchieved, gameStateTable=TestPersistedGameState)
 # Creating players
         action = {
             "action":Action.CreatePlayer,
@@ -350,6 +344,51 @@ class GameInstanceTests(unittest.TestCase):
 
         self.assertTrue(p1["rating"] < p3["rating"])
         self.assertTrue(p3["rating"] < p2["rating"])
+
+    def testGameStatePersistence(self):
+        def create_manipulator():
+            return GamesManipulator(
+                playerType=TestPlayer,
+                gameType=TestGame,
+                archType=TestGameArchieved,
+                gameStateTable=TestPersistedGameState
+            )
+
+        manipulator = create_manipulator()
+
+        player1 = manipulator.CreatePlayer(name='player 1', telegramId=73571).player
+        player2 = manipulator.CreatePlayer(name='player 2', telegramId=73572).player
+
+        game_id = manipulator.CreateGame(player1.id, player2.id, player1.id, tourney=False).gid
+
+        # Imitates server restart and checks that game is restored correctly
+        def verify_game_instance():
+            new_manipulator = create_manipulator()
+
+            running_game = manipulator.GetGameInst(game_id)
+            reloaded_game = new_manipulator.GetGameInst(game_id)
+
+            self.assertEqual(running_game, reloaded_game)
+
+        verify_game_instance()
+
+        white_queen = manipulator.Place(game_id, player1.id, FigureType.Queen, (0, 0)).fid
+        verify_game_instance()
+
+        black_queen = manipulator.Place(game_id, player2.id, FigureType.Queen, (0, 1)).fid
+        verify_game_instance()
+
+        manipulator.Move(game_id, player1.id, white_queen, (0, 0), (1, 0))
+        verify_game_instance()
+
+        manipulator.Concede(game_id, player2.id)
+
+        with self.assertRaises(GameNotFoundException):
+            manipulator.GetGameInst(game_id)
+
+        with self.assertRaises(GameNotFoundException):
+            create_manipulator().GetGameInst(game_id)
+
 
 
 if __name__ == '__main__':

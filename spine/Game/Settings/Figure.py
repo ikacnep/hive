@@ -11,6 +11,16 @@ class Figure:
         self.id = -1
         self.layer = 0
 
+    def __eq__(self, other):
+        return (
+            self.id == other.id and
+            self.figType == other.figType and
+            self.figClass == other.figClass and
+            self.position == other.position and
+            self.layer == other.layer and
+            self.player == other.player
+        )
+
     def ToHash(self):
         return {
             "type": self.figType,

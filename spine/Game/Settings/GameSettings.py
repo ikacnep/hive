@@ -6,6 +6,13 @@ class GameSettings:
         self.limitations = limitations
         self.parameters = parameters
 
+    def __eq__(self, other):
+        return (
+            self.figures == other.figures and
+            self.limitations == other.limitations and
+            self.parameters == other.parameters
+        )
+
     @staticmethod
     def GetSettings(mosquito=False, ladybug=False, pillbug=False, tourney=False):
         figures = [FigureType.Queen] + [FigureType.Spider] * 2 + [FigureType.Beetle] * 2 + [FigureType.Grasshopper] * 3 + [FigureType.Ant] * 3

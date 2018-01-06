@@ -4,6 +4,13 @@ class NegArray:
         self.dimentions = dim
         self.count = [0] * dim
 
+    def __eq__(self, other):
+        return (
+            self.innerArr == other.innerArr and
+            self.dimentions == other.dimentions and
+            self.count == other.count
+        )
+
     def Reset(self):
         self.innerArr = [0]
 

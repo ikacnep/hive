@@ -106,3 +106,7 @@ class GameArchieved(BaseModel):
         rv.start = arch.start
         rv.end = arch.end
         return rv
+
+
+class PersistedGameState(BaseModel):
+    state = TextField()

@@ -69,3 +69,7 @@ class TestGameArchieved(BaseTestModel):
             "end":arch.end,
             "hasEnded":True
         }
+
+
+class TestPersistedGameState(BaseTestModel):
+    state = TextField()

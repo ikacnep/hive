@@ -20,6 +20,19 @@ class GameState:
         self.FillPlacementFigures(0)
         self.availPlacements[0][1].append((0, 0))
 
+    def __eq__(self, other):
+        return (
+            self.field == other.field and
+            self.figures == other.figures and
+            self.limitations == other.limitations and
+            self.availFigures == other.availFigures and
+            self.turn == other.turn and
+            self.figId == other.figId and
+            self.lastMoved == other.lastMoved and
+            self.hasLost == other.hasLost and
+            self.gameEnded == other.gameEnded
+        )
+
     def FillPlacementFigures(self, id):
         for fig in self.availFigures[id]:
             if (not fig in self.availPlacements[id][0]):

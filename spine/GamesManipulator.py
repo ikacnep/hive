@@ -3,6 +3,7 @@ from .Game.Utils.Exceptions import *
 from .Game.GameInstance import GameInstance
 from .Game.Settings.GameSettings import GameSettings
 from .Game.Utils.Action import Action
+from .Game.GameState import GameState
 from .JsonPYAdaptors.CreateGameResult import CreateGameResult
 from .JsonPYAdaptors.GetGamesResult import GetGamesResult
 from .JsonPYAdaptors.GetPlayerResult import GetPlayerResult
@@ -22,7 +23,7 @@ class GamesManipulator:
     archive = None
     runningGames = {}
 
-    def __init__(self, playerType=Player, gameType=Game, archType=GameArchieved):
+    def __init__(self, playerType=Player, gameType=Game, archType=GameArchieved, gameStateTable=PersistedGameState):
         self.players = playerType
         if not self.players.table_exists():
             self.players.create_table()
@@ -35,7 +36,13 @@ class GamesManipulator:
         if not self.archive.table_exists():
             self.archive.create_table()
 
+        self.game_state_table = gameStateTable
+        if not self.game_state_table.table_exists():
+            self.game_state_table.create_table()
+
         self.runningGames = {}
+        for game_state in gameStateTable.select():
+            self.runningGames[game_state.id] = GameInstance.deserialize(game_state.state)
 
     def CreateGameInner(self, player1, player2, mosquito, ladybug, pillbug, tourney, rv):
         try:
@@ -59,30 +66,25 @@ class GamesManipulator:
     def CreateGame(self, player1, player2, turn=None, mosquito=False, ladybug=False, pillbug=False, tourney=False, addActions=False, addAllActions=False, addState=False):
         rv = CreateGameResult()
 
-        try:
-            if turn != player1 and turn != player2:
-                turn = None
+        if turn != player1 and turn != player2:
+            turn = None
 
-            if turn is None:
-                if bool(random.getrandbits(0)):
-                    turn = player2
+        if turn is None:
+            if bool(random.getrandbits(1)):
+                turn = player2
 
-            if turn == player2:
-                tmp = player2
-                player2 = player1
-                player1 = tmp
+        if turn == player2:
+            tmp = player2
+            player2 = player1
+            player1 = tmp
 
-            game = self.CreateGameInner(player1, player2, mosquito, ladybug, pillbug, tourney, rv)
+        game = self.CreateGameInner(player1, player2, mosquito, ladybug, pillbug, tourney, rv)
+        self._persist_game(rv.gid)
 
-            if addActions:
-                rv.actions = game.GetActions()
-            if addState:
-                rv.state = game.GetState(addAllActions=addAllActions)
-
-        except Exception as ex:
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+        if addActions:
+            rv.actions = game.GetActions()
+        if addState:
+            rv.state = game.GetState(addAllActions=addAllActions)
 
         return rv
 
@@ -196,48 +198,43 @@ class GamesManipulator:
     def CreatePlayer(self, name=None, login=None, password=None, telegramId=None, premium=False):
         rv = CreatePlayerResult()
 
-        try:
-            if login != None:
-                p = None
-                try:
-                    p = self.players.get(self.players.login == login)
-                except:
-                    pass
-                if p is not None:
-                    raise PlayerCreationException("Login is already in use")
+        if login != None:
+            p = None
+            try:
+                p = self.players.get(self.players.login == login)
+            except:
+                pass
+            if p is not None:
+                raise PlayerCreationException("Login is already in use")
 
-            if telegramId != None:
-                p = None
-                try:
-                    p = self.players.get(self.players.telegramId == telegramId)
-                except Exception as ex:
-                    pass
+        if telegramId != None:
+            p = None
+            try:
+                p = self.players.get(self.players.telegramId == telegramId)
+            except Exception as ex:
+                pass
 
-                if p is not None:
-                    raise PlayerCreationException("This telegramid is already in use")
+            if p is not None:
+                raise PlayerCreationException("This telegramid is already in use")
 
-            if login is None and telegramId is None:
-                raise PlayerCreationException("Cannot create player without login and telegram id. No way for him to join the club")
+        if login is None and telegramId is None:
+            raise PlayerCreationException("Cannot create player without login and telegram id. No way for him to join the club")
 
-            p = self.players.create(
-                name=name,
-                login=login,
-                password=password,
-                telegramId=telegramId,
-                premium=premium,
-                token=str(self.GetToken())
-            )
-            rv.player = Player.ToClass(p)
-        except Exception as ex:
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+        p = self.players.create(
+            name=name,
+            login=login,
+            password=password,
+            telegramId=telegramId,
+            premium=premium,
+            token=str(self.GetToken())
+        )
+        rv.player = Player.ToClass(p)
 
         return rv
 
     def GetOrCreatePlayer(self, token=None, name=None, login=None, password=None, telegramId=None, premium=False, refreshToken=False):
         rv = self.GetPlayer(token, telegramId, login, password, refreshToken)
-        if (not rv.result):
+        if not rv.result:
             rv = self.CreatePlayer(name, login, password, telegramId, premium)
 
         return rv
@@ -245,42 +242,37 @@ class GamesManipulator:
     def ModifyPlayer(self, token=None, telegramId=None, login=None, password=None, refreshToken=False, newName=None, newLogin=None, newPassword=None, newTelegramId=None, newPremium=None):
         rv = ModifyPlayerResult()
 
-        try:
-            p = self.GetPlayerInner(token, telegramId, login, password, refreshToken)
+        p = self.GetPlayerInner(token, telegramId, login, password, refreshToken)
 
-            if newLogin != None and newLogin != login:
-                tmpP = None
-                try:
-                    tmpP = self.players.get(self.players.login == newLogin)
-                except:
-                    pass
-                if tmpP is not None:
-                    raise PlayerModificationException("login is already in use")
-                p.login = newLogin
+        if newLogin != None and newLogin != login:
+            tmpP = None
+            try:
+                tmpP = self.players.get(self.players.login == newLogin)
+            except:
+                pass
+            if tmpP is not None:
+                raise PlayerModificationException("login is already in use")
+            p.login = newLogin
 
-            if newName != None:
-                p.name = newName
-            if newPassword != None:
-                p.password = newPassword
-            if newTelegramId != None:
-                tmpP = None
-                try:
-                    tmpP = self.players.get(self.players.telegramId == newTelegramId)
-                except:
-                    pass
-                if tmpP is not None:
-                    raise PlayerModificationException("telegram ID is already in use")
-                p.telegramId = newTelegramId
-            if newPremium != None:
-                p.premium = newPremium
+        if newName != None:
+            p.name = newName
+        if newPassword != None:
+            p.password = newPassword
+        if newTelegramId != None:
+            tmpP = None
+            try:
+                tmpP = self.players.get(self.players.telegramId == newTelegramId)
+            except:
+                pass
+            if tmpP is not None:
+                raise PlayerModificationException("telegram ID is already in use")
+            p.telegramId = newTelegramId
+        if newPremium != None:
+            p.premium = newPremium
 
-            p.save()
+        p.save()
 
-            rv.player = Player.ToClass(p)
-        except Exception as ex:
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+        rv.player = Player.ToClass(p)
 
         return rv
 
@@ -335,111 +327,71 @@ class GamesManipulator:
                 p2.id: ratingChange[1]
             }
 
+        self._persist_game(gid)
+
     def Place(self, gid, player, figure, position, addActions=False, addAllActions=False, addState=False):
-        rv = None
-        try:
-            game = self.GetGameInst(gid)
-            rv = game.Place(player, figure, position)
-            if addActions:
-                rv.actions = game.GetActions()
-            if addState:
-                rv.state = game.GetState(addAllActions=addAllActions)
-            self.ProcessEndgame(gid, game, rv)
-        except Exception as ex:
-            rv = GameActionResult()
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+        game = self.GetGameInst(gid)
+        rv = game.Place(player, figure, position)
+        if addActions:
+            rv.actions = game.GetActions()
+        if addState:
+            rv.state = game.GetState(addAllActions=addAllActions)
+        self.ProcessEndgame(gid, game, rv)
 
         return rv
 
     def Move(self, gid, player, fid, f, t, addActions=False, addAllActions=False, addState=False):
-        rv = None
-        try:
-            game = self.GetGameInst(gid)
-            rv = game.Move(player, fid, f, t)
-            if addActions:
-                rv.actions = game.GetActions()
-            if addState:
-                rv.state = game.GetState(addAllActions=addAllActions)
-            self.ProcessEndgame(gid, game, rv)
-        except Exception as ex:
-            rv = GameActionResult()
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+        game = self.GetGameInst(gid)
+        rv = game.Move(player, fid, f, t)
+        if addActions:
+            rv.actions = game.GetActions()
+        if addState:
+            rv.state = game.GetState(addAllActions=addAllActions)
+        self.ProcessEndgame(gid, game, rv)
 
         return rv
 
     def Skip(self, gid, player, addActions=False, addAllActions=False, addState=False):
-        rv = None
-        try:
-            game = self.GetGameInst(gid)
-            rv = game.Skip(player)
-            if addActions:
-                rv.actions = game.GetActions()
-            if addState:
-                rv.state = game.GetState(addAllActions=addAllActions)
-            self.ProcessEndgame(gid, game, rv)
-        except Exception as ex:
-            rv = GameActionResult()
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+        game = self.GetGameInst(gid)
+        rv = game.Skip(player)
+        if addActions:
+            rv.actions = game.GetActions()
+        if addState:
+            rv.state = game.GetState(addAllActions=addAllActions)
+        self.ProcessEndgame(gid, game, rv)
 
         return rv
 
     def Concede(self, gid, player, addActions=False, addAllActions=False, addState=False):
-        rv = None
-        try:
-            game = self.GetGameInst(gid)
-            rv = game.Concede(player)
-            if addActions:
-                rv.actions = game.GetActions()
-            if addState:
-                rv.state = game.GetState(addAllActions=addAllActions)
-            self.ProcessEndgame(gid, game, rv)
-        except Exception as ex:
-            rv = GameActionResult()
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+        game = self.GetGameInst(gid)
+        rv = game.Concede(player)
+        if addActions:
+            rv.actions = game.GetActions()
+        if addState:
+            rv.state = game.GetState(addAllActions=addAllActions)
+        self.ProcessEndgame(gid, game, rv)
 
         return rv
 
     def ForceEnd(self, gid, player, addActions=False, addAllActions=False, addState=False):
-        rv = None
-        try:
-            game = self.GetGameInst(gid)
-            rv = game.ForceEnd(player)
-            if addActions:
-                rv.actions = game.GetActions()
-            if addState:
-                rv.state = game.GetState(addAllActions=addAllActions)
-            self.ProcessEndgame(gid, game, rv)
-        except Exception as ex:
-            rv = GameActionResult()
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+        game = self.GetGameInst(gid)
+        rv = game.ForceEnd(player)
+        if addActions:
+            rv.actions = game.GetActions()
+        if addState:
+            rv.state = game.GetState(addAllActions=addAllActions)
+        self.ProcessEndgame(gid, game, rv)
 
         return rv
 
     def Suggest(self, gid, player, addActions=False, addAllActions=False, addState=False):
-        rv = None
-        try:
-            game = self.GetGameInst(gid)
-            rv = game.Suggest(player)
-            if addActions:
-                rv.actions = game.GetActions()
-            if addState:
-                rv.state = game.GetState(addAllActions=addAllActions)
-            self.ProcessEndgame(gid, game, rv)
-        except Exception as ex:
-            rv = GameActionResult()
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+        game = self.GetGameInst(gid)
+        rv = game.Suggest(player)
+        if addActions:
+            rv.actions = game.GetActions()
+        if addState:
+            rv.state = game.GetState(addAllActions=addAllActions)
+        self.ProcessEndgame(gid, game, rv)
 
         return rv
 
@@ -756,3 +708,16 @@ class GamesManipulator:
                     return newToken
             except:
                 return newToken
+
+    def _persist_game(self, game_id):
+        with self.game_state_table._meta.database.atomic():
+            if game_id in self.runningGames:
+                state_str = self.runningGames[game_id].serialize()
+
+                game_state, is_created = self.game_state_table.get_or_create(id=game_id, defaults={'state': state_str})
+
+                if not is_created:
+                    game_state.state = state_str
+                    game_state.save()
+            else:
+                self.game_state_table.delete().where(self.game_state_table.id == game_id).execute()

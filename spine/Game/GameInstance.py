@@ -1,3 +1,5 @@
+import pickle
+
 from .GameState import GameState
 from .Utils.Action import Action
 from .Utils.Exceptions import *
@@ -14,6 +16,24 @@ class GameInstance:
         self.actions = []
         self.noone = [False, False]
         self.settings = settings
+
+    def __eq__(self, other):
+        return (
+            self.game == other.game and
+            self.player0 == other.player0 and
+            self.player1 == other.player1 and
+            self.noone == other.noone and
+            self.settings == other.settings
+        )
+
+    def serialize(self):
+        # Это самый тупой метод сериализации. Можно сериализовать не все поля с помощью
+        # __getstate__ и __setstate__, чтобы не гонять лишние данные туда-сюда
+        return pickle.dumps(self)
+
+    @staticmethod
+    def deserialize(str):
+        return pickle.loads(str)
 
     def GetState(self, addAllActions = False):
         np = self.player1
