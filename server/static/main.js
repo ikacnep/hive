@@ -171,7 +171,7 @@ jQuery(function ($) {
         var adding_figure = $('.add_piece.selected').data('figure');
 
         if (adding_figure) {
-            Post('/action/add', {
+            Post('/action/add/' + game_id, {
                 figure: adding_figure,
                 coordinates: [r, q],
                 player_key: game.player_key
@@ -184,7 +184,7 @@ jQuery(function ($) {
                     board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
                     game.selected_piece = null;
                 } else {
-                    Post('/action/move', {
+                    Post('/action/move/' + game_id, {
                         id: game.selected_piece.id,
                         coordinates: [r, q],
                         player_key: game.player_key
@@ -214,7 +214,7 @@ jQuery(function ($) {
         alert(error_message);
     });
 
-    $.getJSON('/board?game_id=' + game_id)
+    $.getJSON('/board/' + game_id)
         .done(function(game_response) {
             game = game_response;
             SortBoard();
@@ -261,11 +261,11 @@ jQuery(function ($) {
     });
 
     function PollForChanges() {
-        if (game.state.current_turn === game.player_color) {
+        if (true || game.state.current_turn === game.player_color) {
             return;
         }
 
-        $.getJSON('/moves?game_id=' + game_id, function(data) {
+        $.getJSON('/moves/' + game_id, function(data) {
             log('other player action:', data.action);
 
             if (!data.action) {

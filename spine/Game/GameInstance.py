@@ -51,16 +51,16 @@ class GameInstance:
             np = self.player0
         rv = GameStateData()
         rv.figures = {
-                self.player0:self.game.FiguresHash(0),
-                self.player1:self.game.FiguresHash(1)
-            },
-        rv.turn = self.game.turn,
-        rv.lastAction = self.lastAction,
-        rv.ended = self.game.gameEnded,
+            self.player0: self.game.FiguresHash(0),
+            self.player1: self.game.FiguresHash(1)
+        }
+        rv.turn = self.game.turn
+        rv.lastAction = self.lastAction
+        rv.ended = self.game.gameEnded
         rv.lost = {
-                self.player0:self.game.hasLost[0],
-                self.player1:self.game.hasLost[1]
-            },
+            self.player0:self.game.hasLost[0],
+            self.player1:self.game.hasLost[1]
+        }
         rv.nextPlayer = np
         if addAllActions:
             rv.allActions = self.actions
@@ -104,134 +104,116 @@ class GameInstance:
 
     def Place(self, player, figure, position):
         rv = GameActionResult()
-        try:
-            pid = self.GetPlayer(player)
-            id = self.game.Place(pid, figure, position)
-            self.noone[0] = False
-            self.noone[1] = False
-            rv.fid = id
-            self.FillPositiveResult(rv)
 
-            action = {
-                "action" : Action.Place,
-                "player" : player,
-                "figure" : figure,
-                "position" : position
-            }
-            self.actions.append(action)
-            self.lastAction = action
-        except Exception as ex:
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+        pid = self.GetPlayer(player)
+        id = self.game.Place(pid, figure, position)
+        self.noone[0] = False
+        self.noone[1] = False
+        rv.fid = id
+        self.FillPositiveResult(rv)
+
+        action = {
+            "action" : Action.Place,
+            "player" : player,
+            "figure" : figure,
+            "position" : position
+        }
+        self.actions.append(action)
+        self.lastAction = action
+
         return rv
 
     def Move(self, player, fid, f, t):
         rv = GameActionResult()
-        try:
-            pid = self.GetPlayer(player)
-            id = self.game.Move(pid, fid, f, t)
-            self.noone[0] = False
-            self.noone[1] = False
-            rv.fid = id
-            self.FillPositiveResult(rv)
-            action = {
-                "action": Action.Move,
-                "player": player,
-                "fid": fid,
-                "from": f,
-                "to": t
-            }
-            self.actions.append(action)
-            self.lastAction = action
-        except Exception as ex:
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+
+        pid = self.GetPlayer(player)
+        id = self.game.Move(pid, fid, f, t)
+        self.noone[0] = False
+        self.noone[1] = False
+        rv.fid = id
+        self.FillPositiveResult(rv)
+        action = {
+            "action": Action.Move,
+            "player": player,
+            "fid": fid,
+            "from": f,
+            "to": t
+        }
+        self.actions.append(action)
+        self.lastAction = action
+
         return rv
 
     def Skip(self, player):
         rv = GameActionResult()
-        try:
-            pid = self.GetPlayer(player)
-            self.game.Skip(pid)
-            self.noone[0] = False
-            self.noone[1] = False
-            self.FillPositiveResult(rv)
-            action = {
-                "action": Action.Skip,
-                "player": player,
-            }
-            self.actions.append(action)
-            self.lastAction = action
-        except Exception as ex:
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+
+        pid = self.GetPlayer(player)
+        self.game.Skip(pid)
+        self.noone[0] = False
+        self.noone[1] = False
+        self.FillPositiveResult(rv)
+        action = {
+            "action": Action.Skip,
+            "player": player,
+        }
+        self.actions.append(action)
+        self.lastAction = action
+
         return rv
 
     def Concede(self, player):
         rv = GameActionResult()
-        try:
-            pid = self.GetPlayer(player)
-            self.game.gameEnded = True
-            self.game.hasLost[pid] = True
-            self.noone[0] = False
-            self.noone[1] = False
-            self.FillPositiveResult(rv)
-            action = {
-                "action": Action.Concede,
-                "player": player,
-            }
-            self.actions.append(action)
-            self.lastAction = action
-        except Exception as ex:
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+
+        pid = self.GetPlayer(player)
+        self.game.gameEnded = True
+        self.game.hasLost[pid] = True
+        self.noone[0] = False
+        self.noone[1] = False
+        self.FillPositiveResult(rv)
+        action = {
+            "action": Action.Concede,
+            "player": player,
+        }
+        self.actions.append(action)
+        self.lastAction = action
+
         return rv
 
     def ForceEnd(self, player):
         rv = GameActionResult()
-        try:
-            pid = self.GetPlayer(player)
-            self.game.gameEnded = True
-            self.game.hasLost[pid] = True
-            self.noone[0] = False
-            self.noone[1] = False
-            self.FillPositiveResult(rv)
-            action = {
-                "action": Action.ForceEnd,
-                "player": player,
-            }
-            self.actions.append(action)
-            self.lastAction = action
-        except Exception as ex:
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+
+        pid = self.GetPlayer(player)
+        self.game.gameEnded = True
+        self.game.hasLost[pid] = True
+        self.noone[0] = False
+        self.noone[1] = False
+        self.FillPositiveResult(rv)
+        action = {
+            "action": Action.ForceEnd,
+            "player": player,
+        }
+        self.actions.append(action)
+        self.lastAction = action
+
         return rv
 
     def Suggest(self, player):
         rv = GameActionResult()
-        try:
-            pid = self.GetPlayer(player)
-            self.noone[pid] = True
-            if (self.noone[0] == self.noone[1]):
-                self.game.gameEnded = True
-                self.game.hasLost[0] = True
-                self.game.hasLost[1] = True
-            self.FillPositiveResult(rv)
-            action = {
-                "action": Action.Suggest,
-                "player": player,
-            }
-            self.actions.append(action)
-            self.lastAction = action
-        except Exception as ex:
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+
+        pid = self.GetPlayer(player)
+        self.noone[pid] = True
+        if (self.noone[0] == self.noone[1]):
+            self.game.gameEnded = True
+            self.game.hasLost[0] = True
+            self.game.hasLost[1] = True
+        self.FillPositiveResult(rv)
+        action = {
+            "action": Action.Suggest,
+            "player": player,
+        }
+        self.actions.append(action)
+        self.lastAction = action
+
         return rv
 
     def FillPositiveResult(self, rv):

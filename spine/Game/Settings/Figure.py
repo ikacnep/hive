@@ -13,6 +13,7 @@ class Figure:
 
     def __eq__(self, other):
         return (
+            other is not None and
             self.id == other.id and
             self.figType == other.figType and
             self.figClass == other.figClass and

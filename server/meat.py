@@ -2,7 +2,6 @@ import flask
 import os
 import traceback
 
-from spine.Game.Utils.Action import Action
 from spine.GamesManipulator import GamesManipulator
 
 app = flask.Flask(__name__)
@@ -29,9 +28,9 @@ def main_page():
 
     player = None
 
-    if 'player_token' in session:  # Already logged-in users
-        player_token = session['player_token']
-        player = games_manipulator.GetPlayer(token=player_token).player
+    if 'player_id' in session:  # Already logged-in users
+        player_id = session['player_id']
+        player = games_manipulator.GetPlayer(id=player_id).player
     else:
         if 'telegram_id' in data or 'token' in data:  # opened link from telegram
             find_player = games_manipulator.GetOrCreatePlayer(
@@ -42,12 +41,12 @@ def main_page():
             return flask.redirect(flask.url_for('login'))
 
         player = find_player.player
-        player_token = player.token
-        session['player_token'] = player_token
+        player_id = player.id
+        session['player_id'] = player_id
 
     games = games_manipulator.GetGames(players=[player.id])
 
-    return flask.render_template('lobby.html', games=games, player_token=player_token)
+    return flask.render_template('lobby.html', games=games, player_id=player_id)
 
 
 @app.route('/login', methods=['GET'])
@@ -71,7 +70,7 @@ def do_login():
 
         player = games_manipulator.GetPlayer(login=login, password=password)
 
-        flask.session['player_token'] = player.player.token
+        flask.session['player_id'] = player.player.id
     except Exception as error:
         traceback.print_exc()
         return flask.render_template('login.html', error_message=str(error.args[0]))
@@ -107,7 +106,7 @@ def do_register():
 
         player = games_manipulator.CreatePlayer(login=login, password=password)
 
-        flask.session['player_token'] = player.player.token
+        flask.session['player_id'] = player.player.id
     except Exception as error:
         traceback.print_exc()
         return flask.render_template('register.html', error_message=str(error.args[0]))
@@ -119,32 +118,50 @@ def do_register():
 def start_game():
     data = flask.request.values
 
-    player_token = flask.session.get('player_token')
-    other_player_token = data['other_player_token']
+    player_id = flask.session.get('player_id')
+    other_player_id = data['other_player_id']
 
-    player = games_manipulator.GetPlayer(token=player_token).player
-    other_player = games_manipulator.GetPlayer(token=other_player_token).player
+    player = games_manipulator.GetPlayer(id=player_id).player
+    other_player = games_manipulator.GetPlayer(id=other_player_id).player
 
     game = games_manipulator.CreateGame(player.id, other_player.id, turn=player.id)
 
     if not game.result:
         raise Exception('something\'s wrong: {}'.format(game.message))
 
-    return flask.render_template('game.html', game_id=game.gid)
+    return flask.redirect(flask.url_for('resume_game', game_id=game.gid))
 
 
-@app.route('/resume_game/<game_id>', methods=['GET'])
+@app.route('/game/<int:game_id>', methods=['GET'])
 def resume_game(game_id):
-    game = games_manipulator.GetGameInst(gid=game_id)
-
-    if not game.result:
-        raise Exception('something\'s wrong: {}'.format(game.message))
-
-    return flask.render_template('game.html', game_id=game.gid)
+    return flask.render_template('game.html', game_id=game_id)
 
 
-@app.route('/action/add', methods=['POST'])
-def add():
+def verify_i_play_game(game_id):
+    player_id = flask.session.get('player_id')
+
+    if not player_id:
+        raise IncorrectMove(r'Залогиньтесь сперва')
+
+    game = games_manipulator.GetGameInst(game_id)
+
+    player_id = int(player_id)
+
+    if player_id not in (game.player0, game.player1):
+        raise IncorrectMove('Вы не участвуете в этой игре')
+
+    return game, player_id
+
+
+def get_player_color(game, player_id=None):
+    if player_id is None:
+        player_id = int(flask.session['player_id'])
+
+    return 'white' if game.GetPlayer(player_id) == 0 else 'black'
+
+
+@app.route('/action/add/<int:game_id>', methods=['POST'])
+def add(game_id):
     # TODO
     data = flask.request.json
 
@@ -191,8 +208,8 @@ def add():
     )
 
 
-@app.route('/action/move', methods=['POST'])
-def move():
+@app.route('/action/move/<int:game_id>', methods=['POST'])
+def move(game_id):
     # TODO
     data = flask.request.json
 
@@ -230,8 +247,8 @@ def move():
     )
 
 
-@app.route('/moves', methods=['GET'])
-def get_moves():
+@app.route('/moves/<int:game_id>', methods=['GET'])
+def get_moves(game_id):
     # TODO
     player_color = check_player()
 
@@ -247,17 +264,17 @@ def get_moves():
     )
 
 
-@app.route('/board', methods=['GET'])
-def get_board():
-    # TODO
+@app.route('/board/<int:game_id>', methods=['GET'])
+def get_board(game_id):
     print('get_board')
-    current_player = choose_player_id()
+    game, player_id = verify_i_play_game(game_id)
+
+    print('State (json): %s' % game.GetState().GetJson())
 
     return flask.jsonify(
-        board=app.hive.board,
-        state=app.hive.state,
-        player_id=current_player,
-        player_color=app.hive.player_ids[current_player]
+        state=game.GetState().GetJson(),
+        player_id=player_id,
+        player_color=get_player_color(game, player_id)
     )
 
 

@@ -44,6 +44,8 @@ class GamesManipulator:
         for game_state in gameStateTable.select():
             self.runningGames[game_state.id] = GameInstance.deserialize(game_state.state)
 
+        print('Restored {} running games'.format(len(self.runningGames)))
+
     def CreateGameInner(self, player1, player2, mosquito, ladybug, pillbug, tourney, rv):
         try:
             p1 = self.players.get(self.players.id == player1)
@@ -90,79 +92,81 @@ class GamesManipulator:
 
     def GetGames(self, includeArch=False, gid=None, players=None):
         rv = GetGamesResult()
-        try:
-            rv.games = []
-            if gid != None:
-                if gid in self.runningGames:
-                    theGame = self.games.get(self.games.id == gid)
-                    rv.games.append(Game.ToClass(theGame))
-                elif includeArch:
-                    theGame = self.archive.get(self.archive.gameid == gid)
-                    rv.games.append(GameArchieved.ToClass(theGame))
-            else:
-                if players != None:
-                    try:
-                        p1 = self.players.get(self.players.id == players[0])
-                        p2 = None
-                        if len(players) > 1:
-                            p2 = self.players.get(self.players.id == players[1])
-                    except Exception as ex:
-                        raise PlayerNotFoundException("Player with specified ID not found", ex.args)
 
-                    if p2 is None:
+        rv.games = []
+
+        if gid != None:
+            if gid in self.runningGames:
+                theGame = self.games.get(self.games.id == gid)
+                rv.games.append(Game.ToClass(theGame))
+            elif includeArch:
+                theGame = self.archive.get(self.archive.gameid == gid)
+                rv.games.append(GameArchieved.ToClass(theGame))
+        else:
+            if players != None:
+                try:
+                    p1 = self.players.get(self.players.id == players[0])
+                    p2 = None
+                    if len(players) > 1:
+                        p2 = self.players.get(self.players.id == players[1])
+                except Exception as ex:
+                    raise PlayerNotFoundException("Player with specified ID not found", ex.args)
+
+                if p2 is None:
+                    try:
+                        for theGame in self.games.select().where(
+                                (self.games.player1 == p1) | (self.games.player2 == p1)
+                        ):
+                            rv.games.append(Game.ToClass(theGame))
+                    except Exception as ex:
+                        pass
+                    if includeArch:
                         try:
-                            for theGame in self.games.select().where(self.games.player1 == p1 or self.games.player2 == p1):
-                                rv.games.append(Game.ToClass(theGame))
-                        except Exception as ex:
-                            pass
-                        if includeArch:
-                            try:
-                                for theGame in self.archive.select().where(
-                                                        self.archive.player1 == p1 or self.archive.player2 == p1):
-                                    rv.games.append(GameArchieved.ToClass(theGame))
-                            except:
-                                pass
-                    else:
-                        try:
-                            for theGame in self.games.select().where((
-                                                         self.games.player1 == p1 and self.games.player2 == p2) or
-                                                         (self.games.player1 == p2 and self.games.player2 == p1)):
-                                rv.games.append(Game.ToClass(theGame))
+                            for theGame in self.archive.select().where(
+                                    (self.archive.player1 == p1) | (self.archive.player2 == p1)
+                            ):
+                                rv.games.append(GameArchieved.ToClass(theGame))
                         except:
                             pass
-
-                        if includeArch:
-                            try:
-                                for theGame in self.archive.select().where(
-                                                (
-                                                        self.archive.player1 == p1 and self.archive.player2 == p2) or
-                                                (
-                                                        self.archive.player1 == p2 and self.archive.player2 == p1)):
-                                    rv.games.append(GameArchieved.ToClass(theGame))
-                            except:
-                                pass
                 else:
-                    rv.games = []
-                    for theGame in self.games.select():
-                        rv.games.append(Game.ToClass(theGame))
-                    if includeArch:
-                        for theGame in self.archive.select():
-                            rv.games.append(GameArchieved.ToClass(theGame))
+                    try:
+                        for theGame in self.games.select().where(
+                                ((self.games.player1 == p1) & (self.games.player2 == p2))
+                                | ((self.games.player1 == p2) & (self.games.player2 == p1))
+                        ):
+                            rv.games.append(Game.ToClass(theGame))
+                    except:
+                        pass
 
-            if len(rv.games) == 0:
-                raise GameNotFoundException("Game with specified parameters not found")
-        except Exception as ex:
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+                    if includeArch:
+                        try:
+                            for theGame in self.archive.select().where(
+                                    ((self.archive.player1 == p1) & (self.archive.player2 == p2))
+                                    | ((self.archive.player1 == p2) & (self.archive.player2 == p1))
+                            ):
+                                rv.games.append(GameArchieved.ToClass(theGame))
+                        except:
+                            pass
+            else:
+                rv.games = []
+                for theGame in self.games.select():
+                    rv.games.append(Game.ToClass(theGame))
+                if includeArch:
+                    for theGame in self.archive.select():
+                        rv.games.append(GameArchieved.ToClass(theGame))
+
+        if len(rv.games) == 0:
+            raise GameNotFoundException("Game with specified parameters not found")
 
         return rv
 
 
-    def GetPlayerInner(self, token=None, telegramId=None, login=None, password=None, refreshToken=False):
+    def GetPlayerInner(self, id=None, token=None, telegramId=None, login=None, password=None, refreshToken=False):
         player = None
         try:
-            if token != None:
+            if id != None:
+                player = self.players.get(self.players.id == id)
+            elif token != None:
                 player = self.players.get(self.players.token == token)
             elif telegramId != None:
                 player = self.players.get(self.players.telegramId == telegramId)
@@ -181,17 +185,11 @@ class GamesManipulator:
 
         return player
 
-    def GetPlayer(self, token=None, telegramId=None, login=None, password=None, refreshToken=False):
+    def GetPlayer(self, id=None, token=None, telegramId=None, login=None, password=None, refreshToken=False):
         rv = GetPlayerResult()
 
-        try:
-            player = self.GetPlayerInner(token, telegramId, login, password, refreshToken)
-            rv.player = Player.ToClass(player)
-
-        except Exception as ex:
-            rv.result = False
-            rv.reason = type(ex)
-            rv.message = ex.args
+        player = self.GetPlayerInner(id, token, telegramId, login, password, refreshToken)
+        rv.player = Player.ToClass(player)
 
         return rv
 
@@ -233,16 +231,16 @@ class GamesManipulator:
         return rv
 
     def GetOrCreatePlayer(self, token=None, name=None, login=None, password=None, telegramId=None, premium=False, refreshToken=False):
-        rv = self.GetPlayer(token, telegramId, login, password, refreshToken)
+        rv = self.GetPlayer(None, token, telegramId, login, password, refreshToken)
         if not rv.result:
             rv = self.CreatePlayer(name, login, password, telegramId, premium)
 
         return rv
 
-    def ModifyPlayer(self, token=None, telegramId=None, login=None, password=None, refreshToken=False, newName=None, newLogin=None, newPassword=None, newTelegramId=None, newPremium=None):
+    def ModifyPlayer(self, id=None, token=None, telegramId=None, login=None, password=None, refreshToken=False, newName=None, newLogin=None, newPassword=None, newTelegramId=None, newPremium=None):
         rv = ModifyPlayerResult()
 
-        p = self.GetPlayerInner(token, telegramId, login, password, refreshToken)
+        p = self.GetPlayerInner(id, token, telegramId, login, password, refreshToken)
 
         if newLogin != None and newLogin != login:
             tmpP = None
@@ -437,6 +435,8 @@ class GamesManipulator:
         tmprv.FillJson(rv)
 
     def ActJS_GetPlayer(self, action, rv):
+        id = action.get('id')
+
         token = None
         if "token" in action:
             token = action["token"]
@@ -455,7 +455,7 @@ class GamesManipulator:
         if "refreshToken" in action:
             refreshToken = action["refreshToken"]
 
-        tmprv = self.GetPlayer(token, telegramId, login, password, refreshToken)
+        tmprv = self.GetPlayer(id, token, telegramId, login, password, refreshToken)
         tmprv.FillJson(rv)
 
     def ActJS_CreatePlayer(self, action, rv):
@@ -504,6 +504,8 @@ class GamesManipulator:
         tmprv.FillJson(rv)
 
     def ActJS_ModifyPlayer(self, action, rv):
+        id = action.get('id')
+
         token = None
         if "token" in action:
             token = action["token"]
@@ -540,7 +542,7 @@ class GamesManipulator:
         if "premium" in newVals:
             newPremium = newVals["premium"]
 
-        tmprv = self.ModifyPlayer(token, telegramId, login, password, refreshToken, newName, newLogin, newPassword, newTelegramId, newPremium)
+        tmprv = self.ModifyPlayer(id, token, telegramId, login, password, refreshToken, newName, newLogin, newPassword, newTelegramId, newPremium)
         tmprv.FillJson(rv)
 
     def ActJS(self, action):

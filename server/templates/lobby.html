@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block content %}
-    <p>Привет, {{ player_token }}</p>
+    <p>Привет, {{ player_id }}</p>
 
     <div>
         {% if games.games %}
@@ -32,7 +32,7 @@
 
     <div>
         <form class="aui" method="post" action="{{ url_for('start_game') }}">
-            <input type="text" class="text" name="other_player_token" placeholder="С кем рубанём?">
+            <input type="text" class="text" name="other_player_id" placeholder="С кем рубанём?">
 
             <button class="aui-button">Начать игру</button>
         </form>
