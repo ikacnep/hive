@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from .Utils.NegArray import NegArray
 from .Utils.Exceptions import ActionImpossible
 from .Settings.Figures.FigureTypes import FigureType
@@ -243,11 +245,20 @@ class GameState:
 
     def FiguresHash(self, player):
         rv = {}
-        for kvp in self.figures.items():
-            if (kvp[1].player == player):
-                rv[kvp[0]] = kvp[1].ToHash()
+
+        for player_id, player_figures in self.figures.items():
+            if player_figures.player == player:
+                rv[player_id] = player_figures.ToHash()
 
         return rv
+
+    def AvailableFiguresHash(self, player):
+        result = defaultdict(int)
+
+        for figure in self.availFigures[player]:
+            result[figure.Name()] += 1
+
+        return result
 
 
 

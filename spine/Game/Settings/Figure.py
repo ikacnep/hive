@@ -24,7 +24,7 @@ class Figure:
 
     def ToHash(self):
         return {
-            "type": self.figType,
+            "type": self.figType.Name(),
             "position": self.position,
             "layer": self.layer,
             "id": self.id

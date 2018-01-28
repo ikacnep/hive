@@ -126,8 +126,8 @@ jQuery(function ($) {
         var adding_figure_element = $('.add_piece.selected');
         adding_figure_element.removeClass('selected');
 
-        if (game.state[game.player_color].available_figures[data.piece.figure] === 0) {
-            adding_figure_element.addClass('disabled');
+        if (game.state.available_figures[game.player_id][data.piece.figure] === 0) {
+            adding_figure_element.hide();
         }
     }
 
@@ -174,7 +174,7 @@ jQuery(function ($) {
             Post('/action/add/' + game_id, {
                 figure: adding_figure,
                 coordinates: [r, q],
-                player_key: game.player_key
+                player_id: game.player_id
             }).done(AddPieceToBoard);
         } else {
             if (game.selected_piece) {
@@ -187,7 +187,7 @@ jQuery(function ($) {
                     Post('/action/move/' + game_id, {
                         id: game.selected_piece.id,
                         coordinates: [r, q],
-                        player_key: game.player_key
+                        player_id: game.player_id
                     }).done(MovePiece);
                 }
             } else {
@@ -200,6 +200,33 @@ jQuery(function ($) {
                 }
             }
         }
+    }
+
+    function MakeBoardFromFigures(figures) {
+        var board = [];
+
+        for (var player_id in figures) {
+            var player_figures = figures[player_id];
+
+            var color = game.player_color;
+
+            if (player_id !== game.player_id) {
+                var color = color === 'white' ? 'black' : 'white';
+            }
+
+            for (var i = 0; i < player_figures.length; ++i) {
+                var figure = player_figures[i];
+
+                board.push({
+                    player: color,
+                    id: figure.id,
+                    figure: figure.type,
+                    coordinates: figure.position.concat([figure.layer])
+                });
+            }
+        }
+
+        return board;
     }
 
     $(document).ajaxError(function(event, jqxhr, settings, error) {
@@ -217,21 +244,25 @@ jQuery(function ($) {
     $.getJSON('/board/' + game_id)
         .done(function(game_response) {
             game = game_response;
+
+            game.board = MakeBoardFromFigures(game.figures);
+
             SortBoard();
             DrawBoard(game_response.board);
 
-            log('Setting player key to', game.player_key, 'and color to', game.player_color);
+            log('Setting player id to', game.player_id, 'and color to', game.player_color);
 
-            $('#your_player').text(game.player_key).addClass(game.player_color);
-            $('.add_piece').addClass(game.player_color);
+            $('#your_player').text(game.player_id).addClass(game.player_color);
+            var all_pickers = $('.add_piece').addClass(game.player_color);
 
-            let available_figures = game.state[game.player_color].available_figures;
+            var available_figures = game.state.available_figures[game.player_id];
 
             for (var figure in available_figures) {
-                if (available_figures[figure] === 0) {
-                    $('.add_piece[data-figure=' + figure + ']').addClass('disabled');
-                }
+                var picker_el = $('.add_piece[data-figure=' + figure + ']');
+                all_pickers = all_pickers.not(picker_el);
             }
+
+            all_pickers.hide();
         });
 
     $(document).on('click', '.add_piece:not(.disabled)', function() {

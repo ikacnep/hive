@@ -45,3 +45,6 @@ class FigureType(IntEnum):
         if (self == FigureType.Pillbug):
             return PillbugFigure
         return None
+
+    def Name(self):
+        return self.name.lower()

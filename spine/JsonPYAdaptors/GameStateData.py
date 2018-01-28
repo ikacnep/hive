@@ -7,15 +7,17 @@ class GameStateData:
         self.lost = None
         self.nextPlayer = -1
         self.allActions = None
+        self.availableFigures = None
 
     def GetJson(self):
         return {
             "figures" : self.figures,
             "turn" : self.turn,
-            "lastAction" : self.lastAction,
+            "last_action" : self.lastAction,
             "ended" : self.ended,
             "lost" : self.lost,
-            "nextPlayer" : self.nextPlayer,
-            "allActions" : self.allActions
+            "next_player" : self.nextPlayer,
+            "all_actions" : self.allActions,
+            "available_figures": self.availableFigures,
         }
 

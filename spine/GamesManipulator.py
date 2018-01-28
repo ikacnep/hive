@@ -44,8 +44,6 @@ class GamesManipulator:
         for game_state in gameStateTable.select():
             self.runningGames[game_state.id] = GameInstance.deserialize(game_state.state)
 
-        print('Restored {} running games'.format(len(self.runningGames)))
-
     def CreateGameInner(self, player1, player2, mosquito, ladybug, pillbug, tourney, rv):
         try:
             p1 = self.players.get(self.players.id == player1)

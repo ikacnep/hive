@@ -58,10 +58,16 @@ class GameInstance:
         rv.lastAction = self.lastAction
         rv.ended = self.game.gameEnded
         rv.lost = {
-            self.player0:self.game.hasLost[0],
-            self.player1:self.game.hasLost[1]
+            self.player0: self.game.hasLost[0],
+            self.player1: self.game.hasLost[1]
         }
         rv.nextPlayer = np
+
+        rv.availableFigures = {
+            self.player0: self.game.AvailableFiguresHash(0),
+            self.player1: self.game.AvailableFiguresHash(1)
+        }
+
         if addAllActions:
             rv.allActions = self.actions
         return rv
