@@ -1,34 +1,38 @@
-class ActionImpossible(Exception):
+class HiveError(Exception):
     pass
 
 
-class NoActions(Exception):
+class ActionImpossible(HiveError):
     pass
 
 
-class FigureMiss(Exception):
+class NoActions(HiveError):
     pass
 
 
-class UnknownAction(Exception):
+class FigureMiss(HiveError):
     pass
 
 
-class PlayerIDException(Exception):
+class UnknownAction(HiveError):
     pass
 
 
-class PlayerNotFoundException(Exception):
+class PlayerIDException(HiveError):
     pass
 
 
-class GameNotFoundException(Exception):
+class PlayerNotFoundException(HiveError):
     pass
 
 
-class PlayerCreationException(Exception):
+class GameNotFoundException(HiveError):
     pass
 
 
-class PlayerModificationException(Exception):
+class PlayerCreationException(HiveError):
+    pass
+
+
+class PlayerModificationException(HiveError):
     pass

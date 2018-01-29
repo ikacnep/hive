@@ -2,6 +2,8 @@ import flask
 import os
 import traceback
 
+from spine.Game.Settings.Figures import FigureTypes
+from spine.Game.Utils.Exceptions import HiveError, GameNotFoundException
 from spine.GamesManipulator import GamesManipulator
 
 app = flask.Flask(__name__)
@@ -9,13 +11,14 @@ app = flask.Flask(__name__)
 games_manipulator = GamesManipulator()
 
 
-class IncorrectMove(Exception):
-    def __init__(self, message):
-        super(IncorrectMove, self).__init__(message)
+class IncorrectMove(HiveError):
+    pass
 
 
-@app.errorhandler(IncorrectMove)
+@app.errorhandler(HiveError)
 def handle_incorrect_move(error):
+    traceback.print_exc()
+
     response = flask.jsonify({"error_message": str(error)})
     response.status_code = 400
     return response
@@ -44,7 +47,10 @@ def main_page():
         player_id = player.id
         session['player_id'] = player_id
 
-    games = games_manipulator.GetGames(players=[player.id])
+    try:
+        games = games_manipulator.GetGames(players=[player.id])
+    except GameNotFoundException:
+        games = []
 
     return flask.render_template('lobby.html', games=games, player_id=player_id)
 
@@ -162,15 +168,20 @@ def get_player_color(game, player_id=None):
 
 @app.route('/action/add/<int:game_id>', methods=['POST'])
 def add(game_id):
-    # TODO
     data = flask.request.json
 
     game, player_id = verify_i_play_game(game_id)
 
-    games_manipulator.Place(game_id, player_id, data['figure'], data['coordinates'])
+    result = games_manipulator.Place(
+        gid=game_id,
+        player=player_id,
+        figure=FigureTypes.PickByName(data['figure']),
+        position=tuple(data['coordinates'])
+    )
 
     return flask.jsonify(
-        state=game.GetState().GetJson()
+        state=game.GetState().GetJson(),
+        figure_id=result.fid
     )
 
 

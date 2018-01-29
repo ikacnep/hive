@@ -9,6 +9,7 @@ from .Mosquito import *
 from .Ladybug import *
 from .Pillbug import *
 
+
 class FigureType(IntEnum):
     Undefined = 0
     Queen = 1
@@ -48,3 +49,12 @@ class FigureType(IntEnum):
 
     def Name(self):
         return self.name.lower()
+
+
+figure_name_map = {
+    figure.Name(): figure for figure in FigureType
+}
+
+
+def PickByName(name):
+    return figure_name_map[name]

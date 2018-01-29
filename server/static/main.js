@@ -11,7 +11,7 @@ jQuery(function ($) {
     var d = 8;
     var board = $('.table .board');
 
-    var game = 'not loaded yet';
+    var game = {};
 
     var sqrt3 = Math.sqrt(3);
 
@@ -55,7 +55,7 @@ jQuery(function ($) {
                 piece = piece_on_board;
             }
         }
-       
+
         AddHex({
             coordinates: piece.coordinates,
             player: piece.player,
@@ -91,7 +91,7 @@ jQuery(function ($) {
 
     function Post(url, data) {
         log('Post', [].slice.apply(arguments));
-        
+
         return $.ajax(url, {
             data: JSON.stringify(data),
             contentType: 'application/json',
@@ -105,21 +105,19 @@ jQuery(function ($) {
 
     function AddPieceToBoard(data) {
         log('AddPieceToBoard', [].slice.apply(arguments));
-        
-        game.state = data.state;
 
-        for (var piece of game.board) {
-            if (piece.id === data.piece.id) {
-                return;
-            }
-        }
+        game.state = data.state;
+        MakeBoardFromFigures();
 
         board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
 
-        game.board.push(data.piece);
-        SortBoard();
+        for (var piece of game.board) {
+            if (piece.id === data.figure_id) {
+                break;
+            }
+        }
 
-        AddPiece(data.piece, 'placed');
+        AddPiece(piece, 'placed');
 
         var adding_figure_element = $('.add_piece.selected');
         adding_figure_element.removeClass('selected');
@@ -166,6 +164,11 @@ jQuery(function ($) {
     function OnHexClick(r, q) {
         log('OnHexClick', [].slice.apply(arguments));
 
+        if (game.board.length === 0) {
+            var r = 0;
+            var q = 0;
+        }
+
         var adding_figure = $('.add_piece.selected').data('figure');
 
         if (adding_figure) {
@@ -199,22 +202,24 @@ jQuery(function ($) {
         }
     }
 
-    function MakeBoardFromFigures(figures) {
-        var board = [];
+    function MakeBoardFromFigures() {
+        log('MakeBoardFromFigures', arguments);
 
-        for (var player_id in figures) {
-            var player_figures = figures[player_id];
+        game.board = [];
+
+        for (var player_id in Object.keys(game.state.figures)) {
+            var player_figures = game.state.figures[player_id];
 
             var color = game.player_color;
 
-            if (player_id !== game.player_id) {
-                var color = color === 'white' ? 'black' : 'white';
+            if (+player_id !== game.player_id) {
+                color = color === 'white' ? 'black' : 'white';
             }
 
-            for (var i = 0; i < player_figures.length; ++i) {
-                var figure = player_figures[i];
+            for (var figure_id in player_figures) {
+                var figure = player_figures[figure_id];
 
-                board.push({
+                game.board.push({
                     player: color,
                     id: figure.id,
                     figure: figure.type,
@@ -223,7 +228,7 @@ jQuery(function ($) {
             }
         }
 
-        return board;
+        SortBoard();
     }
 
     $(document).ajaxError(function(event, jqxhr, settings, error) {
@@ -242,10 +247,9 @@ jQuery(function ($) {
         .done(function(game_response) {
             game = game_response;
 
-            game.board = MakeBoardFromFigures(game.figures);
+            MakeBoardFromFigures();
 
-            SortBoard();
-            DrawBoard(game_response.board);
+            DrawBoard();
 
             log('Setting player id to', game.player_id, 'and color to', game.player_color);
 
@@ -331,7 +335,7 @@ jQuery(function ($) {
             Apply();
 
             return false;
-        }
+        };
 
         function Apply() {
             log('Board movement: ' + board_position);
