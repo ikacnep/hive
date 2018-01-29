@@ -91,8 +91,6 @@ jQuery(function ($) {
 
     function Post(url, data) {
         log('Post', [].slice.apply(arguments));
-
-        data.game_id = game_id;
         
         return $.ajax(url, {
             data: JSON.stringify(data),
@@ -173,8 +171,7 @@ jQuery(function ($) {
         if (adding_figure) {
             Post('/action/add/' + game_id, {
                 figure: adding_figure,
-                coordinates: [r, q],
-                player_id: game.player_id
+                coordinates: [r, q]
             }).done(AddPieceToBoard);
         } else {
             if (game.selected_piece) {

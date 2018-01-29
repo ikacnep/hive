@@ -165,46 +165,12 @@ def add(game_id):
     # TODO
     data = flask.request.json
 
-    player_color = check_player()
+    game, player_id = verify_i_play_game(game_id)
 
-    board = app.hive.board
-    state = app.hive.state
-
-    if player_color != state['current_turn']:
-        raise IncorrectMove("Hey, that's not your turn!")
-
-    pieces_at_these_coordinates = [piece for piece in board if piece['coordinates'][0:2] == data['coordinates'][0:2]]
-
-    if pieces_at_these_coordinates:
-        raise IncorrectMove("Nope, can't place atop of hive")
-
-    available_figures = state[player_color]['available_figures']
-
-    if not available_figures[data['figure']]:
-        raise IncorrectMove("You don't have any more %s to place" % data['figure'])
-
-    available_figures[data['figure']] = available_figures[data['figure']] - 1
-
-    if len(board) > 1:
-        state['is_opening_move'] = False
-
-    piece = {
-            'player': player_color,
-            'id': len(board),
-            'figure': data['figure'],
-            'coordinates': data['coordinates'] + [0]
-    }
-
-    board.append(piece)
-    board.sort(key=lambda piece: -piece['coordinates'][2])
-    
-    state['current_turn'] = 'white' if player_color == 'black' else 'black'
-
-    app.hive.last_move = {'action': 'add', 'piece': piece}
+    games_manipulator.Place(game_id, player_id, data['figure'], data['coordinates'])
 
     return flask.jsonify(
-            piece=piece,
-            state=state
+        state=game.GetState().GetJson()
     )
 
 
