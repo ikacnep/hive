@@ -18,3 +18,6 @@ class Action(IntEnum):
     CreatePlayer = 10
     ModifyPlayer = 11
     GetOrCreatePlayer = 12
+
+    def Name(self):
+        return self.name.lower()

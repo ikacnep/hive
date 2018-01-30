@@ -46,9 +46,7 @@ class GameInstance:
         self.actions = [self.lastAction] if self.lastAction else []
 
     def GetState(self, addAllActions = False):
-        np = self.player1
-        if (self.game.turn % 2 == 0):
-            np = self.player0
+        np = self.NextPlayer()
         rv = GameStateData()
         rv.figures = {
             self.player0: self.game.FiguresHash(0),
@@ -73,9 +71,7 @@ class GameInstance:
         return rv
 
     def GetActions(self):
-        np = self.player1
-        if (self.game.turn % 2 == 0):
-            np = self.player0
+        np = self.NextPlayer()
         rv = PossibleActionsData()
         rv.placements = {
             self.player0:{
@@ -98,6 +94,9 @@ class GameInstance:
         rv.nextPlayer = np
 
         return rv
+
+    def NextPlayer(self):
+        return self.player0 if self.game.turn % 2 == 0 else self.player1
 
     def GetPlayer(self, id):
         if (id == self.player0):
@@ -224,9 +223,7 @@ class GameInstance:
 
     def FillPositiveResult(self, rv):
         rv.result = True
-        np = self.player1
-        if (self.game.turn % 2 == 0):
-            np = self.player0
+        np = self.NextPlayer()
         rv.nextPlayer = np
         rv.turn = self.game.turn
         rv.ended = self.game.gameEnded

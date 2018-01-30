@@ -207,18 +207,17 @@ def move(game_id):
 
 @app.route('/moves/<int:game_id>', methods=['GET'])
 def get_moves(game_id):
-    # TODO
-    player_color = check_player()
+    game, player_id = verify_i_play_game(game_id)
 
-    if app.hive.last_move.get('player') == player_color:
+    last_action = game.lastAction
+
+    if not last_action or last_action['player'] == player_id:
+        print('Last action is mine, blanking')
         return flask.jsonify()
 
-    last_move = app.hive.last_move
-    app.hive.last_move = {'player': player_color}
-
     return flask.jsonify(
-            state=app.hive.state,
-            **last_move
+            state=game.GetState().GetJson(),
+            action=last_action['action'].Name()
     )
 
 

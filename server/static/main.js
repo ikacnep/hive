@@ -282,12 +282,12 @@ jQuery(function ($) {
     });
 
     function PollForChanges() {
-        if (true || game.state.current_turn === game.player_color) {
+        if (game.state.next_player === game.player_id) {
             return;
         }
 
         $.getJSON('/moves/' + game_id, function(data) {
-            log('other player action:', data.action);
+            log('Other player move:', data);
 
             if (!data.action) {
                 return;
