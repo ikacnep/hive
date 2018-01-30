@@ -187,40 +187,21 @@ def add(game_id):
 
 @app.route('/action/move/<int:game_id>', methods=['POST'])
 def move(game_id):
-    # TODO
     data = flask.request.json
 
-    player_color = check_player()
+    game, player_id = verify_i_play_game(game_id)
 
-    state = app.hive.state
-
-    if player_color != state['current_turn']:
-        raise IncorrectMove("Hey, that's not your turn!")
-
-    piece = next(piece for piece in app.hive.board if piece['id'] == data['id'])
-
-    if piece['coordinates'][0:2] == data['coordinates'][0:2]:
-        raise IncorrectMove('You cannot enter the same river twice')
-
-    try:
-        top_piece_at_these_coordinates = next(p for p in app.hive.board if p['coordinates'][0:2] == data['coordinates'][0:2])
-    except StopIteration:
-        top_piece_at_these_coordinates = None
-
-    piece['coordinates'] = data['coordinates'] + [0]
-
-    if top_piece_at_these_coordinates:
-        piece['coordinates'][2] = top_piece_at_these_coordinates['coordinates'][2] + 1
-
-    app.hive.board.sort(key=lambda piece: -piece['coordinates'][2])
-
-    state['current_turn'] = 'white' if state['current_turn'] == 'black' else 'black'
-
-    app.hive.last_move = {'action': 'move', 'piece': piece}
+    result = games_manipulator.Move(
+        gid=game_id,
+        player=player_id,
+        fid=data['figure_id'],
+        f=tuple(data['from']),
+        t=tuple(data['to']),
+    )
 
     return flask.jsonify(
-            piece=piece,
-            state=state
+        state=game.GetState().GetJson(),
+        figure_id=result.fid
     )
 
 

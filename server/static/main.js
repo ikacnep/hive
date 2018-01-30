@@ -131,31 +131,19 @@ jQuery(function ($) {
         log('MovePiece', [].slice.apply(arguments));
 
         game.state = data.state;
+        MakeBoardFromFigures();
 
-        var old_piece = null;
+        board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
 
-        for (var piece of game.board) {
-            if (piece.id === data.piece.id) {
-                old_piece = piece;
-
-                if (CoordinatesEqual(piece.coordinates, data.piece.coordinates)) {
-                    return;
-                }
-
+        for (var figure of game.board) {
+            if (figure.id === data.figure_id) {
                 break;
             }
         }
 
-        board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
-
-        game.board = game.board.filter(piece => piece.id != data.piece.id);
-        game.board.push(data.piece);
-
-        SortBoard();
-
-        var piece = board.find('hex#piece_' + piece.id);
+        var piece = board.find('hex#piece_' + data.figure_id);
         board.append(piece);
-        MoveToCoordinates(piece, data.piece.coordinates);
+        MoveToCoordinates(piece, figure.coordinates);
         piece.addClass('moved');
 
         game.selected_piece = null;
@@ -185,8 +173,9 @@ jQuery(function ($) {
                     game.selected_piece = null;
                 } else {
                     Post('/action/move/' + game_id, {
-                        id: game.selected_piece.id,
-                        coordinates: [r, q],
+                        figure_id: game.selected_piece.id,
+                        from: coordinates.slice(0, 2),
+                        to: [r, q],
                         player_id: game.player_id
                     }).done(MovePiece);
                 }
@@ -203,11 +192,11 @@ jQuery(function ($) {
     }
 
     function MakeBoardFromFigures() {
-        log('MakeBoardFromFigures', arguments);
+        log('MakeBoardFromFigures', game.state.figures);
 
         game.board = [];
 
-        for (var player_id in Object.keys(game.state.figures)) {
+        for (var player_id of Object.keys(game.state.figures)) {
             var player_figures = game.state.figures[player_id];
 
             var color = game.player_color;
@@ -223,7 +212,7 @@ jQuery(function ($) {
                     player: color,
                     id: figure.id,
                     figure: figure.type,
-                    coordinates: figure.position.concat([figure.layer])
+                    coordinates: figure.position.concat([-figure.layer])
                 });
             }
         }
