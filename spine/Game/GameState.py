@@ -256,7 +256,7 @@ class GameState:
         result = defaultdict(int)
 
         for figure in self.availFigures[player]:
-            result[figure.Name()] += 1
+            result[figure.name] += 1
 
         return result
 
@@ -267,6 +267,6 @@ class GameState:
         this_player_placements = self.availPlacements[player_num]
 
         return {
-            'figures': [figure.Name() for figure in this_player_placements[0]],
+            'figures': [figure.name for figure in this_player_placements[0]],
             'at': this_player_placements[1]
         }

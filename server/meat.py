@@ -175,7 +175,7 @@ def add(game_id):
     result = games_manipulator.Place(
         gid=game_id,
         player=player_id,
-        figure=FigureTypes.PickByName(data['figure']),
+        figure=FigureTypes.FigureType[data['figure']],
         position=tuple(data['coordinates'])
     )
 
@@ -217,7 +217,7 @@ def get_moves(game_id):
 
     return flask.jsonify(
             state=game.GetState().GetJson(),
-            action=last_action['action'].Name()
+            action=last_action['action'].name
     )
 
 

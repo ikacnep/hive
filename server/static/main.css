@@ -161,35 +161,35 @@ hex i {
 }
 
 /* hex figures */
-hex.queen i {
+hex.Queen i {
 	background-image: url('/static/image/queen.svg');
 }
 
-hex.ant i {
+hex.Ant i {
 	background-image: url('/static/image/ant.svg');
 }
 
-hex.spider i {
+hex.Spider i {
 	background-image: url('/static/image/spider.svg');
 }
 
-hex.beetle i {
+hex.Beetle i {
 	background-image: url('/static/image/beetle.svg');
 }
 
-hex.grasshopper i {
+hex.Grasshopper i {
 	background-image: url('/static/image/grasshopper.svg');
 }
 
-hex.mosquito i {
+hex.Mosquito i {
 	background-image: url('/static/image/mosquito.svg');
 }
 
-hex.ladybug i {
+hex.Ladybug i {
 	background-image: url('/static/image/ladybug.svg');
 }
 
-hex.pillbug i {
+hex.Pillbug i {
 	background-image: url('/static/image/pillbug.svg');
 }
 

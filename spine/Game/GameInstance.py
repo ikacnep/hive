@@ -61,7 +61,7 @@ class GameInstance:
         rv.turn = self.game.turn
 
         if self.lastAction:
-            rv.lastAction = {k: (v.Name() if isinstance(v, enum.Enum) else v) for k, v in self.lastAction.items()}
+            rv.lastAction = {k: (v.name if isinstance(v, enum.Enum) else v) for k, v in self.lastAction.items()}
 
         rv.ended = self.game.gameEnded
         rv.lost = {
