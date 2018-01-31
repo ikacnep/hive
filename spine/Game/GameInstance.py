@@ -1,3 +1,4 @@
+import enum
 import pickle
 
 from .GameState import GameState
@@ -46,14 +47,22 @@ class GameInstance:
         self.actions = [self.lastAction] if self.lastAction else []
 
     def GetState(self, addAllActions = False):
+        def categorize_by_player(method):
+            return {
+                self.player0: method(0),
+                self.player1: method(1)
+            }
+
         np = self.NextPlayer()
         rv = GameStateData()
-        rv.figures = {
-            self.player0: self.game.FiguresHash(0),
-            self.player1: self.game.FiguresHash(1)
-        }
+
+        rv.figures = categorize_by_player(self.game.FiguresHash)
+
         rv.turn = self.game.turn
-        rv.lastAction = self.lastAction
+
+        if self.lastAction:
+            rv.lastAction = {k: (v.Name() if isinstance(v, enum.Enum) else v) for k, v in self.lastAction.items()}
+
         rv.ended = self.game.gameEnded
         rv.lost = {
             self.player0: self.game.hasLost[0],
@@ -61,10 +70,9 @@ class GameInstance:
         }
         rv.nextPlayer = np
 
-        rv.availableFigures = {
-            self.player0: self.game.AvailableFiguresHash(0),
-            self.player1: self.game.AvailableFiguresHash(1)
-        }
+        rv.availableFigures = categorize_by_player(self.game.AvailableFiguresHash)
+        rv.availableActions = categorize_by_player(self.game.GetAvailableActions)
+        rv.availablePlacements = categorize_by_player(self.game.GetAvailablePlacements)
 
         if addAllActions:
             rv.allActions = self.actions

@@ -260,6 +260,13 @@ class GameState:
 
         return result
 
+    def GetAvailableActions(self, player_num):
+        return self.availActions[player_num]
 
+    def GetAvailablePlacements(self, player_num):
+        this_player_placements = self.availPlacements[player_num]
 
-
+        return {
+            'figures': [figure.Name() for figure in this_player_placements[0]],
+            'at': this_player_placements[1]
+        }
