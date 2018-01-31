@@ -1,6 +1,7 @@
 from .ActionResult import ActionResult
 
-class CreateGameResult (ActionResult):
+
+class CreateGameResult(ActionResult):
     def __init__(self):
         ActionResult.__init__(self)
         self.gid = None

@@ -1,9 +1,10 @@
 from collections import defaultdict
 
-from .Utils.NegArray import NegArray
-from .Utils.Exceptions import ActionImpossible
 from .Settings.Figures.FigureTypes import FigureType
+from .Utils.Exceptions import ActionImpossible
+from .Utils.NegArray import NegArray
 from .. import Shared
+
 
 class GameState:
     def __init__(self, settings):
@@ -11,8 +12,8 @@ class GameState:
         self.figures = {}
         self.limitations = settings.limitations
         self.availFigures = settings.figures
-        self.availActions = [{},{}]
-        self.availPlacements = [[[],[]],[[],[]]]
+        self.availActions = [{}, {}]
+        self.availPlacements = [[[], []], [[], []]]
         self.turn = 0
         self.figId = 0
         self.lastMoved = None
@@ -24,33 +25,33 @@ class GameState:
 
     def __eq__(self, other):
         return (
-            self.field == other.field and
-            self.figures == other.figures and
-            self.limitations == other.limitations and
-            self.availFigures == other.availFigures and
-            self.turn == other.turn and
-            self.figId == other.figId and
-            self.lastMoved == other.lastMoved and
-            self.hasLost == other.hasLost and
-            self.gameEnded == other.gameEnded
+                self.field == other.field and
+                self.figures == other.figures and
+                self.limitations == other.limitations and
+                self.availFigures == other.availFigures and
+                self.turn == other.turn and
+                self.figId == other.figId and
+                self.lastMoved == other.lastMoved and
+                self.hasLost == other.hasLost and
+                self.gameEnded == other.gameEnded
         )
 
-    def FillPlacementFigures(self, id):
-        for fig in self.availFigures[id]:
-            if (not fig in self.availPlacements[id][0]):
+    def FillPlacementFigures(self, player_num):
+        for fig in self.availFigures[player_num]:
+            if fig not in self.availPlacements[player_num][0]:
                 canBeUsed = True
                 for lim in self.limitations:
-                    if (not lim(self, 0, fig)):
+                    if not lim(self, 0, fig):
                         canBeUsed = False
                         break
                 if canBeUsed:
-                    self.availPlacements[id][0].append(fig)
+                    self.availPlacements[player_num][0].append(fig)
 
     def Get(self, pos):
         return self.field.Get(pos)
 
     def Put(self, figure):
-        if (figure.id < 0):
+        if figure.id < 0:
             self.figId += 1
             figure.id = self.figId
             self.figures[figure.id] = figure
@@ -61,29 +62,29 @@ class GameState:
         return self.field.Put(None, pos)
 
     def Place(self, player, figure, position):
-        if (player != self.turn % 2):
+        if player != self.turn % 2:
             raise ActionImpossible("Wrong player turn")
 
-        if (self.gameEnded):
+        if self.gameEnded:
             raise ActionImpossible("The game has already ended")
 
         canBeDone = False
         for key in self.availPlacements[player][1]:
-            if (Shared.ReallyEqual(key, position)):
+            if Shared.ReallyEqual(key, position):
                 canBeDone = True
                 break
 
         if not canBeDone:
             raise ActionImpossible("Specified placement is impossible")
 
-        if not figure in self.availPlacements[player][0]:
+        if figure not in self.availPlacements[player][0]:
             raise ActionImpossible("Specified placement is not available")
 
         self.figId += 1
         fig = figure.GetFigure(player, position)
         fig.id = self.figId
         pos = self.Get(fig.position)
-        if (pos != None):
+        if pos is not None:
             for key in pos:
                 key.layer += 1
         fig.layer = 0
@@ -93,23 +94,23 @@ class GameState:
         self.figures[fig.id] = fig
         self.RefreshPossibilities()
 
-        if (figure == FigureType.Queen):
+        if figure == FigureType.Queen:
             self.queens[player] = fig
 
         self.turn += 1
         return fig.id
 
-    def Move(self, player, id, f, t):
-        if (player != self.turn % 2):
+    def Move(self, player, fid, f, t):
+        if player != self.turn % 2:
             raise ActionImpossible("Wrong player turn")
 
-        if (self.gameEnded):
+        if self.gameEnded:
             raise ActionImpossible("The game has already ended")
 
-        actions = self.availActions[player].get(id)
-        if (actions == None):
+        actions = self.availActions[player].get(fid)
+        if actions is None:
             raise ActionImpossible("Action is impossible")
-        figure = self.figures[id]
+        figure = self.figures[fid]
         if not figure.Act(f, t):
             raise ActionImpossible("Action is impossible")
 
@@ -123,7 +124,7 @@ class GameState:
 
         it.position = t
         moveTo = self.Get(t)
-        if moveTo != None:
+        if moveTo is not None:
             for key in moveTo:
                 key.layer += 1
             moveTo.insert(0, it)
@@ -137,13 +138,14 @@ class GameState:
         return it.id
 
     def Skip(self, player):
-        if (player != self.turn % 2):
+        if player != self.turn % 2:
             raise ActionImpossible("Wrong player turn")
 
-        if (self.gameEnded):
+        if self.gameEnded:
             raise ActionImpossible("The game has already ended")
 
-        if (len(self.availPlacements[player][1]) * len(self.availPlacements[player][0]) + len(self.availActions[player])) > 0:
+        if (len(self.availPlacements[player][1]) * len(self.availPlacements[player][0]) + len(
+                self.availActions[player])) > 0:
             raise ActionImpossible("Cannot skip turn if there are available actions")
 
         self.turn += 1
@@ -153,55 +155,52 @@ class GameState:
 
     def RefreshPossibilities(self):
         self.availActions = [{}, {}]
-        self.availPlacements = [[[],[]], [[],[]]]
+        self.availPlacements = [[[], []], [[], []]]
 
         for kvp in self.figures.items():
-            if self.queens[kvp[1].player] != None and self.CheckIntegrity(kvp[1]):
+            if self.queens[kvp[1].player] is not None and self.CheckIntegrity(kvp[1]):
                 ac = kvp[1].AvailableTurns(self)
-                if ac != None and len(ac) > 0:
+                if ac is not None and len(ac) > 0:
                     self.availActions[kvp[1].player][kvp[0]] = kvp[1].AvailableTurns(self)
                 else:
                     kvp[1].ResetAvailTurns()
             else:
                 otherActions = kvp[1].AvailableOthers(self)
-                if otherActions != None and len(otherActions) > 0:
+                if otherActions is not None and len(otherActions) > 0:
                     self.availActions[kvp[1].player][kvp[0]] = otherActions
                 else:
                     kvp[1].ResetAvailTurns()
 
             itemOnPos = self.Get(kvp[1].position)
-            if (itemOnPos != None and itemOnPos[0] == kvp[1]):
+            if itemOnPos is not None and itemOnPos[0] == kvp[1]:
                 near = Shared.CellsNearby(kvp[1].position)
                 for cell in near:
                     presence = self.CheckPlayerPresence(cell)
-                    if (presence[0] != presence[1]):
-                        id = kvp[1].player
-                        if (self.turn == 0):
-                            id = 1
-                        self.availPlacements[id][1] = Shared.Union(self.availPlacements[id][1], [cell])
-
+                    if presence[0] != presence[1]:
+                        player_num = kvp[1].player
+                        if self.turn == 0:
+                            player_num = 1
+                        self.availPlacements[player_num][1] = Shared.Union(self.availPlacements[player_num][1], [cell])
 
         self.FillPlacementFigures(0)
         self.FillPlacementFigures(1)
 
         for i in range(0, 2):
             q = self.queens[i]
-            if (q == None):
+            if q is None:
                 self.hasLost[i] = False
             else:
                 self.hasLost[i] = True
                 near = Shared.CellsNearby(q.position)
                 for cell in near:
                     fig = self.Get(cell)
-                    if (fig == None):
+                    if fig is None:
                         self.hasLost[i] = False
                         break
 
         self.gameEnded = self.hasLost[0] or self.hasLost[1]
 
-
         return True
-
 
     def CheckIntegrity(self, me):
         vals = []
@@ -211,34 +210,34 @@ class GameState:
 
         for kvp in self.figures.items():
             itemOnPos = self.Get(kvp[1].position)
-            if kvp[1] != me and itemOnPos != None and itemOnPos[0] == kvp[1]:
+            if kvp[1] != me and itemOnPos is not None and itemOnPos[0] == kvp[1]:
                 vals.append(kvp[1])
 
-        if (len(vals) == 0):
+        if len(vals) == 0:
             return False
 
         queue = [vals.pop()]
-        while (len(queue) > 0):
+        while len(queue) > 0:
             cur = queue.pop(0)
             near = Shared.CellsNearby(cur.position)
             for cell in near:
                 dat = self.Get(cell)
-                if (dat != None and dat[0] in vals):
+                if dat is not None and dat[0] in vals:
                     vals.remove(dat[0])
                     queue.append(dat[0])
 
         return len(vals) == 0
 
     def CheckPlayerPresence(self, pos):
-        if (self.Get(pos) != None):
+        if self.Get(pos) is not None:
             return [True, True]
         near = Shared.CellsNearby(pos)
         rv = [False, False]
         for cell in near:
             pos = self.Get(cell)
-            if (pos != None):
+            if pos is not None:
                 rv[pos[0].player] = True
-                if (rv[0] == rv[1]):
+                if rv[0] == rv[1]:
                     return rv
 
         return rv

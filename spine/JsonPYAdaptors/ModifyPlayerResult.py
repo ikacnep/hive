@@ -1,6 +1,7 @@
 from .ActionResult import ActionResult
 
-class ModifyPlayerResult (ActionResult):
+
+class ModifyPlayerResult(ActionResult):
     def __init__(self):
         ActionResult.__init__(self)
         self.player = None

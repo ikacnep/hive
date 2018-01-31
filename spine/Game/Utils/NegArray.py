@@ -1,14 +1,14 @@
 class NegArray:
-    def __init__(self, dim = 2):
+    def __init__(self, dim=2):
         self.innerArr = [0, []]
         self.dimentions = dim
         self.count = [0] * dim
 
     def __eq__(self, other):
         return (
-            self.innerArr == other.innerArr and
-            self.dimentions == other.dimentions and
-            self.count == other.count
+                self.innerArr == other.innerArr and
+                self.dimentions == other.dimentions and
+                self.count == other.count
         )
 
     def Reset(self):
@@ -21,20 +21,20 @@ class NegArray:
         return self.count[dim - 1]
 
     def Get(self, pos):
-        if (len(pos) != self.dimentions):
+        if len(pos) != self.dimentions:
             raise IndexError("Wrong amount of items")
 
         cur = self.innerArr
         for i in range(0, len(pos)):
             curPos = pos[i] + cur[0]
-            if (curPos >= len(cur[1]) or curPos < 0):
+            if curPos >= len(cur[1]) or curPos < 0:
                 return None
             cur = cur[1][curPos]
 
         return cur
 
     def Put(self, data, pos):
-        if (len(pos) != self.dimentions):
+        if len(pos) != self.dimentions:
             raise IndexError("Wrong amount of items")
 
         cur = self.innerArr
@@ -43,23 +43,23 @@ class NegArray:
         for i in range(0, len(pos)):
             curPos = pos[i] + cur[0]
             curDat = cur[1]
-            if (curPos < 0):
+            if curPos < 0:
                 cur[0] -= curPos
-                while (curPos < 0):
-                    if (i < len(pos) - 1):
+                while curPos < 0:
+                    if i < len(pos) - 1:
                         curDat.insert(0, [0, []])
                     else:
                         curDat.insert(0, None)
                     curPos += 1
 
-            if (curPos >= len(curDat)):
-                while (curPos >= len(cur[1])):
-                    if (i < len(pos) - 1):
+            if curPos >= len(curDat):
+                while curPos >= len(cur[1]):
+                    if i < len(pos) - 1:
                         curDat.append([0, []])
                     else:
                         curDat.append(None)
 
-            if (len(curDat) > self.count[i]):
+            if len(curDat) > self.count[i]:
                 self.count[i] = len(curDat)
 
             cur = curDat[curPos]

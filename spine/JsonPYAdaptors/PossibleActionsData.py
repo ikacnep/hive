@@ -7,9 +7,8 @@ class PossibleActionsData:
 
     def GetJson(self):
         return {
-            "placements" : self.placements,
-            "turns" : self.turns,
-            "skips" : self.skips,
-            "nextPlayer" : self.nextPlayer
+            "placements": self.placements,
+            "turns": self.turns,
+            "skips": self.skips,
+            "nextPlayer": self.nextPlayer
         }
-

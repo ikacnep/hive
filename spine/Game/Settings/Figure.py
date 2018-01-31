@@ -1,5 +1,5 @@
-from ..Utils import *
 from ... import Shared
+
 
 class Figure:
     def __init__(self, t, c, p, pos):
@@ -31,13 +31,13 @@ class Figure:
         }
 
     def Act(self, pos, nextPos):
-        if (self.availActions == None):
+        if self.availActions is None:
             return False
 
         action = [pos, nextPos]
         own = Shared.ReallyEqual(self.position, pos)
         for key in self.availActions:
-            if ((own and Shared.ReallyEqual(key, nextPos)) or (not own and Shared.ReallyEqual(key, action))):
+            if (own and Shared.ReallyEqual(key, nextPos)) or (not own and Shared.ReallyEqual(key, action)):
                 self.availActions = None
                 return True
 

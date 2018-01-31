@@ -8,6 +8,7 @@ from ..JsonPYAdaptors.GameActionResult import GameActionResult
 from ..JsonPYAdaptors.GameStateData import GameStateData
 from ..JsonPYAdaptors.PossibleActionsData import PossibleActionsData
 
+
 class GameInstance:
     def __init__(self, p0, p1, settings):
         self.game = GameState(settings)
@@ -20,19 +21,19 @@ class GameInstance:
 
     def __eq__(self, other):
         return (
-            self.game == other.game and
-            self.player0 == other.player0 and
-            self.player1 == other.player1 and
-            self.noone == other.noone and
-            self.settings == other.settings
+                self.game == other.game and
+                self.player0 == other.player0 and
+                self.player1 == other.player1 and
+                self.noone == other.noone and
+                self.settings == other.settings
         )
 
     def serialize(self):
         return pickle.dumps(self)
 
     @staticmethod
-    def deserialize(str):
-        return pickle.loads(str)
+    def deserialize(string):
+        return pickle.loads(string)
 
     def __getstate__(self):
         # Выкидываем всю историю действий при сохранении
@@ -46,7 +47,7 @@ class GameInstance:
 
         self.actions = [self.lastAction] if self.lastAction else []
 
-    def GetState(self, addAllActions = False):
+    def GetState(self, addAllActions=False):
         def categorize_by_player(method):
             return {
                 self.player0: method(0),
@@ -82,21 +83,21 @@ class GameInstance:
         np = self.NextPlayer()
         rv = PossibleActionsData()
         rv.placements = {
-            self.player0:{
-                "figures":self.game.availPlacements[0][0],
-                "places":self.game.availPlacements[0][1]
+            self.player0: {
+                "figures": self.game.availPlacements[0][0],
+                "places": self.game.availPlacements[0][1]
             },
-            self.player1:{
-                "figures":self.game.availPlacements[1][0],
-                "places":self.game.availPlacements[1][1]
+            self.player1: {
+                "figures": self.game.availPlacements[1][0],
+                "places": self.game.availPlacements[1][1]
             },
         },
         rv.turns = {
-            self.player0:self.game.availActions[0],
-            self.player1:self.game.availActions[1]
+            self.player0: self.game.availActions[0],
+            self.player1: self.game.availActions[1]
         },
         rv.skips = {
-            self.player0:(len(self.game.availPlacements[0]) == 0 and len(self.game.availActions[0]) == 0),
+            self.player0: (len(self.game.availPlacements[0]) == 0 and len(self.game.availActions[0]) == 0),
             self.player1: (len(self.game.availPlacements[1]) == 0 and len(self.game.availActions[1]) == 0)
         },
         rv.nextPlayer = np
@@ -106,30 +107,30 @@ class GameInstance:
     def NextPlayer(self):
         return self.player0 if self.game.turn % 2 == 0 else self.player1
 
-    def GetPlayer(self, id):
-        if (id == self.player0):
+    def GetPlayer(self, player_id):
+        if player_id == self.player0:
             return 0
-        elif (id == self.player1):
+
+        elif player_id == self.player1:
             return 1
 
-        raise PlayerIDException("Player " + repr(id) + " is not participating in this game")
-
+        raise PlayerIDException("Player " + repr(player_id) + " is not participating in this game")
 
     def Place(self, player, figure, position):
         rv = GameActionResult()
 
         pid = self.GetPlayer(player)
-        id = self.game.Place(pid, figure, position)
+        placed_fid = self.game.Place(pid, figure, position)
         self.noone[0] = False
         self.noone[1] = False
-        rv.fid = id
+        rv.fid = placed_fid
         self.FillPositiveResult(rv)
 
         action = {
-            "action" : Action.Place,
-            "player" : player,
-            "figure" : figure,
-            "position" : position
+            "action": Action.Place,
+            "player": player,
+            "figure": figure,
+            "position": position
         }
         self.actions.append(action)
         self.lastAction = action
@@ -140,10 +141,10 @@ class GameInstance:
         rv = GameActionResult()
 
         pid = self.GetPlayer(player)
-        id = self.game.Move(pid, fid, f, t)
+        moved_fid = self.game.Move(pid, fid, f, t)
         self.noone[0] = False
         self.noone[1] = False
-        rv.fid = id
+        rv.fid = moved_fid
         self.FillPositiveResult(rv)
         action = {
             "action": Action.Move,
@@ -215,7 +216,7 @@ class GameInstance:
 
         pid = self.GetPlayer(player)
         self.noone[pid] = True
-        if (self.noone[0] == self.noone[1]):
+        if self.noone[0] == self.noone[1]:
             self.game.gameEnded = True
             self.game.hasLost[0] = True
             self.game.hasLost[1] = True
@@ -240,38 +241,38 @@ class GameInstance:
             self.player1: self.game.hasLost[1]
         }
 
-    def ActJS(self, action, addState = False, addActions = True, rv = None):
-        if rv == None:
-            rv = {"action":action}
+    def ActJS(self, action, addState=False, addActions=True, rv=None):
+        if rv is None:
+            rv = {"action": action}
 
         try:
             pid = action["player"]
             act = action["action"]
-            tmpRv = None
-            if (act == Action.Undefined):
-                player = self.GetPlayer(pid)
+
+            if act == Action.Undefined:
+                self.GetPlayer(pid)
                 raise UnknownAction("Undefined action is not allowed")
-            elif (act == Action.Place):
+            elif act == Action.Place:
                 figure = action["figure"]
                 position = action["position"]
                 tmpRv = self.Place(pid, figure, position)
-            elif (act == Action.Move):
+            elif act == Action.Move:
                 fid = action["fid"]
                 f = action["from"]
                 t = action["to"]
                 tmpRv = self.Move(pid, fid, f, t)
-            elif (act == Action.Skip):
+            elif act == Action.Skip:
                 tmpRv = self.Skip(pid)
-            elif (act == Action.Concede):
+            elif act == Action.Concede:
                 tmpRv = self.Concede(pid)
-            elif (act == Action.ForceEnd):
+            elif act == Action.ForceEnd:
                 tmpRv = self.ForceEnd(pid)
-            elif (act == Action.Suggest):
+            elif act == Action.Suggest:
                 tmpRv = self.Suggest(pid)
             else:
                 raise UnknownAction("Specified action is unknown")
 
-            if (tmpRv != None):
+            if tmpRv is not None:
                 tmpRv.FillJson(rv)
 
             if addState:
@@ -291,10 +292,10 @@ class GameInstance:
 
     def GetSaveData(self):
         rv = {
-            "player0" : self.player0,
-            "player1" : self.player1,
+            "player0": self.player0,
+            "player1": self.player1,
             "settings": self.settings.parameters,
-            "actions" : self.actions,
+            "actions": self.actions,
             "lastState": self.GetState(addAllActions=False).GetJson()
         }
         return rv

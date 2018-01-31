@@ -9,11 +9,11 @@ class ActionResult:
 
     def FillJson(self, rv):
         rv["result"] = self.result
-        if (self.reason != None):
+        if self.reason is not None:
             rv["reason"] = self.reason
-        if (self.message != None):
+        if self.message is not None:
             rv["message"] = self.message
-        if (self.state != None):
+        if self.state is not None:
             rv["state"] = self.state.GetJson()
-        if (self.actions != None):
+        if self.actions is not None:
             rv["actions"] = self.actions.GetJson()

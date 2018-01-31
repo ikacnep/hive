@@ -1,6 +1,7 @@
 from .ActionResult import ActionResult
 
-class GameActionResult (ActionResult):
+
+class GameActionResult(ActionResult):
     def __init__(self):
         ActionResult.__init__(self)
         self.gid = None
@@ -18,7 +19,7 @@ class GameActionResult (ActionResult):
         rv["turn"] = self.turn
         rv["ended"] = self.ended
         rv["lost"] = self.lost
-        if (self.fid != None):
+        if self.fid is not None:
             rv["fid"] = self.fid
-        if (self.rateChange != None):
+        if self.rateChange is not None:
             rv["rateChange"] = self.rateChange

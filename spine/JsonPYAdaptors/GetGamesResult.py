@@ -1,5 +1,6 @@
 from .ActionResult import ActionResult
 
+
 class GameResult:
     def __init__(self):
         self.player1 = None
@@ -16,6 +17,7 @@ class GameResult:
         rv["start"] = self.start
         rv["hasEnded"] = self.hasEnded
         return rv
+
 
 class ArchGameResult(GameResult):
     def __init__(self):
@@ -34,14 +36,15 @@ class ArchGameResult(GameResult):
         rv["end"] = self.end
         return rv
 
-class GetGamesResult (ActionResult):
+
+class GetGamesResult(ActionResult):
     def __init__(self):
         ActionResult.__init__(self)
         self.games = None
 
     def FillJson(self, rv):
         ActionResult.FillJson(self, rv)
-        if (self.games != None):
+        if self.games is not None:
             gs = []
             for g in self.games:
                 gs.append(g.GetJson())

@@ -1,11 +1,14 @@
-from peewee import *
 import datetime
 
+from peewee import *
+
 db = SqliteDatabase("test.db")
+
 
 class BaseTestModel(Model):
     class Meta:
         database = db
+
 
 class TestPlayer(BaseTestModel):
     name = CharField(null=True)
@@ -30,6 +33,7 @@ class TestPlayer(BaseTestModel):
             "id": player.id
         }
 
+
 class TestGame(BaseTestModel):
     player1 = ForeignKeyField(TestPlayer, related_name="games1_set", null=False)
     player2 = ForeignKeyField(TestPlayer, related_name="games2_set", null=False)
@@ -38,12 +42,13 @@ class TestGame(BaseTestModel):
     @staticmethod
     def ToHash(game):
         return {
-            "player1":game.player1.id,
-            "player2":game.player2.id,
-            "start":game.start,
-            "gid":game.id,
-            "hasEnded":False
+            "player1": game.player1.id,
+            "player2": game.player2.id,
+            "start": game.start,
+            "gid": game.id,
+            "hasEnded": False
         }
+
 
 class TestGameArchieved(BaseTestModel):
     player1 = ForeignKeyField(TestPlayer, related_name="endedgames1_set", null=False)
@@ -59,15 +64,15 @@ class TestGameArchieved(BaseTestModel):
     @staticmethod
     def ToHash(arch):
         return {
-            "player1":arch.player1.id,
-            "player2":arch.player2.id,
-            "gid":arch.gameid,
-            "length":arch.length,
-            "result1":arch.result1,
-            "result2":arch.result2,
-            "start":arch.start,
-            "end":arch.end,
-            "hasEnded":True
+            "player1": arch.player1.id,
+            "player2": arch.player2.id,
+            "gid": arch.gameid,
+            "length": arch.length,
+            "result1": arch.result1,
+            "result2": arch.result2,
+            "start": arch.start,
+            "end": arch.end,
+            "hasEnded": True
         }
 
 

@@ -1,13 +1,17 @@
-from peewee import *
-from ..JsonPYAdaptors.GetGamesResult import *
-from ..JsonPYAdaptors.GetPlayerResult import PlayerResult
 import datetime
 
+from peewee import *
+
+from ..JsonPYAdaptors.GetGamesResult import *
+from ..JsonPYAdaptors.GetPlayerResult import PlayerResult
+
 db = SqliteDatabase("hive.db")
+
 
 class BaseModel(Model):
     class Meta:
         database = db
+
 
 class Player(BaseModel):
     name = CharField(null=True)
@@ -43,7 +47,8 @@ class Player(BaseModel):
         rv.premium = player.premium
         rv.id = player.id
 
-        return  rv
+        return rv
+
 
 class Game(BaseModel):
     player1 = ForeignKeyField(Player, related_name="games1", null=False)
@@ -53,11 +58,11 @@ class Game(BaseModel):
     @staticmethod
     def ToHash(game):
         return {
-            "player1":game.player1.id,
-            "player2":game.player2.id,
-            "start":game.start,
-            "gid":game.id,
-            "hasEnded":False
+            "player1": game.player1.id,
+            "player2": game.player2.id,
+            "start": game.start,
+            "gid": game.id,
+            "hasEnded": False
         }
 
     @staticmethod
@@ -68,6 +73,7 @@ class Game(BaseModel):
         rv.start = game.start
         rv.gid = game.id
         return rv
+
 
 class GameArchieved(BaseModel):
     player1 = ForeignKeyField(Player, related_name="endedgames1", null=False)
@@ -83,15 +89,15 @@ class GameArchieved(BaseModel):
     @staticmethod
     def ToHash(arch):
         return {
-            "player1":arch.player1.id,
-            "player2":arch.player2.id,
-            "gid":arch.gameid,
-            "length":arch.length,
-            "result1":arch.result1,
-            "result2":arch.result2,
-            "start":arch.start,
-            "end":arch.end,
-            "hasEnded":True
+            "player1": arch.player1.id,
+            "player2": arch.player2.id,
+            "gid": arch.gameid,
+            "length": arch.length,
+            "result1": arch.result1,
+            "result2": arch.result2,
+            "start": arch.start,
+            "end": arch.end,
+            "hasEnded": True
         }
 
     @staticmethod

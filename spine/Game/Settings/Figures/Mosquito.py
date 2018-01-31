@@ -1,6 +1,7 @@
 from ...Utils.Exceptions import *
 from .... import Shared
 
+
 class MosquitoFigure:
     canOthers = True
 
@@ -8,20 +9,20 @@ class MosquitoFigure:
     def AvailableTurns(me, field):
         from .FigureTypes import FigureType
 
-        if (me.figType != FigureType.Mosquito):
+        if me.figType != FigureType.Mosquito:
             raise FigureMiss("Wrong figure selected")
 
         myCell = field.Get(me.position)
-        if (len(myCell) > 1):
+        if len(myCell) > 1:
             return FigureType.Beetle.GetClass().AvailableTurns(me, field)
 
         rv = []
         near = me.CellsNearby()
         for cell in near:
             him = field.Get(cell)
-            if (him != None):
+            if him is not None:
                 hisFig = him[0]
-                if (hisFig.figType != FigureType.Mosquito):
+                if hisFig.figType != FigureType.Mosquito:
                     rv = Shared.Union(rv, hisFig.figClass.AvailableTurns(me, field))
 
         return rv
@@ -30,20 +31,20 @@ class MosquitoFigure:
     def AvailableOthers(me, field):
         from .FigureTypes import FigureType
 
-        if (me.figType != FigureType.Mosquito):
+        if me.figType != FigureType.Mosquito:
             raise FigureMiss("Wrong figure selected")
 
         myCell = field.Get(me.position)
-        if (len(myCell) > 1):
+        if len(myCell) > 1:
             return []
 
         rv = []
         near = me.CellsNearby()
         for cell in near:
             him = field.Get(cell)
-            if (him != None):
+            if him is not None:
                 hisFig = him[0]
-                if (hisFig.figType != FigureType.Mosquito and hisFig.figClass.canOthers):
+                if hisFig.figType != FigureType.Mosquito and hisFig.figClass.canOthers:
                     rv = Shared.Union(rv, hisFig.figClass.AvailableOthers(me, field))
 
         return rv

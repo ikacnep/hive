@@ -1,5 +1,6 @@
 from .ActionResult import ActionResult
 
+
 class PlayerResult:
     def __init__(self):
         self.name = None
@@ -11,18 +12,20 @@ class PlayerResult:
         self.id = None
 
     def GetJson(self):
-            rv = {}
-            rv["name"] = self.name
-            rv["creationDate"] = self.creationDate
-            rv["lastGame"] = self.lastGame
-            rv["token"] = self.token
-            rv["rating"] = self.rating
-            rv["premium"] = self.premium
-            rv["id"] = self.id
+        rv = {
+            "name": self.name,
+            "creationDate": self.creationDate,
+            "lastGame": self.lastGame,
+            "token": self.token,
+            "rating": self.rating,
+            "premium": self.premium,
+            "id": self.id
+        }
 
-            return rv
+        return rv
 
-class GetPlayerResult (ActionResult):
+
+class GetPlayerResult(ActionResult):
     def __init__(self):
         ActionResult.__init__(self)
         self.player = None

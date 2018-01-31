@@ -12,15 +12,14 @@ class GameStateData:
 
     def GetJson(self):
         return {
-            "figures" : self.figures,
-            "turn" : self.turn,
-            "last_action" : self.lastAction,
-            "ended" : self.ended,
-            "lost" : self.lost,
-            "next_player" : self.nextPlayer,
-            "all_actions" : self.allActions,
+            "figures": self.figures,
+            "turn": self.turn,
+            "last_action": self.lastAction,
+            "ended": self.ended,
+            "lost": self.lost,
+            "next_player": self.nextPlayer,
+            "all_actions": self.allActions,
             "available_figures": self.availableFigures,
             "available_actions": self.availableActions,
             "available_placements": self.availablePlacements,
         }
-

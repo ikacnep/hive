@@ -1,6 +1,7 @@
 from ...Utils.Exceptions import *
 from .... import Shared
 
+
 class PillbugFigure:
     canOthers = True
 
@@ -8,7 +9,7 @@ class PillbugFigure:
     def AvailableTurns(me, field):
         from .FigureTypes import FigureType
 
-        if (me.figType != FigureType.Pillbug and me.figType != FigureType.Mosquito):
+        if me.figType != FigureType.Pillbug and me.figType != FigureType.Mosquito:
             raise FigureMiss("Wrong figure selected")
 
         prerv = []
@@ -17,17 +18,17 @@ class PillbugFigure:
         near = me.CellsNearby()
         for cell in near:
             him = field.Get(cell)
-            if (him != None):
+            if him is not None:
                 inter = Shared.Intersect(near, Shared.CellsNearby(cell))
                 prerv = Shared.Except(prerv, inter) + Shared.Except(inter, prerv)
-                if (field.CheckIntegrity(him[0]) and field.lastMoved != him[0]):
+                if field.CheckIntegrity(him[0]) and field.lastMoved != him[0]:
                     filled.append(cell)
             else:
                 empty.append(cell)
 
         rv = []
         for cell in prerv:
-            if (field.Get(cell) == None):
+            if field.Get(cell) is None:
                 rv.append(cell)
 
         for cell in filled:
@@ -40,7 +41,7 @@ class PillbugFigure:
     def AvailableOthers(me, field):
         from .FigureTypes import FigureType
 
-        if (me.figType != FigureType.Pillbug and me.figType != FigureType.Mosquito):
+        if me.figType != FigureType.Pillbug and me.figType != FigureType.Mosquito:
             raise FigureMiss("Wrong figure selected")
 
         filled = []
@@ -48,8 +49,8 @@ class PillbugFigure:
         near = me.CellsNearby()
         for cell in near:
             him = field.Get(cell)
-            if (him != None):
-                if (field.CheckIntegrity(him[0]) and field.lastMoved != him[0]):
+            if him is not None:
+                if field.CheckIntegrity(him[0]) and field.lastMoved != him[0]:
                     filled.append(cell)
             else:
                 empty.append(cell)

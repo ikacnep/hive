@@ -1,13 +1,14 @@
 from enum import IntEnum
-from ..Figure import *
-from .Queen import *
-from .Spider import *
-from .Grasshopper import *
+
 from .Ant import *
 from .Beetle import *
-from .Mosquito import *
+from .Grasshopper import *
 from .Ladybug import *
+from .Mosquito import *
 from .Pillbug import *
+from .Queen import *
+from .Spider import *
+from ..Figure import *
 
 
 class FigureType(IntEnum):
@@ -23,26 +24,26 @@ class FigureType(IntEnum):
 
     def GetFigure(self, player, pos):
         c = self.GetClass()
-        if (c == None):
+        if c is None:
             return None
 
         return Figure(self, c, player, pos)
 
     def GetClass(self):
-        if (self == FigureType.Queen):
+        if self == FigureType.Queen:
             return QueenFigure
-        if (self == FigureType.Spider):
+        if self == FigureType.Spider:
             return SpiderFigure
-        if (self == FigureType.Beetle):
+        if self == FigureType.Beetle:
             return BeetleFigure
-        if (self == FigureType.Grasshopper):
+        if self == FigureType.Grasshopper:
             return GrasshopperFigure
-        if (self == FigureType.Ant):
+        if self == FigureType.Ant:
             return AntFigure
-        if (self == FigureType.Mosquito):
+        if self == FigureType.Mosquito:
             return MosquitoFigure
-        if (self == FigureType.Ladybug):
+        if self == FigureType.Ladybug:
             return LadybugFigure
-        if (self == FigureType.Pillbug):
+        if self == FigureType.Pillbug:
             return PillbugFigure
         return None
