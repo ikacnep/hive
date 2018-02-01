@@ -130,7 +130,8 @@ class GameInstance:
             "action": Action.Place,
             "player": player,
             "figure": figure,
-            "position": position
+            "position": position,
+            "fid": placed_fid,
         }
         self.actions.append(action)
         self.lastAction = action
