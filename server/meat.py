@@ -209,15 +209,19 @@ def move(game_id):
 def get_moves(game_id):
     game, player_id = verify_i_play_game(game_id)
 
-    last_action = game.lastAction
+    state = game.GetState()
+    last_action = state.lastAction
 
     if not last_action or last_action['player'] == player_id:
         print('Last action is mine, blanking')
         return flask.jsonify()
 
     return flask.jsonify(
-            state=game.GetState().GetJson(),
-            action=last_action['action'].name
+            state=state.GetJson(),
+            action=last_action['action'],
+            coordinates_from=last_action.get('from'),
+            coordinates=last_action.get('to') or last_action.get('position'),
+            figure_id=last_action.get('fid'),
     )
 
 

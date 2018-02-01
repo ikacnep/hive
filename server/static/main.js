@@ -122,7 +122,7 @@ jQuery(function ($) {
         var adding_figure_element = $('.add_piece.selected');
         adding_figure_element.removeClass('selected');
 
-        if (game.state.available_figures[game.player_id][data.piece.figure] === 0) {
+        if (data.figure && game.state.available_figures[game.player_id][data.figure] === 0) {
             adding_figure_element.hide();
         }
     }
@@ -152,9 +152,14 @@ jQuery(function ($) {
     function OnHexClick(r, q) {
         log('OnHexClick', [].slice.apply(arguments));
 
+        if (game.player_id !== game.state.next_player) {
+            alert("That's not your turn");
+            return;
+        }
+
         if (game.board.length === 0) {
-            var r = 0;
-            var q = 0;
+            r = 0;
+            q = 0;
         }
 
         var adding_figure = $('.add_piece.selected').data('figure');
@@ -293,10 +298,12 @@ jQuery(function ($) {
                 return;
             }
 
-            if (data.action === 'add') {
+            if (data.action === 'Place') {
                 AddPieceToBoard(data);
-            } else if (data.action === 'move') {
+            } else if (data.action === 'Move') {
                 MovePiece(data);
+            } else {
+                log('Unhandled action:', data.action)
             }
         });
     }

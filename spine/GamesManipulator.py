@@ -2,6 +2,7 @@ import json
 import random
 import uuid
 import zlib
+from typing import Dict
 
 from .Database.Database import *
 from .Game.GameInstance import GameInstance
@@ -19,7 +20,7 @@ class GamesManipulator:
     players = None
     games = None
     archive = None
-    runningGames = {}
+    runningGames = Dict[int, GameInstance]
 
     def __init__(self, player_type=Player, game_type=Game, arch_type=GameArchieved, game_state_type=PersistedGameState):
         self.players = player_type
@@ -273,7 +274,7 @@ class GamesManipulator:
 
         return rv
 
-    def GetGameInst(self, gid):
+    def GetGameInst(self, gid) -> GameInstance:
         if gid not in self.runningGames:
             raise GameNotFoundException("No such ID in running games")
         gameInst = self.runningGames[gid]
