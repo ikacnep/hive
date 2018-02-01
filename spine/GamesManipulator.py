@@ -1,20 +1,18 @@
+import json
+import random
+import uuid
+import zlib
+
 from .Database.Database import *
-from .Game.Utils.Exceptions import *
 from .Game.GameInstance import GameInstance
 from .Game.Settings.GameSettings import GameSettings
 from .Game.Utils.Action import Action
-from .Game.GameState import GameState
+from .Game.Utils.Exceptions import *
 from .JsonPYAdaptors.CreateGameResult import CreateGameResult
+from .JsonPYAdaptors.CreatePlayerResult import CreatePlayerResult
 from .JsonPYAdaptors.GetGamesResult import GetGamesResult
 from .JsonPYAdaptors.GetPlayerResult import GetPlayerResult
-from .JsonPYAdaptors.CreatePlayerResult import CreatePlayerResult
 from .JsonPYAdaptors.ModifyPlayerResult import ModifyPlayerResult
-from .JsonPYAdaptors.GameActionResult import GameActionResult
-
-import random
-import zlib
-import json
-import uuid
 
 
 class GamesManipulator:
@@ -23,25 +21,25 @@ class GamesManipulator:
     archive = None
     runningGames = {}
 
-    def __init__(self, playerType=Player, gameType=Game, archType=GameArchieved, gameStateTable=PersistedGameState):
-        self.players = playerType
+    def __init__(self, player_type=Player, game_type=Game, arch_type=GameArchieved, game_state_type=PersistedGameState):
+        self.players = player_type
         if not self.players.table_exists():
             self.players.create_table()
 
-        self.games = gameType
+        self.games = game_type
         if not self.games.table_exists():
             self.games.create_table()
 
-        self.archive = archType
+        self.archive = arch_type
         if not self.archive.table_exists():
             self.archive.create_table()
 
-        self.game_state_table = gameStateTable
+        self.game_state_table = game_state_type
         if not self.game_state_table.table_exists():
             self.game_state_table.create_table()
 
         self.runningGames = {}
-        for game_state in gameStateTable.select():
+        for game_state in game_state_type.select():
             self.runningGames[game_state.id] = GameInstance.deserialize(game_state.state)
 
     def CreateGameInner(self, player1, player2, mosquito, ladybug, pillbug, tourney, rv):
@@ -63,7 +61,8 @@ class GamesManipulator:
 
         return actualGame
 
-    def CreateGame(self, player1, player2, turn=None, mosquito=False, ladybug=False, pillbug=False, tourney=False, addActions=False, addAllActions=False, addState=False):
+    def CreateGame(self, player1, player2, turn=None, mosquito=False, ladybug=False, pillbug=False, tourney=False,
+                   addActions=False, addAllActions=False, addState=False):
         rv = CreateGameResult()
 
         if turn != player1 and turn != player2:
@@ -93,7 +92,7 @@ class GamesManipulator:
 
         rv.games = []
 
-        if gid != None:
+        if gid is not None:
             if gid in self.runningGames:
                 theGame = self.games.get(self.games.id == gid)
                 rv.games.append(Game.ToClass(theGame))
@@ -101,7 +100,7 @@ class GamesManipulator:
                 theGame = self.archive.get(self.archive.gameid == gid)
                 rv.games.append(GameArchieved.ToClass(theGame))
         else:
-            if players != None:
+            if players is not None:
                 try:
                     p1 = self.players.get(self.players.id == players[0])
                     p2 = None
@@ -116,7 +115,7 @@ class GamesManipulator:
                                 (self.games.player1 == p1) | (self.games.player2 == p1)
                         ):
                             rv.games.append(Game.ToClass(theGame))
-                    except Exception as ex:
+                    except Exception:
                         pass
                     if includeArch:
                         try:
@@ -158,17 +157,16 @@ class GamesManipulator:
 
         return rv
 
-
-    def GetPlayerInner(self, id=None, token=None, telegramId=None, login=None, password=None, refreshToken=False):
+    def GetPlayerInner(self, pid=None, token=None, telegramId=None, login=None, password=None, refreshToken=False):
         player = None
         try:
-            if id != None:
-                player = self.players.get(self.players.id == id)
-            elif token != None:
+            if pid is not None:
+                player = self.players.get(self.players.id == pid)
+            elif token is not None:
                 player = self.players.get(self.players.token == token)
-            elif telegramId != None:
+            elif telegramId is not None:
                 player = self.players.get(self.players.telegramId == telegramId)
-            elif login != None and password != None:
+            elif login is not None and password is not None:
                 player = self.players.get(
                     self.players.login == login and self.players.password == password)
         except Exception as ex:
@@ -183,10 +181,10 @@ class GamesManipulator:
 
         return player
 
-    def GetPlayer(self, id=None, token=None, telegramId=None, login=None, password=None, refreshToken=False):
+    def GetPlayer(self, pid=None, token=None, telegramId=None, login=None, password=None, refreshToken=False):
         rv = GetPlayerResult()
 
-        player = self.GetPlayerInner(id, token, telegramId, login, password, refreshToken)
+        player = self.GetPlayerInner(pid, token, telegramId, login, password, refreshToken)
         rv.player = Player.ToClass(player)
 
         return rv
@@ -194,7 +192,7 @@ class GamesManipulator:
     def CreatePlayer(self, name=None, login=None, password=None, telegramId=None, premium=False):
         rv = CreatePlayerResult()
 
-        if login != None:
+        if login is not None:
             p = None
             try:
                 p = self.players.get(self.players.login == login)
@@ -203,18 +201,19 @@ class GamesManipulator:
             if p is not None:
                 raise PlayerCreationException("Login is already in use")
 
-        if telegramId != None:
+        if telegramId is not None:
             p = None
             try:
                 p = self.players.get(self.players.telegramId == telegramId)
-            except Exception as ex:
+            except Exception:
                 pass
 
             if p is not None:
                 raise PlayerCreationException("This telegramid is already in use")
 
         if login is None and telegramId is None:
-            raise PlayerCreationException("Cannot create player without login and telegram id. No way for him to join the club")
+            raise PlayerCreationException(
+                "Cannot create player without login and telegram id. No way for him to join the club")
 
         p = self.players.create(
             name=name,
@@ -228,19 +227,21 @@ class GamesManipulator:
 
         return rv
 
-    def GetOrCreatePlayer(self, token=None, name=None, login=None, password=None, telegramId=None, premium=False, refreshToken=False):
+    def GetOrCreatePlayer(self, token=None, name=None, login=None, password=None, telegramId=None, premium=False,
+                          refreshToken=False):
         rv = self.GetPlayer(None, token, telegramId, login, password, refreshToken)
         if not rv.result:
             rv = self.CreatePlayer(name, login, password, telegramId, premium)
 
         return rv
 
-    def ModifyPlayer(self, id=None, token=None, telegramId=None, login=None, password=None, refreshToken=False, newName=None, newLogin=None, newPassword=None, newTelegramId=None, newPremium=None):
+    def ModifyPlayer(self, pid=None, token=None, telegramId=None, login=None, password=None, refreshToken=False,
+                     newName=None, newLogin=None, newPassword=None, newTelegramId=None, newPremium=None):
         rv = ModifyPlayerResult()
 
-        p = self.GetPlayerInner(id, token, telegramId, login, password, refreshToken)
+        p = self.GetPlayerInner(pid, token, telegramId, login, password, refreshToken)
 
-        if newLogin != None and newLogin != login:
+        if newLogin is not None and newLogin != login:
             tmpP = None
             try:
                 tmpP = self.players.get(self.players.login == newLogin)
@@ -250,11 +251,11 @@ class GamesManipulator:
                 raise PlayerModificationException("login is already in use")
             p.login = newLogin
 
-        if newName != None:
+        if newName is not None:
             p.name = newName
-        if newPassword != None:
+        if newPassword is not None:
             p.password = newPassword
-        if newTelegramId != None:
+        if newTelegramId is not None:
             tmpP = None
             try:
                 tmpP = self.players.get(self.players.telegramId == newTelegramId)
@@ -263,7 +264,7 @@ class GamesManipulator:
             if tmpP is not None:
                 raise PlayerModificationException("telegram ID is already in use")
             p.telegramId = newTelegramId
-        if newPremium != None:
+        if newPremium is not None:
             p.premium = newPremium
 
         p.save()
@@ -433,7 +434,7 @@ class GamesManipulator:
         tmprv.FillJson(rv)
 
     def ActJS_GetPlayer(self, action, rv):
-        id = action.get('id')
+        pid = action.get('id')
 
         token = None
         if "token" in action:
@@ -453,7 +454,7 @@ class GamesManipulator:
         if "refreshToken" in action:
             refreshToken = action["refreshToken"]
 
-        tmprv = self.GetPlayer(id, token, telegramId, login, password, refreshToken)
+        tmprv = self.GetPlayer(pid, token, telegramId, login, password, refreshToken)
         tmprv.FillJson(rv)
 
     def ActJS_CreatePlayer(self, action, rv):
@@ -502,7 +503,7 @@ class GamesManipulator:
         tmprv.FillJson(rv)
 
     def ActJS_ModifyPlayer(self, action, rv):
-        id = action.get('id')
+        pid = action.get('id')
 
         token = None
         if "token" in action:
@@ -540,16 +541,16 @@ class GamesManipulator:
         if "premium" in newVals:
             newPremium = newVals["premium"]
 
-        tmprv = self.ModifyPlayer(id, token, telegramId, login, password, refreshToken, newName, newLogin, newPassword, newTelegramId, newPremium)
+        tmprv = self.ModifyPlayer(pid, token, telegramId, login, password, refreshToken, newName, newLogin, newPassword,
+                                  newTelegramId, newPremium)
         tmprv.FillJson(rv)
 
     def ActJS(self, action):
         rv = {"action": action}
         try:
             act = action["action"]
-            game = None
             if act == Action.CreateGame:
-                game = self.ActJS_CreateGame(action, rv)
+                self.ActJS_CreateGame(action, rv)
             elif act == Action.GetGames:
                 self.ActJS_GetGames(action, rv)
             elif act == Action.GetPlayer:
@@ -674,8 +675,8 @@ class GamesManipulator:
 
     @staticmethod
     def GetEloRate(rate1, rate2, result):
-        q1 = pow(10, rate1/400)
-        q2 = pow(10, rate2/400)
+        q1 = pow(10, rate1 / 400)
+        q2 = pow(10, rate2 / 400)
         e1 = q1 / (q1 + q2)
         e2 = q2 / (q1 + q2)
         s1 = 0.5

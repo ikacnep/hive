@@ -1,7 +1,9 @@
 import unittest
-from ...Game.Utils.NegArray import NegArray
-from ...Game.Settings.Figures.FigureTypes import FigureType
+
 from ... import Shared
+from ...Game.Settings.Figures.FigureTypes import FigureType
+from ...Game.Utils.NegArray import NegArray
+
 
 class QueenTests(unittest.TestCase):
     def testAll(self):
@@ -48,11 +50,12 @@ class QueenTests(unittest.TestCase):
         self.assertEqual(len(turns), 2)
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
 
-
-    def putQueen(self, pos, field):
+    @staticmethod
+    def putQueen(pos, field):
         q = FigureType.Queen.GetFigure(0, pos)
         field.Put([q], pos)
         return q
+
 
 if __name__ == '__main__':
     unittest.main()

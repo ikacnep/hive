@@ -1,7 +1,9 @@
 import unittest
-from ...Game.Utils.NegArray import NegArray
-from ...Game.Settings.Figures.FigureTypes import FigureType
+
 from ... import Shared
+from ...Game.Settings.Figures.FigureTypes import FigureType
+from ...Game.Utils.NegArray import NegArray
+
 
 class BeetleTests(unittest.TestCase):
     def testAll(self):
@@ -69,25 +71,27 @@ class BeetleTests(unittest.TestCase):
 
         beetle = self.addBeetle((-1, 1), field)
         turns = beetle.AvailableTurns(field)
-        ans = ((-2, 1), (-1, 2), (0, 1), (-1, 0), (0,0))
+        ans = ((-2, 1), (-1, 2), (0, 1), (-1, 0), (0, 0))
         self.assertEqual(len(turns), 5)
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
 
-
-    def putBeetle(self, pos, field):
+    @staticmethod
+    def putBeetle(pos, field):
         q = FigureType.Beetle.GetFigure(0, pos)
         field.Put([q], pos)
         return q
 
-    def addBeetle(self, pos, field):
+    @staticmethod
+    def addBeetle(pos, field):
         q = FigureType.Beetle.GetFigure(0, pos)
         prev = field.Get(pos)
-        if (prev == None):
+        if prev is None:
             field.Put([q], pos)
         else:
             prev.insert(0, q)
 
         return q
+
 
 if __name__ == '__main__':
     unittest.main()

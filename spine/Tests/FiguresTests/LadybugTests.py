@@ -1,7 +1,9 @@
 import unittest
-from ...Game.Utils.NegArray import NegArray
-from ...Game.Settings.Figures.FigureTypes import FigureType
+
 from ... import Shared
+from ...Game.Settings.Figures.FigureTypes import FigureType
+from ...Game.Utils.NegArray import NegArray
+
 
 class LadybugTests(unittest.TestCase):
     def testAll(self):
@@ -18,7 +20,8 @@ class LadybugTests(unittest.TestCase):
 
         self.putLadybug((0, 1), field)
         turns = ladybug.AvailableTurns(field)
-        ans = Shared.Except(Shared.Union(Shared.CellsNearby((0, 1)),Shared.CellsNearby((1, 0))), [(0, 0), (0, 1), (1, 0)])
+        ans = Shared.Except(Shared.Union(Shared.CellsNearby((0, 1)), Shared.CellsNearby((1, 0))),
+                            [(0, 0), (0, 1), (1, 0)])
         self.assertEqual(len(turns), len(ans))
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         ladybug.ResetAvailTurns()
@@ -38,10 +41,12 @@ class LadybugTests(unittest.TestCase):
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         ladybug.ResetAvailTurns()
 
-    def putLadybug(self, pos, field):
+    @staticmethod
+    def putLadybug(pos, field):
         q = FigureType.Ladybug.GetFigure(0, pos)
         field.Put([q], pos)
         return q
+
 
 if __name__ == '__main__':
     unittest.main()

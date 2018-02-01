@@ -1,7 +1,9 @@
 import unittest
-from ...Game.Utils.NegArray import NegArray
-from ...Game.Settings.Figures.FigureTypes import FigureType
+
 from ... import Shared
+from ...Game.Settings.Figures.FigureTypes import FigureType
+from ...Game.Utils.NegArray import NegArray
+
 
 class AntTests(unittest.TestCase):
     def testAdequate(self):
@@ -20,7 +22,7 @@ class AntTests(unittest.TestCase):
 
         self.putAnt((0, 1), field)
         turns = ant.AvailableTurns(field)
-        ans = Shared.Except(Shared.Union(ans, Shared.CellsNearby((0, 1))),  [(0, 0), (1,0), (0,1)])
+        ans = Shared.Except(Shared.Union(ans, Shared.CellsNearby((0, 1))), [(0, 0), (1, 0), (0, 1)])
         self.assertEqual(len(turns), 7)
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         ant.ResetAvailTurns()
@@ -63,15 +65,16 @@ class AntTests(unittest.TestCase):
 
         turns = ant.AvailableTurns(field)
         ans = [(0, 1), (-1, 2), (-2, 3), (-3, 3), (-3, 2), (-4, 2), (-4, 1), (-3, 0), (-2, -1), (-1, -1), (0, -1)]
-        self.assertEqual(len(turns),11)
+        self.assertEqual(len(turns), 11)
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         ant.ResetAvailTurns()
 
-
-    def putAnt(self, pos, field):
+    @staticmethod
+    def putAnt(pos, field):
         q = FigureType.Ant.GetFigure(0, pos)
         field.Put([q], pos)
         return q
+
 
 if __name__ == '__main__':
     unittest.main()

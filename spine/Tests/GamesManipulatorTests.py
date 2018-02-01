@@ -1,10 +1,11 @@
 import unittest
 
 from spine.Game.Utils.Exceptions import GameNotFoundException
-from ..GamesManipulator import GamesManipulator
+from ..Database.TestDatabase import *
 from ..Game.Settings.Figures.FigureTypes import FigureType
 from ..Game.Utils.Action import Action
-from ..Database.TestDatabase import *
+from ..GamesManipulator import GamesManipulator
+
 
 class GameInstanceTests(unittest.TestCase):
     def setUp(self):
@@ -17,15 +18,21 @@ class GameInstanceTests(unittest.TestCase):
             table.drop_table()
 
     def testEverything(self):
-        manipulator = GamesManipulator(playerType=TestPlayer, gameType=TestGame, archType=TestGameArchieved, gameStateTable=TestPersistedGameState)
-# Creating players
+        manipulator = GamesManipulator(
+            player_type=TestPlayer,
+            game_type=TestGame,
+            arch_type=TestGameArchieved,
+            game_state_type=TestPersistedGameState
+        )
+
+        # Creating players
         action = {
-            "action":Action.CreatePlayer,
-            "name":"tester1",
-            "login":"logger1",
-            "password":"ffs",
-            "telegramId":1,
-            "premium":True
+            "action": Action.CreatePlayer,
+            "name": "tester1",
+            "login": "logger1",
+            "password": "ffs",
+            "telegramId": 1,
+            "premium": True
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
@@ -36,9 +43,9 @@ class GameInstanceTests(unittest.TestCase):
 
         action = {
             "action": Action.CreatePlayer,
-            "name" : "tester2",
-            "login" : "logger2",
-            "password" : "ffs"
+            "name": "tester2",
+            "login": "logger2",
+            "password": "ffs"
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
@@ -48,8 +55,8 @@ class GameInstanceTests(unittest.TestCase):
         self.assertEqual(p2["premium"], False)
 
         action = {
-            "action" : Action.CreatePlayer,
-            "telegramId" : 2
+            "action": Action.CreatePlayer,
+            "telegramId": 2
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
@@ -59,8 +66,8 @@ class GameInstanceTests(unittest.TestCase):
         self.assertEqual(p3["premium"], False)
 
         action = {
-            "action" : Action.CreatePlayer,
-            "telegramId" : 2
+            "action": Action.CreatePlayer,
+            "telegramId": 2
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
@@ -77,11 +84,11 @@ class GameInstanceTests(unittest.TestCase):
         self.assertIsNotNone(rv["reason"])
         self.assertIsNotNone(rv["message"])
 
-# Getting players
+        # Getting players
         action = {
-            "action":Action.GetPlayer,
-            "login":"logger2",
-            "password":"wrong"
+            "action": Action.GetPlayer,
+            "login": "logger2",
+            "password": "wrong"
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
@@ -119,13 +126,13 @@ class GameInstanceTests(unittest.TestCase):
         for kvp in p2.items():
             self.assertEqual(kvp[1], rv["player"][kvp[0]])
 
-# Modifying player
+        # Modifying player
         action = {
             "action": Action.ModifyPlayer,
-            "newValues":{
-                "name":"p1"
+            "newValues": {
+                "name": "p1"
             },
-            "token":p1["token"]
+            "token": p1["token"]
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
@@ -134,12 +141,12 @@ class GameInstanceTests(unittest.TestCase):
         for kvp in p1.items():
             self.assertEqual(kvp[1], rv["player"][kvp[0]])
 
-# Creating Game
+        # Creating Game
         action = {
-            "action":Action.CreateGame,
-            "player1":p1["id"],
-            "player2":p2["id"],
-            "turn":p1["id"]
+            "action": Action.CreateGame,
+            "player1": p1["id"],
+            "player2": p2["id"],
+            "turn": p1["id"]
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
@@ -149,9 +156,9 @@ class GameInstanceTests(unittest.TestCase):
         self.assertEqual(rv["player2"], p2["id"])
 
         action = {
-            "action":Action.CreateGame,
+            "action": Action.CreateGame,
             "player1": -1,
-            "player2":p3["id"]
+            "player2": p3["id"]
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
@@ -159,7 +166,7 @@ class GameInstanceTests(unittest.TestCase):
         self.assertIsNotNone(rv["message"])
 
         action = {
-            "action":Action.CreateGame,
+            "action": Action.CreateGame,
             "player1": p1["id"],
             "player2": p3["id"],
             "turn": p3["id"]
@@ -171,9 +178,9 @@ class GameInstanceTests(unittest.TestCase):
         self.assertEqual(rv["player1"], p3["id"])
         self.assertEqual(rv["player2"], p1["id"])
 
-# Finding game
+        # Finding game
         action = {
-            "action":Action.GetGames,
+            "action": Action.GetGames,
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
@@ -190,8 +197,8 @@ class GameInstanceTests(unittest.TestCase):
                 self.assertTrue(False)
 
         action = {
-            "action":Action.GetGames,
-            "players":[p1["id"]]
+            "action": Action.GetGames,
+            "players": [p1["id"]]
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
@@ -208,7 +215,7 @@ class GameInstanceTests(unittest.TestCase):
 
         action = {
             "action": Action.GetGames,
-            "players":[ p1["id"], p2["id"] ]
+            "players": [p1["id"], p2["id"]]
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], True)
@@ -225,13 +232,13 @@ class GameInstanceTests(unittest.TestCase):
         self.assertIsNotNone(rv["message"])
         self.assertIsNotNone(rv["reason"])
 
-# Playing a game
+        # Playing a game
         action = {
-            "action":Action.Place,
-            "gid":gid1,
-            "player":p1["id"],
-            "figure":FigureType.Queen,
-            "position":(0, 1)
+            "action": Action.Place,
+            "gid": gid1,
+            "player": p1["id"],
+            "figure": FigureType.Queen,
+            "position": (0, 1)
         }
         rv = manipulator.ActJS(action)
         self.assertEqual(rv["result"], False)
@@ -262,11 +269,11 @@ class GameInstanceTests(unittest.TestCase):
 
         action = {
             "action": Action.Concede,
-            "gid":gid1,
-            "player":p1["id"]
+            "gid": gid1,
+            "player": p1["id"]
         }
         rv = manipulator.ActJS(action)
-        if ("message" in rv):
+        if "message" in rv:
             self.assertEqual(rv["message"], None)
         self.assertEqual(rv["result"], True)
         self.assertTrue(rv["ended"])
@@ -285,7 +292,7 @@ class GameInstanceTests(unittest.TestCase):
         self.assertIsNotNone(rv["message"])
         self.assertIsNotNone(rv["reason"])
 
-#Finding ended game
+        # Finding ended game
         action = {
             "action": Action.GetGames,
         }
@@ -314,7 +321,7 @@ class GameInstanceTests(unittest.TestCase):
             else:
                 self.assertTrue(False)
 
-# Checking rating change
+        # Checking rating change
 
         action = {
             "action": Action.GetPlayer,
@@ -348,10 +355,10 @@ class GameInstanceTests(unittest.TestCase):
     def testGameStatePersistence(self):
         def create_manipulator():
             return GamesManipulator(
-                playerType=TestPlayer,
-                gameType=TestGame,
-                archType=TestGameArchieved,
-                gameStateTable=TestPersistedGameState
+                player_type=TestPlayer,
+                game_type=TestGame,
+                arch_type=TestGameArchieved,
+                game_state_type=TestPersistedGameState
             )
 
         manipulator = create_manipulator()
@@ -375,7 +382,7 @@ class GameInstanceTests(unittest.TestCase):
         white_queen = manipulator.Place(game_id, player1.id, FigureType.Queen, (0, 0)).fid
         verify_game_instance()
 
-        black_queen = manipulator.Place(game_id, player2.id, FigureType.Queen, (0, 1)).fid
+        manipulator.Place(game_id, player2.id, FigureType.Queen, (0, 1))
         verify_game_instance()
 
         manipulator.Move(game_id, player1.id, white_queen, (0, 0), (1, 0))
@@ -388,7 +395,6 @@ class GameInstanceTests(unittest.TestCase):
 
         with self.assertRaises(GameNotFoundException):
             create_manipulator().GetGameInst(game_id)
-
 
 
 if __name__ == '__main__':

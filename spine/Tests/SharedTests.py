@@ -1,12 +1,14 @@
 import unittest
+
 from .. import Shared
+
 
 class SharedTests(unittest.TestCase):
     def testEquality(self):
         self.assertTrue(Shared.ReallyEqual(None, None))
         self.assertFalse(Shared.ReallyEqual(None, ()))
         self.assertFalse(Shared.ReallyEqual((), None))
-        self.assertTrue(Shared.ReallyEqual((1,2,3), (1,2,3)))
+        self.assertTrue(Shared.ReallyEqual((1, 2, 3), (1, 2, 3)))
         self.assertFalse(Shared.ReallyEqual((1, 2, 3), (1, 2, 3, 4)))
         self.assertFalse(Shared.ReallyEqual((1, 2, 3, 4), (1, 2, 3)))
         self.assertFalse(Shared.ReallyEqual((1, 2, 3), (1, -2, 3)))
@@ -60,6 +62,7 @@ class SharedTests(unittest.TestCase):
         pos = Shared.CellsNearby((0, -1))
         ans = [(0, 0), (1, -1), (1, -2), (0, -2), (-1, -1), (-1, 0)]
         self.assertTrue((Shared.ReallyEqual(Shared.Intersect(ans, pos), ans)))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,9 +1,11 @@
 import unittest
-from ..Game.Settings.GameSettings import GameSettings
+
 from ..Game.GameInstance import GameInstance
 from ..Game.Settings.Figures.FigureTypes import FigureType
+from ..Game.Settings.GameSettings import GameSettings
 from ..Game.Utils.Action import Action
 from ..Game.Utils.Exceptions import *
+
 
 class GameInstanceTests(unittest.TestCase):
     def testStuff(self):
@@ -37,8 +39,8 @@ class GameInstanceTests(unittest.TestCase):
     def testUndefined(self):
         game = GameInstance(10, 11, GameSettings.GetSettings())
         action = {
-            "player":10,
-            "action":Action.Undefined
+            "player": 10,
+            "action": Action.Undefined
         }
         result = game.ActJS(action)
         self.assertEqual(result["result"], False)
@@ -48,8 +50,8 @@ class GameInstanceTests(unittest.TestCase):
     def testPlacement(self):
         game = GameInstance(10, 11, GameSettings.GetSettings())
         action = {
-            "player":10,
-            "action":Action.Place
+            "player": 10,
+            "action": Action.Place
         }
         result = game.ActJS(action)
         self.assertEqual(result["result"], False)
@@ -58,8 +60,8 @@ class GameInstanceTests(unittest.TestCase):
 
         action = {
             "player": 10,
-            "action":Action.Place,
-            "figure":FigureType.Queen
+            "action": Action.Place,
+            "figure": FigureType.Queen
         }
         result = game.ActJS(action)
         self.assertEqual(result["result"], False)
@@ -206,14 +208,14 @@ class GameInstanceTests(unittest.TestCase):
         self.assertIsNotNone(result["message"])
 
         action = {
-            "player":10,
-            "action":Action.Move,
-            "fid":q1,
-            "from":(0, 0),
-            "to":(0, 1)
+            "player": 10,
+            "action": Action.Move,
+            "fid": q1,
+            "from": (0, 0),
+            "to": (0, 1)
         }
         result = game.ActJS(action)
-        if ("reason" in result):
+        if "reason" in result:
             self.assertEqual(result["message"], None)
         self.assertEqual(result["result"], True)
         self.assertEqual(result["fid"], q1)
@@ -221,7 +223,7 @@ class GameInstanceTests(unittest.TestCase):
     def testSkip(self):
         game = GameInstance(10, 11, GameSettings.GetSettings())
 
-        preliminaryActions = [
+        preliminary_actions = [
             {
                 "player": 10,
                 "action": Action.Place,
@@ -314,7 +316,7 @@ class GameInstanceTests(unittest.TestCase):
             },
         ]
 
-        skipActions = [
+        skip_actions = [
             {
                 "player": 10,
                 "action": Action.Skip
@@ -325,13 +327,13 @@ class GameInstanceTests(unittest.TestCase):
             }
         ]
 
-        for i in range(0, len(preliminaryActions)):
-            act = preliminaryActions[i]
+        for i in range(0, len(preliminary_actions)):
+            act = preliminary_actions[i]
             result = game.ActJS(act)
             self.assertEqual(result["result"], True, msg="error in iteration " + str(i))
 
-            if i != len(preliminaryActions) - 2:
-                for skip in skipActions:
+            if i != len(preliminary_actions) - 2:
+                for skip in skip_actions:
                     result = game.ActJS(skip)
                     self.assertEqual(result["result"], False)
 
@@ -339,8 +341,8 @@ class GameInstanceTests(unittest.TestCase):
         game = GameInstance(10, 11, GameSettings.GetSettings())
 
         action1 = {
-            "action":Action.Concede,
-            "player":10
+            "action": Action.Concede,
+            "player": 10
         }
         rv = game.ActJS(action1)
         self.assertEqual(rv["result"], True)

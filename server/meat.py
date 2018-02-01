@@ -33,7 +33,7 @@ def main_page():
 
     if 'player_id' in session:  # Already logged-in users
         player_id = session['player_id']
-        player = games_manipulator.GetPlayer(id=player_id).player
+        player = games_manipulator.GetPlayer(pid=player_id).player
     else:
         if 'telegram_id' in data or 'token' in data:  # opened link from telegram
             find_player = games_manipulator.GetOrCreatePlayer(
@@ -127,8 +127,8 @@ def start_game():
     player_id = flask.session.get('player_id')
     other_player_id = data['other_player_id']
 
-    player = games_manipulator.GetPlayer(id=player_id).player
-    other_player = games_manipulator.GetPlayer(id=other_player_id).player
+    player = games_manipulator.GetPlayer(pid=player_id).player
+    other_player = games_manipulator.GetPlayer(pid=other_player_id).player
 
     game = games_manipulator.CreateGame(player.id, other_player.id, turn=player.id)
 

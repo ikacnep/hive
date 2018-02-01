@@ -1,9 +1,10 @@
 import unittest
-from ..Game.Settings.GameSettings import GameSettings
+
 from ..Game.GameState import GameState
-from ..Game.Utils.Exceptions import *
 from ..Game.Settings.Figures.FigureTypes import FigureType
-from ..Shared import *
+from ..Game.Settings.GameSettings import GameSettings
+from ..Game.Utils.Exceptions import *
+
 
 class GameStateTests(unittest.TestCase):
     def testPlacement(self):
@@ -35,12 +36,10 @@ class GameStateTests(unittest.TestCase):
         with self.assertRaises(ActionImpossible):
             game.Place(0, FigureType.Ant, (0, 1))
 
-
         self.assertEqual(len(game.availPlacements[0][0]), 5)
         self.assertEqual(len(game.availPlacements[0][1]), 3)
         game.Place(0, FigureType.Ant, (-1, 0))
         self.assertEqual(game.turn, 3)
-
 
         self.assertEqual(len(game.availPlacements[1][0]), 5)
         self.assertEqual(len(game.availPlacements[1][1]), 3)
@@ -164,9 +163,9 @@ class GameStateTests(unittest.TestCase):
         self.assertEqual(len(game.availActions[0]), 1)
         self.assertEqual(len(game.availActions[0][ant12]), 13)
         pill = game.Place(0, FigureType.Pillbug, (1, -1))
-        g2 = game.Place(1, FigureType.Grasshopper, (1, 1))
+        game.Place(1, FigureType.Grasshopper, (1, 1))
 
-        g1 = game.Place(0, FigureType.Grasshopper, (0, -2))
+        game.Place(0, FigureType.Grasshopper, (0, -2))
         game.Move(1, ant22, (0, 4), (2, -2))
 
         self.assertEqual(len(game.availActions[0]), 2)
@@ -177,8 +176,8 @@ class GameStateTests(unittest.TestCase):
         with self.assertRaises(ActionImpossible):
             game.Move(0, pill, (2, -2), (1, 0))
 
-        g1 = game.Place(0, FigureType.Grasshopper, (0, -3))
-        g2 = game.Place(1, FigureType.Grasshopper, (2, 1))
+        game.Place(0, FigureType.Grasshopper, (0, -3))
+        game.Place(1, FigureType.Grasshopper, (2, 1))
 
         self.assertEqual(len(game.availActions[0]), 3)
         self.assertEqual(game.Move(0, pill, (2, -2), (1, 0)), ant22)
@@ -224,7 +223,6 @@ class GameStateTests(unittest.TestCase):
         self.assertTrue(game.gameEnded)
         self.assertFalse(game.hasLost[0])
         self.assertTrue(game.hasLost[1])
-
 
     def testSettings(self):
         game = GameState(GameSettings.GetSettings())
@@ -291,7 +289,8 @@ class GameStateTests(unittest.TestCase):
         game.Place(0, FigureType.Pillbug, (0, -1))
         self.assertEqual(game.turn, 3)
 
-    def testBeetleBug(self):
+    @staticmethod
+    def testBeetleBug():
         game = GameState(GameSettings.GetSettings())
         game.Place(0, FigureType.Queen, (0, 0))
         game.Place(1, FigureType.Queen, (0, 1))
@@ -307,6 +306,7 @@ class GameStateTests(unittest.TestCase):
         game.Move(1, a, (1, 1), (-1, 1))
         game.Move(0, b1, (0, 0), (-1, 1))
         game.Skip(1)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,9 +1,11 @@
 import unittest
-from ...Game.Settings.GameSettings import GameSettings
-from ...Game.Utils.NegArray import NegArray
+
+from ... import Shared
 from ...Game.GameState import GameState
 from ...Game.Settings.Figures.FigureTypes import FigureType
-from ... import Shared
+from ...Game.Settings.GameSettings import GameSettings
+from ...Game.Utils.NegArray import NegArray
+
 
 # Beware! Tests are copied from all other figures!
 class MosquitoTests(unittest.TestCase):
@@ -16,28 +18,38 @@ class MosquitoTests(unittest.TestCase):
 
         self.putPillbug((1, 0), field)
         turns = pillbug.AvailableTurns(field)
-        ans = ((0, 1), (1, -1), ((1,0),(0,1)), ((1,0),(1,-1)), ((1,0),(-1,1)), ((1,0),(0,-1)), ((1,0),(-1,0)))
+        ans = (
+            (0, 1), (1, -1), ((1, 0), (0, 1)), ((1, 0), (1, -1)), ((1, 0), (-1, 1)), ((1, 0), (0, -1)),
+            ((1, 0), (-1, 0))
+        )
         self.assertEqual(len(turns), len(ans))
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         pillbug.ResetAvailTurns()
 
         self.putPillbug((-1, 0), field)
         turns = pillbug.AvailableTurns(field)
-        ans = ((0, 1), (1, -1), (-1, 1), (0, -1), ((1,0),(0,1)), ((1,0),(1,-1)), ((1,0),(-1,1)), ((1,0),(0,-1)), ((-1,0),(0,1)), ((-1,0),(1,-1)), ((-1,0),(-1,1)), ((-1,0),(0,-1)))
+        ans = (
+            (0, 1), (1, -1), (-1, 1), (0, -1), ((1, 0), (0, 1)), ((1, 0), (1, -1)), ((1, 0), (-1, 1)),
+            ((1, 0), (0, -1)), ((-1, 0), (0, 1)), ((-1, 0), (1, -1)), ((-1, 0), (-1, 1)), ((-1, 0), (0, -1))
+        )
         self.assertEqual(len(turns), len(ans))
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         pillbug.ResetAvailTurns()
 
         self.putPillbug((0, -1), field)
         turns = pillbug.AvailableTurns(field)
-        ans = ((0, 1), (-1, 1), ((1,0),(0,1)), ((1,0),(1,-1)), ((1,0),(-1,1)), ((-1,0),(0,1)), ((-1,0),(1,-1)), ((-1,0),(-1,1)), ((0,-1),(0,1)), ((0,-1),(1,-1)), ((0,-1),(-1,1)))
+        ans = (
+            (0, 1), (-1, 1), ((1, 0), (0, 1)), ((1, 0), (1, -1)), ((1, 0), (-1, 1)), ((-1, 0), (0, 1)),
+            ((-1, 0), (1, -1)), ((-1, 0), (-1, 1)), ((0, -1), (0, 1)), ((0, -1), (1, -1)), ((0, -1), (-1, 1))
+        )
         self.assertEqual(len(turns), len(ans))
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         pillbug.ResetAvailTurns()
 
         self.putPillbug((-1, 1), field)
         turns = pillbug.AvailableTurns(field)
-        ans = (((1, 0), (0, 1)), ((1, 0), (1, -1)), ((-1, 0), (0, 1)), ((-1, 0), (1, -1)), ((0, -1), (0, 1)), ((0, -1), (1, -1)), ((-1, 1), (0, 1)), ((-1, 1), (1, -1)))
+        ans = (((1, 0), (0, 1)), ((1, 0), (1, -1)), ((-1, 0), (0, 1)), ((-1, 0), (1, -1)), ((0, -1), (0, 1)),
+               ((0, -1), (1, -1)), ((-1, 1), (0, 1)), ((-1, 1), (1, -1)))
         self.assertEqual(len(turns), len(ans))
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         pillbug.ResetAvailTurns()
@@ -63,7 +75,7 @@ class MosquitoTests(unittest.TestCase):
 
         self.putAnt((0, 1), field)
         turns = ant.AvailableTurns(field)
-        ans = Shared.Except(Shared.Union(ans, Shared.CellsNearby((0, 1))),  [(0, 0), (1,0), (0,1)])
+        ans = Shared.Except(Shared.Union(ans, Shared.CellsNearby((0, 1))), [(0, 0), (1, 0), (0, 1)])
         self.assertEqual(len(turns), 7)
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         ant.ResetAvailTurns()
@@ -106,7 +118,7 @@ class MosquitoTests(unittest.TestCase):
 
         turns = ant.AvailableTurns(field)
         ans = [(0, 1), (-1, 2), (-2, 3), (-3, 3), (-3, 2), (-4, 2), (-4, 1), (-3, 0), (-2, -1), (-1, -1), (0, -1)]
-        self.assertEqual(len(turns),11)
+        self.assertEqual(len(turns), 11)
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         ant.ResetAvailTurns()
 
@@ -175,7 +187,7 @@ class MosquitoTests(unittest.TestCase):
 
         beetle = self.addMosquito((-1, 1), field)
         turns = beetle.AvailableTurns(field)
-        ans = ((-2, 1), (-1, 2), (0, 1), (-1, 0), (0,0))
+        ans = ((-2, 1), (-1, 2), (0, 1), (-1, 0), (0, 0))
         self.assertEqual(len(turns), 5)
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
 
@@ -190,7 +202,7 @@ class MosquitoTests(unittest.TestCase):
 
         beetle = self.addMosquito((-1, 1), field)
         turns = beetle.AvailableTurns(field)
-        ans = ((-2, 1), (-1, 2), (0, 1), (-1, 0), (0,0))
+        ans = ((-2, 1), (-1, 2), (0, 1), (-1, 0), (0, 0))
         self.assertEqual(len(turns), 5)
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
 
@@ -285,7 +297,8 @@ class MosquitoTests(unittest.TestCase):
 
         self.putLadybug((0, 1), field)
         turns = ladybug.AvailableTurns(field)
-        ans = Shared.Except(Shared.Union(Shared.CellsNearby((0, 1)),Shared.CellsNearby((1, 0))), [(0, 0), (0, 1), (1, 0)])
+        ans = Shared.Except(Shared.Union(Shared.CellsNearby((0, 1)), Shared.CellsNearby((1, 0))),
+                            [(0, 0), (0, 1), (1, 0)])
         self.assertEqual(len(turns), len(ans))
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         ladybug.ResetAvailTurns()
@@ -397,71 +410,82 @@ class MosquitoTests(unittest.TestCase):
         self.assertEqual(len(turns), 0)
         spider.ResetAvailTurns()
 
-
-    def putSpider(self, pos, field):
+    @staticmethod
+    def putSpider(pos, field):
         q = FigureType.Spider.GetFigure(0, pos)
         field.Put([q], pos)
         return q
 
-    def putQueen(self, pos, field):
+    @staticmethod
+    def putQueen(pos, field):
         q = FigureType.Queen.GetFigure(0, pos)
         field.Put([q], pos)
         return q
 
-    def putLadybug(self, pos, field):
+    @staticmethod
+    def putLadybug(pos, field):
         q = FigureType.Ladybug.GetFigure(0, pos)
         field.Put([q], pos)
         return q
 
-    def putGrasshopper(self, pos, field):
+    @staticmethod
+    def putGrasshopper(pos, field):
         q = FigureType.Grasshopper.GetFigure(0, pos)
         field.Put([q], pos)
         return q
 
-    def putBeetle(self, pos, field):
+    @staticmethod
+    def putBeetle(pos, field):
         q = FigureType.Beetle.GetFigure(0, pos)
         field.Put([q], pos)
         return q
 
-    def addBeetle(self, pos, field):
+    @staticmethod
+    def addBeetle(pos, field):
         q = FigureType.Beetle.GetFigure(0, pos)
         prev = field.Get(pos)
-        if (prev == None):
+        if prev is None:
             field.Put([q], pos)
         else:
             prev.insert(0, q)
 
         return q
 
-    def putAnt(self, pos, field):
+    @staticmethod
+    def putAnt(pos, field):
         q = FigureType.Ant.GetFigure(0, pos)
         field.Put([q], pos)
         return q
 
-    def putPillbug(self, pos, field):
+    @staticmethod
+    def putPillbug(pos, field):
         q = FigureType.Pillbug.GetFigure(0, pos)
         field.Put(q)
         return q
 
-    def putMosquitoNoList(self, pos, field):
+    @staticmethod
+    def putMosquitoNoList(pos, field):
         q = FigureType.Mosquito.GetFigure(0, pos)
         field.Put(q)
         return q
 
-    def putMosquito(self, pos, field):
+    @staticmethod
+    def putMosquito(pos, field):
         q = FigureType.Mosquito.GetFigure(0, pos)
         field.Put([q], pos)
         return q
 
-    def addMosquito(self, pos, field):
+    @staticmethod
+    def addMosquito(pos, field):
         q = FigureType.Mosquito.GetFigure(0, pos)
         prev = field.Get(pos)
-        if (prev == None):
+        if prev is None:
             field.Put([q], pos)
         else:
             prev.insert(0, q)
 
         return q
+
 
 if __name__ == '__main__':
     unittest.main()

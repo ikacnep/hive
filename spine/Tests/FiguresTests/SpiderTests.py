@@ -1,7 +1,9 @@
 import unittest
-from ...Game.Utils.NegArray import NegArray
-from ...Game.Settings.Figures.FigureTypes import FigureType
+
 from ... import Shared
+from ...Game.Settings.Figures.FigureTypes import FigureType
+from ...Game.Utils.NegArray import NegArray
+
 
 class SpiderTests(unittest.TestCase):
     def testAll(self):
@@ -58,11 +60,12 @@ class SpiderTests(unittest.TestCase):
         self.assertEqual(len(turns), 0)
         spider.ResetAvailTurns()
 
-
-    def putSpider(self, pos, field):
+    @staticmethod
+    def putSpider(pos, field):
         q = FigureType.Spider.GetFigure(0, pos)
         field.Put([q], pos)
         return q
+
 
 if __name__ == '__main__':
     unittest.main()

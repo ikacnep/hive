@@ -1,7 +1,9 @@
 import unittest
-from ...Game.Utils.NegArray import NegArray
-from ...Game.Settings.Figures.FigureTypes import FigureType
+
 from ... import Shared
+from ...Game.Settings.Figures.FigureTypes import FigureType
+from ...Game.Utils.NegArray import NegArray
+
 
 class GrasshopperTests(unittest.TestCase):
     def testZeroPlus(self):
@@ -81,10 +83,12 @@ class GrasshopperTests(unittest.TestCase):
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
         grasshopper.ResetAvailTurns()
 
-    def putGrasshopper(self, pos, field):
+    @staticmethod
+    def putGrasshopper(pos, field):
         q = FigureType.Grasshopper.GetFigure(0, pos)
         field.Put([q], pos)
         return q
+
 
 if __name__ == '__main__':
     unittest.main()
