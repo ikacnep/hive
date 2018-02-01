@@ -56,64 +56,27 @@ form#right {
 
 /* hex */
 hex {
-    margin: 0px 30px;
-    width: 60px;
-    height: 104px;
+    width: 109px;
+    height: 110px;
     position: absolute;
     display: inline-block;
+    background-size: 109px 124px;
     z-index: 1;
 }
 
-hex:before, hex:after, hex b:before, hex b:after {
-    content: '';
-    width: 0;
-    height: 0;
-    border-top: 0 solid transparent;
-    border-bottom: 0 solid transparent;
-    position: absolute;
-}
-
-hex:before {
-    left: -30px;
-    border-right: 30px solid;
-    border-bottom-width: 52px;
-    border-top-width: 52px;
-}
-
-hex:after {
-    right: -30px;
-    border-left: 30px solid;
-    border-bottom-width: 52px;
-    border-top-width: 52px;
-}
-
-/* hex border */
 hex b {
-    margin: 0px 26px;
-    width: 52px;
-    height: 90px;
-    display: inline-block;
+    width: 124px;
+    height: 109px;
     position: absolute;
-    top: 7px;
-    left: -22px;
+    display: inline-block;
+    background-size: 109px 124px;
     z-index: 1;
 }
 
-hex b:before {
-    left: -26px;
-    border-right: 26px solid;
-    border-bottom-width: 45px;
-    border-top-width: 45px;
-}
+/* TODO hex border */
 
-hex b:after {
-    right: -26px;
-    border-left: 26px solid;
-    border-bottom-width: 45px;
-    border-top-width: 45px;
-}
-
-/* hex border colors */
+/* TODO hex border colors */
+/*
 hex.placed { background-color: magenta !important; }
 hex.placed:before { border-right-color: magenta !important; }
 hex.placed:after { border-left-color: magenta !important; }
@@ -129,69 +92,40 @@ hex.moved:after { border-left-color: yellow !important; }
 hex.can_move_here { background-color: blue !important; }
 hex.can_move_here:before { border-right-color: blue !important; }
 hex.can_move_here:after { border-left-color: blue !important; }
-
-
-hex.white { background-color: #DDD; }
-hex.white:before { border-right-color: #DDD; }
-hex.white:after { border-left-color: #DDD; }
-
-hex.black { background-color: #333; }
-hex.black:before { border-right-color: #333; }
-hex.black:after { border-left-color: #333; }
+*/
 
 /* hex center colors */
-hex.white b { background-color: #DDD; }
+
+hex.white { background-image: url('/static/image/white_hex.svg'); }
+hex.black { background-image: url('/static/image/black_hex.svg'); }
+
+/*hex.white b { background-color: #DDD; }
 hex.white b:before { border-right-color: #DDD; }
 hex.white b:after { border-left-color: #DDD; }
 
 hex.black b { background-color: #333; }
 hex.black b:before { border-right-color: #333; }
-hex.black b:after { border-left-color: #333; }
+hex.black b:after { border-left-color: #333; }*/
 
 /* hex figure element */
 hex i {
+    width: 124px;
+    height: 109px;
     position: absolute;
-    z-index: 1;
-    left: -13px;
-    top: 14px;
-    width: 80px;
-    height: 80px;
-	background-size: 80px 80px;
     display: inline-block;
+    background-size: 109px 124px;
+    z-index: 1;
 }
 
 /* hex figures */
-hex.Queen i {
-	background-image: url('/static/image/queen.svg');
-}
-
-hex.Ant i {
-	background-image: url('/static/image/ant.svg');
-}
-
-hex.Spider i {
-	background-image: url('/static/image/spider.svg');
-}
-
-hex.Beetle i {
-	background-image: url('/static/image/beetle.svg');
-}
-
-hex.Grasshopper i {
-	background-image: url('/static/image/grasshopper.svg');
-}
-
-hex.Mosquito i {
-	background-image: url('/static/image/mosquito.svg');
-}
-
-hex.Ladybug i {
-	background-image: url('/static/image/ladybug.svg');
-}
-
-hex.Pillbug i {
-	background-image: url('/static/image/pillbug.svg');
-}
+hex.Queen i         { background-image: url('/static/image/queen.svg'); }
+hex.Ant i           { background-image: url('/static/image/ant.svg'); }
+hex.Spider i        { background-image: url('/static/image/spider.svg'); }
+hex.Beetle i        { background-image: url('/static/image/beetle.svg'); }
+hex.Grasshopper i   { background-image: url('/static/image/grasshopper.svg'); }
+hex.Mosquito i      { background-image: url('/static/image/mosquito.svg'); }
+hex.Ladybug i       { background-image: url('/static/image/ladybug.svg'); }
+hex.Pillbug i       { background-image: url('/static/image/pillbug.svg'); }
 
 /* table and board */
 .table {
