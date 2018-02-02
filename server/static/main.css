@@ -1,6 +1,6 @@
 * { margin:0; padding:0; } /* to remove the top and left whitespace */
 
-html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
+html, body { width:100%; height:100%; } /* just to be sure these are full screen */
 
 form#right {
     position: fixed;
@@ -55,67 +55,24 @@ form#right {
 }
 
 /* hex */
-hex {
-    width: 109px;
+hex, hex b, hex i {
+    width: 124px;
     height: 110px;
     position: absolute;
     display: inline-block;
-    background-size: 109px 124px;
+    background-size: 124px 110px;
     z-index: 1;
 }
 
-hex b {
-    width: 124px;
-    height: 109px;
-    position: absolute;
-    display: inline-block;
-    background-size: 109px 124px;
-    z-index: 1;
-}
-
-/* TODO hex border */
-
-/* TODO hex border colors */
-/*
-hex.placed { background-color: magenta !important; }
-hex.placed:before { border-right-color: magenta !important; }
-hex.placed:after { border-left-color: magenta !important; }
-
-hex.selected { background-color: green !important; }
-hex.selected:before { border-right-color: green !important; }
-hex.selected:after { border-left-color: green !important; }
-
-hex.moved { background-color: yellow !important; }
-hex.moved:before { border-right-color: yellow !important; }
-hex.moved:after { border-left-color: yellow !important; }
-
-hex.can_move_here { background-color: blue !important; }
-hex.can_move_here:before { border-right-color: blue !important; }
-hex.can_move_here:after { border-left-color: blue !important; }
-*/
+/* hex borders */
+hex.can_move_here b { background-image: url('/static/image/outline_can_move_here.svg'); }
+hex.moved b         { background-image: url('/static/image/outline_moved.svg'); }
+hex.placed b        { background-image: url('/static/image/outline_placed.svg'); }
+hex.selected b      { background-image: url('/static/image/outline_selected.svg'); }
 
 /* hex center colors */
-
 hex.white { background-image: url('/static/image/white_hex.svg'); }
 hex.black { background-image: url('/static/image/black_hex.svg'); }
-
-/*hex.white b { background-color: #DDD; }
-hex.white b:before { border-right-color: #DDD; }
-hex.white b:after { border-left-color: #DDD; }
-
-hex.black b { background-color: #333; }
-hex.black b:before { border-right-color: #333; }
-hex.black b:after { border-left-color: #333; }*/
-
-/* hex figure element */
-hex i {
-    width: 124px;
-    height: 109px;
-    position: absolute;
-    display: inline-block;
-    background-size: 109px 124px;
-    z-index: 1;
-}
 
 /* hex figures */
 hex.Queen i         { background-image: url('/static/image/queen.svg'); }

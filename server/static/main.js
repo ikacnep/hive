@@ -7,16 +7,14 @@ if (window.console && console.log) {
 jQuery(function ($) {
     log('initializing');
 
-    var b = 60;
-    var d = 8;
+    var sqrt3 = Math.sqrt(3);
+
+    var b = 64;
+    var g = sqrt3 / 2 * b;
+
     var board = $('.table .board');
 
     var game = {};
-
-    var sqrt3 = Math.sqrt(3);
-
-    var a = b - d / sqrt3;
-    var g = sqrt3 / 2 * b;
 
     function MoveToCoordinates(hex, coordinates) {
         var r = coordinates[0];
@@ -31,7 +29,7 @@ jQuery(function ($) {
     function AddHex(options) {
         log('AddHex:', options);
 
-        var hex = $('<hex><b><i></b></i>');
+        var hex = $('<hex><i><b></b></i>');
 
         hex.addClass(options.player || '');
         hex.addClass(options.figure || '');
@@ -346,8 +344,7 @@ jQuery(function ($) {
         var new_scale = is_out ? board_position.scale / 1.1 : board_position.scale * 1.1;
 
         // TODO: придумать правильную формулу для интуитивно понятного приближения/удаления, как в картах
-        // Плюс вылезают артефакты на гексах. Пока что отключено.
-        // board_position.scale = new_scale;
+        board_position.scale = new_scale;
     }
 
     controls.find('.left').click(BoardMovement(function(w, h, step) { board_position.x -= step / board_position.scale; }));
@@ -359,4 +356,35 @@ jQuery(function ($) {
     controls.find('.in').click(BoardMovement(function(w, h, step) { ChangeScale(false); }));
 
     BoardMovement();
+
+    $('#debug_board').click(function(e) {
+        e.preventDefault();
+        board.empty();
+
+        $.each('- selected moved placed'.split(' '), function(state_id, state) {
+            $.each(['white', 'black'], function (color_id, color) {
+                $.each('Queen Ant Spider Beetle Grasshopper Mosquito Ladybug Pillbug'.split(' '), function (figure_id, figure) {
+                    AddHex({
+                        player: color,
+                        figure: figure,
+                        state: state,
+                        coordinates: [figure_id, color_id  - (((figure_id + 1) / 2)|0) + 2 * state_id, 0],
+                    });
+                });
+            });
+        });
+
+        var state_id = 4;
+
+        $.each('Queen Ant Spider Beetle Grasshopper Mosquito Ladybug Pillbug'.split(' '), function (figure_id, figure) {
+            AddHex({
+                player: '',
+                figure: '',
+                state: 'can_move_here',
+                coordinates: [figure_id, -(((figure_id + 1) / 2)|0) + 2 * state_id, 0],
+            });
+        });
+
+        return false;
+    })
 });
