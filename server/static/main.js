@@ -163,7 +163,8 @@ jQuery(function ($) {
         var adding_figure = $('.add_piece.selected').data('figure');
 
         if (adding_figure) {
-            Post('/action/add/' + game_id, {
+            Post('/game/' + game_id + '/act', {
+                action: 'Place',
                 figure: adding_figure,
                 coordinates: [r, q]
             }).done(AddPieceToBoard);
@@ -175,7 +176,8 @@ jQuery(function ($) {
                     board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
                     game.selected_piece = null;
                 } else {
-                    Post('/action/move/' + game_id, {
+                    Post('/game/' + game_id + '/act', {
+                        action: 'Move',
                         figure_id: game.selected_piece.id,
                         from: coordinates.slice(0, 2),
                         to: [r, q],
@@ -235,7 +237,7 @@ jQuery(function ($) {
         alert(error_message);
     });
 
-    $.getJSON('/board/' + game_id)
+    $.getJSON('/game/' + game_id + '/board')
         .done(function(game_response) {
             game = game_response;
 
@@ -289,7 +291,7 @@ jQuery(function ($) {
             return;
         }
 
-        $.getJSON('/moves/' + game_id, function(data) {
+        $.getJSON('/game/' + game_id + '/moves', function(data) {
             log('Other player move:', data);
 
             if (!data.action) {
@@ -332,7 +334,7 @@ jQuery(function ($) {
         };
 
         function Apply() {
-            log('Board movement: ' + board_position);
+            log('Board movement:', board_position);
 
             board.css({
                 'transform': 'translate(' + board_position.x + 'px, ' + board_position.y + 'px)' + ' scale(' + board_position.scale + ')'
@@ -356,6 +358,8 @@ jQuery(function ($) {
     controls.find('.in').click(BoardMovement(function(w, h, step) { ChangeScale(false); }));
 
     function OnResize(is_initial) {
+        log('OnResize', is_initial);
+
         var table = board.parent();
 
         var new_width = $(window).width() - $('#right').outerWidth();

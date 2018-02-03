@@ -3,6 +3,7 @@ import os
 import traceback
 
 from spine.Game.Settings.Figures import FigureTypes
+from spine.Game.Utils.Action import Action
 from spine.Game.Utils.Exceptions import HiveError, GameNotFoundException
 from spine.GamesManipulator import GamesManipulator
 
@@ -28,8 +29,6 @@ def handle_incorrect_move(error):
 def main_page():
     data = flask.request.args
     session = flask.session
-
-    player = None
 
     if 'player_id' in session:  # Already logged-in users
         player_id = session['player_id']
@@ -166,46 +165,53 @@ def get_player_color(game, player_id=None):
     return 'white' if game.GetPlayer(player_id) == 0 else 'black'
 
 
-@app.route('/action/add/<int:game_id>', methods=['POST'])
-def add(game_id):
+@app.route('/game/<int:game_id>/act', methods=['POST'])
+def game_action(game_id):
     data = flask.request.json
 
     game, player_id = verify_i_play_game(game_id)
 
-    result = games_manipulator.Place(
-        gid=game_id,
-        player=player_id,
-        figure=FigureTypes.FigureType[data['figure']],
-        position=tuple(data['coordinates'])
-    )
+    action = Action[data['action']]
+
+    if action == Action.Place:
+        result = games_manipulator.Place(
+            gid=game_id,
+            player=player_id,
+            figure=FigureTypes.FigureType[data['figure']],
+            position=tuple(data['coordinates']),
+            addState=True,
+        )
+    elif action == Action.Move:
+        result = games_manipulator.Move(
+            gid=game_id,
+            player=player_id,
+            fid=data['figure_id'],
+            f=tuple(data['from']),
+            t=tuple(data['to']),
+            addState=True,
+        )
+    elif action == Action.Skip:
+        result = games_manipulator.Skip(
+            gid=game_id,
+            player=player_id,
+            addState=True,
+        )
+    elif action == Action.Concede:
+        result = games_manipulator.Concede(
+            gid=game_id,
+            player=player_id,
+            addState=True,
+        )
+    else:
+        raise IncorrectMove('Unhandled action: {}'.format(action))
 
     return flask.jsonify(
-        state=game.GetState().GetJson(),
+        state=result.state.GetJson(),
         figure_id=result.fid
     )
 
 
-@app.route('/action/move/<int:game_id>', methods=['POST'])
-def move(game_id):
-    data = flask.request.json
-
-    game, player_id = verify_i_play_game(game_id)
-
-    result = games_manipulator.Move(
-        gid=game_id,
-        player=player_id,
-        fid=data['figure_id'],
-        f=tuple(data['from']),
-        t=tuple(data['to']),
-    )
-
-    return flask.jsonify(
-        state=game.GetState().GetJson(),
-        figure_id=result.fid
-    )
-
-
-@app.route('/moves/<int:game_id>', methods=['GET'])
+@app.route('/game/<int:game_id>/moves', methods=['GET'])
 def get_moves(game_id):
     game, player_id = verify_i_play_game(game_id)
 
@@ -213,7 +219,6 @@ def get_moves(game_id):
     last_action = state.lastAction
 
     if not last_action or last_action['player'] == player_id:
-        print('Last action is mine, blanking')
         return flask.jsonify()
 
     return flask.jsonify(
@@ -225,7 +230,7 @@ def get_moves(game_id):
     )
 
 
-@app.route('/board/<int:game_id>', methods=['GET'])
+@app.route('/game/<int:game_id>/board', methods=['GET'])
 def get_board(game_id):
     print('get_board')
     game, player_id = verify_i_play_game(game_id)
