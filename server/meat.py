@@ -245,7 +245,7 @@ def letsencrypt(challenge):
         return ''
 
     try:
-        return open('.well-known/acme-challenge/' + challenge).read()
+        return open('server/.well-known/acme-challenge/' + challenge).read()
     except:
         return ''
 
