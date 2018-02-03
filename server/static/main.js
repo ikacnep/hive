@@ -20,8 +20,8 @@ jQuery(function ($) {
         var r = coordinates[0];
         var q = coordinates[1];
 
-        var x = g * (1 + r + 2 * q);
-        var y = b * (1 + 1.5 * r) + b / 2;
+        var x = g * (r + 2 * q);
+        var y = b * (3 * r - 1) / 2 + b / 2;
 
         hex.css({top: x, left: y});
     }
@@ -278,7 +278,7 @@ jQuery(function ($) {
         var v = Math.ceil(1 / (2 * g) * (y1 + sqrt3 * x1));
         var l = Math.ceil(1 / (2 * g) * (y1 - sqrt3 * x1));
 
-        var r = Math.floor((v - l - 2) / 3);
+        var r = Math.floor((v - l + 1) / 3);
         var q = Math.floor((m + l) / 3);
 
         OnHexClick(r, q);
@@ -355,36 +355,48 @@ jQuery(function ($) {
     controls.find('.out').click(BoardMovement(function(w, h, step) { ChangeScale(true); }));
     controls.find('.in').click(BoardMovement(function(w, h, step) { ChangeScale(false); }));
 
-    BoardMovement();
+    function OnResize(is_initial) {
+        var table = board.parent();
+
+        var new_width = $(window).width() - $('#right').outerWidth();
+        var new_height = $(window).height();
+
+        var current_width = table.width();
+        var current_height = table.height();
+
+        table.width(new_width);
+        table.height(new_height);
+
+        if (is_initial === true) {
+            board_position.x = new_width / 2 - b;
+            board_position.y = new_height / 2 - g;
+        } else {
+            board_position.x += new_width / 2 - current_width / 2;
+            board_position.y += new_height / 2 - current_height / 2;
+        }
+
+        BoardMovement(function() {})();
+    }
+
+    OnResize(true);
+
+    $(window).resize(OnResize);
 
     $('#debug_board').click(function(e) {
         e.preventDefault();
         board.empty();
 
-        $.each('- selected moved placed'.split(' '), function(state_id, state) {
+        $.each('- selected moved placed can_move_here'.split(' '), function(state_id, state) {
             $.each(['white', 'black'], function (color_id, color) {
                 $.each('Queen Ant Spider Beetle Grasshopper Mosquito Ladybug Pillbug'.split(' '), function (figure_id, figure) {
                     AddHex({
-                        player: color,
-                        figure: figure,
+                        player: state == 'can_move_here' ? '' : color,
+                        figure: state == 'can_move_here' ? '' : figure,
                         state: state,
                         coordinates: [figure_id, color_id  - (((figure_id + 1) / 2)|0) + 2 * state_id, 0],
                     });
                 });
             });
         });
-
-        var state_id = 4;
-
-        $.each('Queen Ant Spider Beetle Grasshopper Mosquito Ladybug Pillbug'.split(' '), function (figure_id, figure) {
-            AddHex({
-                player: '',
-                figure: '',
-                state: 'can_move_here',
-                coordinates: [figure_id, -(((figure_id + 1) / 2)|0) + 2 * state_id, 0],
-            });
-        });
-
-        return false;
     })
 });

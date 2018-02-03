@@ -5,9 +5,11 @@ html, body { width:100%; height:100%; } /* just to be sure these are full screen
 form#right {
     position: fixed;
     top: 40px;
-    right: 20px;
+    right: 0;
     font-size: 20px;
     width: 250px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 #right p {
@@ -89,6 +91,8 @@ hex.Pillbug i       { background-image: url('/static/image/pillbug.svg'); }
     width: 800px;
     height: 600px;
     overflow: hidden;
+
+    background-color: #EEE;
 }
 
 .board {
