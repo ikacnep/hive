@@ -268,22 +268,29 @@ jQuery(function ($) {
         }
     });
 
-    $('.table').click(function (event) {
-        var offset = $(this).offset();
-        var x = event.pageX - offset.left - board_position.x;
-        var y = event.pageY - offset.top - board_position.y;
+    function ConvertScreenToCoordinates(click_x, click_y) {
+        var bs = b;
+        var gs = g;
 
-        var x1 = x - b;
-        var y1 = y - g;
+        // Я понятия не имею, откуда это берётся. Подобрано опытным путём.
+        var x_discrepancy = board_position.width / 2 * (1 - 1 / board_position.scale);
 
-        var m = Math.ceil(y1 / g);
-        var v = Math.ceil(1 / (2 * g) * (y1 + sqrt3 * x1));
-        var l = Math.ceil(1 / (2 * g) * (y1 - sqrt3 * x1));
+        var x = (click_x) / board_position.scale - board_position.x - bs + x_discrepancy;
+        var y = (click_y) / board_position.scale - board_position.y - gs;
+
+        var m = Math.ceil(y / gs);
+        var v = Math.ceil((y + sqrt3 * x) / (2 * gs));
+        var l = Math.ceil((y - sqrt3 * x) / (2 * gs));
 
         var r = Math.floor((v - l + 1) / 3);
         var q = Math.floor((m + l) / 3);
 
-        OnHexClick(r, q);
+        return [r, q];
+    }
+
+    $('.table').click(function (event) {
+        var coordinates = ConvertScreenToCoordinates(event.pageX, event.pageY);
+        OnHexClick.apply(null, coordinates);
     });
 
     function PollForChanges() {
@@ -315,6 +322,8 @@ jQuery(function ($) {
         scale: 1,
         x: 0,
         y: 0,
+        width: 800,
+        height: 600,
     };
 
     var table = $('.table');
@@ -337,7 +346,7 @@ jQuery(function ($) {
             log('Board movement:', board_position);
 
             board.css({
-                'transform': 'translate(' + board_position.x + 'px, ' + board_position.y + 'px)' + ' scale(' + board_position.scale + ')'
+                'transform': ' scale(' + board_position.scale + ') ' + 'translate(' + board_position.x + 'px, ' + board_position.y + 'px)'
             });
         }
     }
@@ -378,6 +387,9 @@ jQuery(function ($) {
             board_position.x += new_width / 2 - current_width / 2;
             board_position.y += new_height / 2 - current_height / 2;
         }
+
+        board_position.width = new_width;
+        board_position.height = new_height;
 
         BoardMovement(function() {})();
     }
