@@ -15,7 +15,7 @@ class TestPlayer(BaseTestModel):
     creationDate = DateTimeField(default=datetime.datetime.now)
     lastGame = DateTimeField(default=datetime.datetime.now, null=True)
     login = CharField(null=True)
-    password = CharField(null=True)
+    password_enc = CharField(null=True)
     telegramId = BigIntegerField(null=True)
     token = CharField(null=True)
     rating = IntegerField(default=1000)

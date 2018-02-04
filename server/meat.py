@@ -32,7 +32,11 @@ def main_page():
 
     if 'player_id' in session:  # Already logged-in users
         player_id = session['player_id']
-        player = games_manipulator.GetPlayer(pid=player_id).player
+
+        try:
+            player = games_manipulator.GetPlayer(pid=player_id).player
+        except:
+            return flask.redirect(flask.url_for('login'))
     else:
         if 'telegram_id' in data or 'token' in data:  # opened link from telegram
             find_player = games_manipulator.GetOrCreatePlayer(

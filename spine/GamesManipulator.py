@@ -1,7 +1,9 @@
+import crypt
 import json
 import random
 import uuid
 import zlib
+from hmac import compare_digest
 from typing import Dict
 
 from .Database.Database import *
@@ -168,8 +170,14 @@ class GamesManipulator:
             elif telegramId is not None:
                 player = self.players.get(self.players.telegramId == telegramId)
             elif login is not None and password is not None:
-                player = self.players.get(
-                    self.players.login == login and self.players.password == password)
+                player = self.players.get(self.players.login == login)
+
+                password_enc = player.password_enc
+                salt = password_enc[0:password_enc.find('$', 3)]
+
+                if not compare_digest(crypt.crypt(password, salt), password_enc):
+                    raise Exception()
+
         except Exception as ex:
             raise PlayerNotFoundException("Player with specified parameters not found", ex.args)
 
@@ -216,10 +224,13 @@ class GamesManipulator:
             raise PlayerCreationException(
                 "Cannot create player without login and telegram id. No way for him to join the club")
 
+        if password:
+            password = crypt.crypt(password)
+
         p = self.players.create(
             name=name,
             login=login,
-            password=password,
+            password_enc=password,
             telegramId=telegramId,
             premium=premium,
             token=str(self.GetToken())
@@ -255,7 +266,7 @@ class GamesManipulator:
         if newName is not None:
             p.name = newName
         if newPassword is not None:
-            p.password = newPassword
+            p.password_enc = crypt.crypt(newPassword)
         if newTelegramId is not None:
             tmpP = None
             try:
