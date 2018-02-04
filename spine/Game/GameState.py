@@ -263,9 +263,4 @@ class GameState:
         return self.availActions[player_num]
 
     def GetAvailablePlacements(self, player_num):
-        this_player_placements = self.availPlacements[player_num]
-
-        return {
-            'figures': [figure.name for figure in this_player_placements[0]],
-            'at': this_player_placements[1]
-        }
+        return self.availPlacements[player_num][1]

@@ -181,7 +181,6 @@ jQuery(function ($) {
                         figure_id: game.selected_piece.id,
                         from: coordinates.slice(0, 2),
                         to: [r, q],
-                        player_id: game.player_id
                     }).done(MovePiece);
                 }
             } else {
@@ -225,6 +224,46 @@ jQuery(function ($) {
         SortBoard();
     }
 
+    function CanIMove() {
+        if (game.state.next_player !== game.player_id) {
+            return;
+        }
+
+        if (game.state.ended) {
+            window.clearInterval(poll_for_moves_interval);
+
+            if (game.state.lost[game.player_id]) {
+                var players_lost = 0;
+
+                for (var player_id in game.state.lost) {
+                    players_lost += game.state.lost[player];
+                }
+
+                if (players_lost == 2) {
+                    alert("Tie some tie");
+                } else {
+                    alert('Oh shi~');
+                }
+            } else {
+                alert('Congrats!');
+            }
+
+            window.location = '/';
+        }
+
+        if (Object.keys(game.state.available_actions[game.player_id]).length === 0
+                && game.state.available_placements[game.player_id].length === 0) {
+            log("Player can't move");
+
+            Post('/game/' + game_id + '/act', {
+                action: 'Skip',
+            }).done(function(data) {
+                game.state = data.state;
+                board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
+            });
+        }
+    }
+
     $(document).ajaxError(function(event, jqxhr, settings, error) {
         log('Ajax error', arguments);
 
@@ -258,6 +297,8 @@ jQuery(function ($) {
             }
 
             all_pickers.hide();
+
+            CanIMove();
         });
 
     $(document).on('click', '.add_piece:not(.disabled)', function() {
@@ -309,13 +350,19 @@ jQuery(function ($) {
                 AddPieceToBoard(data);
             } else if (data.action === 'Move') {
                 MovePiece(data);
+            } else if (data.action === 'Skip') {
+                game.state = data.state;
+                board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
             } else {
-                log('Unhandled action:', data.action)
+                log('Unhandled action:', data.action);
+                return;
             }
+
+            CanIMove();
         });
     }
 
-    window.setInterval(PollForChanges, 1000);
+    var poll_for_moves_interval = window.setInterval(PollForChanges, 1000);
 
     // Движение доски
     var board_position = {
