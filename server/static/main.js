@@ -12,7 +12,9 @@ jQuery(function ($) {
     var b = 64;
     var g = sqrt3 / 2 * b;
 
-    var board = $('.table .board');
+    var table = $('.table');
+    var board = table.find('.board');
+    var controls = $('#right').find('.controls');
 
     var game = {};
 
@@ -101,13 +103,17 @@ jQuery(function ($) {
         return c1[0] === c2[0] && c1[1] === c2[1];
     }
 
+    function ClearSelection() {
+        board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
+    }
+
     function AddPieceToBoard(data) {
         log('AddPieceToBoard', [].slice.apply(arguments));
 
         game.state = data.state;
         MakeBoardFromFigures();
 
-        board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
+        ClearSelection();
 
         for (var piece of game.board) {
             if (piece.id === data.figure_id) {
@@ -131,7 +137,7 @@ jQuery(function ($) {
         game.state = data.state;
         MakeBoardFromFigures();
 
-        board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
+        ClearSelection();
 
         for (var figure of game.board) {
             if (figure.id === data.figure_id) {
@@ -173,7 +179,7 @@ jQuery(function ($) {
                 var coordinates = game.selected_piece.coordinates;
 
                 if (coordinates[0] === r && coordinates[1] === q) {
-                    board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
+                    ClearSelection();
                     game.selected_piece = null;
                 } else {
                     Post('/game/' + game_id + '/act', {
@@ -184,7 +190,7 @@ jQuery(function ($) {
                     }).done(MovePiece);
                 }
             } else {
-                board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
+                ClearSelection();
 
                 game.selected_piece = FindPieceAt([r, q]);
 
@@ -239,7 +245,7 @@ jQuery(function ($) {
                     players_lost += game.state.lost[player];
                 }
 
-                if (players_lost == 2) {
+                if (players_lost === 2) {
                     alert("Tie some tie");
                 } else {
                     alert('Oh shi~');
@@ -259,7 +265,7 @@ jQuery(function ($) {
                 action: 'Skip',
             }).done(function(data) {
                 game.state = data.state;
-                board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
+                ClearSelection();
             });
         }
     }
@@ -329,7 +335,7 @@ jQuery(function ($) {
         return [r, q];
     }
 
-    $('.table').click(function (event) {
+    table.click(function (event) {
         var coordinates = ConvertScreenToCoordinates(event.pageX, event.pageY);
         OnHexClick.apply(null, coordinates);
     });
@@ -352,7 +358,7 @@ jQuery(function ($) {
                 MovePiece(data);
             } else if (data.action === 'Skip') {
                 game.state = data.state;
-                board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
+                ClearSelection();
             } else {
                 log('Unhandled action:', data.action);
                 return;
@@ -372,9 +378,6 @@ jQuery(function ($) {
         width: 800,
         height: 600,
     };
-
-    var table = $('.table');
-    var controls = $('#right .controls');
 
     function BoardMovement(action_on_board_position) {
         return function() {
@@ -453,8 +456,8 @@ jQuery(function ($) {
             $.each(['white', 'black'], function (color_id, color) {
                 $.each('Queen Ant Spider Beetle Grasshopper Mosquito Ladybug Pillbug'.split(' '), function (figure_id, figure) {
                     AddHex({
-                        player: state == 'can_move_here' ? '' : color,
-                        figure: state == 'can_move_here' ? '' : figure,
+                        player: state === 'can_move_here' ? '' : color,
+                        figure: state === 'can_move_here' ? '' : figure,
                         state: state,
                         coordinates: [figure_id, color_id  - (((figure_id + 1) / 2)|0) + 2 * state_id, 0],
                     });
