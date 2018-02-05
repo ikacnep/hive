@@ -27,14 +27,18 @@ jQuery(function ($) {
 
     var game = {};
 
-    function MoveToCoordinates(hex, coordinates) {
-        var r = coordinates[0];
-        var q = coordinates[1];
+    function MoveToCoordinates(hex, position, layer) {
+        var r = position[0];
+        var q = position[1];
 
-        var x = g * (r + 2 * q);
-        var y = b * (3 * r - 1) / 2 + b / 2;
+        var top = g * (r + 2 * q);
+        var left = b * (3 * r - 1) / 2 + b / 2;
 
-        hex.css({top: x, left: y});
+        hex.css({
+            top: top,
+            left: left,
+            zIndex: -layer
+        });
     }
 
     function MakeHex(options) {
@@ -58,7 +62,7 @@ jQuery(function ($) {
 
         var hex = MakeHex(options);
 
-        MoveToCoordinates(hex, options.coordinates);
+        MoveToCoordinates(hex, options.position, options.layer);
         board.append(hex);
     }
 
@@ -66,7 +70,7 @@ jQuery(function ($) {
         log('AddPiece', [].slice.apply(arguments));
 
         if (!piece.player) {
-            var piece_on_board = FindPieceAt(piece.coordinates);
+            var piece_on_board = FindPieceAt(piece.position);
 
             if (piece_on_board) {
                 piece = piece_on_board;
@@ -74,7 +78,8 @@ jQuery(function ($) {
         }
 
         AddHex({
-            coordinates: piece.coordinates,
+            position: piece.position,
+            layer: piece.layer,
             player: piece.player,
             figure: piece.figure,
             id: piece.id,
@@ -84,7 +89,7 @@ jQuery(function ($) {
 
     function SortBoard() {
         game.board.sort(function(a, b) {
-            return a.coordinates[2] - b.coordinates[2];
+            return a.layer - b.layer;
         });
     }
 
@@ -96,11 +101,11 @@ jQuery(function ($) {
         }
     }
 
-    function FindPieceAt(coordinates) {
+    function FindPieceAt(position) {
         for (var i = game.board.length; i > 0; --i) {
             var piece = game.board[i - 1];
 
-            if (piece.coordinates[0] === coordinates[0] && piece.coordinates[1] === coordinates[1]) {
+            if (IsSamePosition(piece.position, position)) {
                 return piece;
             }
         }
@@ -116,7 +121,7 @@ jQuery(function ($) {
         });
     }
 
-    function CoordinatesEqual(c1, c2) {
+    function IsSamePosition(c1, c2) {
         return c1[0] === c2[0] && c1[1] === c2[1];
     }
 
@@ -170,7 +175,7 @@ jQuery(function ($) {
 
         var piece = board.find('hex#piece_' + data.figure_id);
         board.append(piece);
-        MoveToCoordinates(piece, figure.coordinates);
+        MoveToCoordinates(piece, figure.position, figure.layer);
         piece.addClass('moved');
 
         game.selected_piece = null;
@@ -197,7 +202,7 @@ jQuery(function ($) {
             Post('/game/' + game_id + '/act', {
                 action: 'Place',
                 figure: adding_figure,
-                coordinates: [r, q]
+                position: [r, q]
             }).done(function(data) {
                 AddPieceToBoard(data);
 
@@ -209,16 +214,16 @@ jQuery(function ($) {
             });
         } else {
             if (game.selected_piece) {
-                var coordinates = game.selected_piece.coordinates;
+                var position = game.selected_piece.position;
 
-                if (coordinates[0] === r && coordinates[1] === q) {
+                if (IsSamePosition(position, [r, q])) {
                     ClearSelection();
                     game.selected_piece = null;
                 } else {
                     Post('/game/' + game_id + '/act', {
                         action: 'Move',
                         figure_id: game.selected_piece.id,
-                        from: coordinates.slice(0, 2),
+                        from: position,
                         to: [r, q],
                     }).done(MovePiece);
                 }
@@ -255,7 +260,8 @@ jQuery(function ($) {
                     player: color,
                     id: figure.id,
                     figure: figure.type,
-                    coordinates: figure.position.concat([-figure.layer])
+                    position: figure.position,
+                    layer: figure.layer,
                 });
             }
         }
@@ -366,7 +372,7 @@ jQuery(function ($) {
         }
     });
 
-    function ConvertScreenToCoordinates(click_x, click_y) {
+    function ConvertScreenToPosition(click_x, click_y) {
         var bs = b;
         var gs = g;
 
@@ -387,8 +393,8 @@ jQuery(function ($) {
     }
 
     table.click(function (event) {
-        var coordinates = ConvertScreenToCoordinates(event.pageX, event.pageY);
-        OnHexClick.apply(null, coordinates);
+        var position = ConvertScreenToPosition(event.pageX, event.pageY);
+        OnHexClick.apply(null, position);
     });
 
     function PollForChanges() {
@@ -510,7 +516,8 @@ jQuery(function ($) {
                         player: state === 'can_move_here' ? '' : color,
                         figure: state === 'can_move_here' ? '' : figure,
                         state: state,
-                        coordinates: [figure_id, color_id  - (((figure_id + 1) / 2)|0) + 2 * state_id, 0],
+                        position: [figure_id, color_id  - (((figure_id + 1) / 2)|0) + 2 * state_id],
+                        layer: 0,
                     });
                 });
             });

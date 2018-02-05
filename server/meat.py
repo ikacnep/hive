@@ -182,7 +182,7 @@ def game_action(game_id):
             gid=game_id,
             player=player_id,
             figure=FigureTypes.FigureType[data['figure']],
-            position=tuple(data['coordinates']),
+            position=tuple(data['position']),
             addState=True,
         )
     elif action == Action.Move:
