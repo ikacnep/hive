@@ -4,7 +4,7 @@ html, body { width:100%; height:100%; } /* just to be sure these are full screen
 
 form#right {
     position: fixed;
-    top: 40px;
+    top: 20px;
     right: 0;
     font-size: 20px;
     width: 250px;
@@ -14,25 +14,15 @@ form#right {
 
 #right p {
     display: block;
-    margin: 10px 0px;
+    margin: 10px 0;
 }
 
-.add_piece {
-    display: inline-block;
-    padding: 4px 8px;
-    border: 4px solid silver;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 4px;
+#available_figures {
+    position: relative;
 }
 
-.add_piece.selected {
-    border-color: magenta;
-}
-
-#right .add_piece.disabled {
-    background-color: silver;
-    color: grey;
+#available_figures .select_figure {
+    height: 120px;
 }
 
 #your_player {
@@ -41,12 +31,12 @@ form#right {
     border: 1px solid silver;
 }
 
-#right .black {
+#your_player.black {
     color: white;
     background-color: black;
 }
 
-#right .white {
+#your_player.white {
     color: black;
     background-color: white;
 }

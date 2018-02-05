@@ -9,12 +9,21 @@ jQuery(function ($) {
 
     var sqrt3 = Math.sqrt(3);
 
+    /*     b
+     *    ←——→
+     *    ____
+     *   /    \     ↑
+     *  /      \    ↓ g
+     *  \      /
+     *   \____/
+     */
     var b = 64;
     var g = sqrt3 / 2 * b;
 
     var table = $('.table');
     var board = table.find('.board');
     var controls = $('#right').find('.controls');
+    var available_area = $('#available_figures');
 
     var game = {};
 
@@ -28,8 +37,8 @@ jQuery(function ($) {
         hex.css({top: x, left: y});
     }
 
-    function AddHex(options) {
-        log('AddHex:', options);
+    function MakeHex(options) {
+        log('MakeHex:', options);
 
         var hex = $('<hex><i><b></b></i>');
 
@@ -40,6 +49,14 @@ jQuery(function ($) {
         if (options.id !== undefined) {
             hex.attr({id: 'piece_' + options.id});
         }
+
+        return hex;
+    }
+
+    function AddHex(options) {
+        log('AddHex:', options);
+
+        var hex = MakeHex(options);
 
         MoveToCoordinates(hex, options.coordinates);
         board.append(hex);
@@ -123,11 +140,17 @@ jQuery(function ($) {
 
         AddPiece(piece, 'placed');
 
-        var adding_figure_element = $('.add_piece.selected');
-        adding_figure_element.removeClass('selected');
+        available_area.find('hex.selected').removeClass('selected');
 
-        if (data.figure && game.state.available_figures[game.player_id][data.figure] === 0) {
-            adding_figure_element.hide();
+        if (data.figure) {
+            var hex = available_area.find('hex.' + data.figure + ':last');
+            var area = hex.closest('.select_figure');
+
+            hex.remove();
+
+            if (area.empty()) {
+                area.remove();
+            }
         }
     }
 
@@ -166,14 +189,24 @@ jQuery(function ($) {
             q = 0;
         }
 
-        var adding_figure = $('.add_piece.selected').data('figure');
+        var adding_figure_el = available_area.find('hex.selected');
+        var adding_figure_area = adding_figure_el.closest('.select_figure');
+        var adding_figure = adding_figure_area.data('figure');
 
         if (adding_figure) {
             Post('/game/' + game_id + '/act', {
                 action: 'Place',
                 figure: adding_figure,
                 coordinates: [r, q]
-            }).done(AddPieceToBoard);
+            }).done(function(data) {
+                AddPieceToBoard(data);
+
+                adding_figure_el.remove();
+
+                if (adding_figure_area.children().length === 0) {
+                    adding_figure_area.remove();
+                }
+            });
         } else {
             if (game.selected_piece) {
                 var coordinates = game.selected_piece.coordinates;
@@ -270,6 +303,33 @@ jQuery(function ($) {
         }
     }
 
+    function DisplayAvailableFigures() {
+        available_area.html('');
+
+        var available_figures = game.state.available_figures[game.player_id];
+
+        var figures = ['Queen', 'Ant', 'Grasshopper', 'Beetle', 'Spider', 'Mosquito', 'Ladybug', 'Pillbug'];
+
+        for (var figure of figures) {
+            if (!available_figures[figure]) {
+                continue;
+            }
+
+            var this_figure = $('<div class="select_figure" data-figure="' + figure + '"/>');
+
+            for (var i = 0; i < available_figures[figure]; ++i) {
+                this_figure.append(
+                    MakeHex({
+                        player: game.player_color,
+                        figure: figure,
+                    }).css({left: 50 * i})
+                );
+            }
+
+            available_area.append(this_figure);
+        }
+    }
+
     $(document).ajaxError(function(event, jqxhr, settings, error) {
         log('Ajax error', arguments);
 
@@ -293,25 +353,16 @@ jQuery(function ($) {
             log('Setting player id to', game.player_id, 'and color to', game.player_color);
 
             $('#your_player').text(game.player_id).addClass(game.player_color);
-            var all_pickers = $('.add_piece').addClass(game.player_color);
 
-            var available_figures = game.state.available_figures[game.player_id];
-
-            for (var figure in available_figures) {
-                var picker_el = $('.add_piece[data-figure=' + figure + ']');
-                all_pickers = all_pickers.not(picker_el);
-            }
-
-            all_pickers.hide();
-
+            DisplayAvailableFigures();
             CanIMove();
         });
 
-    $(document).on('click', '.add_piece:not(.disabled)', function() {
-        var selected = $('.add_piece.selected').removeClass('selected');
+    available_area.on('click', '.select_figure', function() {
+        var selected = available_area.find('.selected').removeClass('selected');
 
-        if (!$(this).is(selected)) {
-            $(this).addClass('selected');
+        if (!$(this).is(selected.closest('.select_figure'))) {
+            $(this).find('hex:last').addClass('selected');
         }
     });
 
