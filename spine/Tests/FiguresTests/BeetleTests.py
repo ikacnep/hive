@@ -75,6 +75,18 @@ class BeetleTests(unittest.TestCase):
         self.assertEqual(len(turns), 5)
         self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
 
+    def testMoveDownDoesNotSplit(self):
+        field = NegArray(2)
+
+        self.putBeetle((0, 0), field)
+        self.putBeetle((1, 0), field)
+        beetle = self.addBeetle((0, 0), field)
+
+        ans = ((0, -1), (1, -1), (1, 0), (0, 1), (1, -1), (-1, 0))
+        turns = beetle.AvailableTurns(field)
+
+        self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
+
     @staticmethod
     def putBeetle(pos, field):
         q = FigureType.Beetle.GetFigure(0, pos)

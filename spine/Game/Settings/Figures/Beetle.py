@@ -26,11 +26,15 @@ class BeetleFigure:
                     prerv = Shared.Except(prerv, inter) + Shared.Except(inter, prerv)
 
                 filled.append(cell)
+            else:
+                if isOnTop:
+                    prerv.append(cell)
 
         rv = []
         for cell in prerv:
             if field.Get(cell) is None:
                 rv.append(cell)
-        rv = rv + filled
+
+        rv += filled
 
         return rv
