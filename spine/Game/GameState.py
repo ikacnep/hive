@@ -84,10 +84,9 @@ class GameState:
         fig = figure.GetFigure(player, position)
         fig.id = self.figId
         pos = self.Get(fig.position)
-        if pos is not None:
-            for key in pos:
-                key.layer += 1
-        fig.layer = 0
+
+        fig.layer = 0 if pos is None else pos[0].layer + 1
+
         self.lastMoved = fig
         self.Put(fig)
         self.availFigures[player].remove(figure)
@@ -118,20 +117,17 @@ class GameState:
         it = place.pop(0)
         if len(place) == 0:
             self.Remove(f)
-        else:
-            for key in place:
-                key.layer -= 1
 
         it.position = t
         moveTo = self.Get(t)
+
+        it.layer = 0 if moveTo is None else moveTo[0].layer + 1
+
         if moveTo is not None:
-            for key in moveTo:
-                key.layer += 1
             moveTo.insert(0, it)
         else:
             self.Put(it)
 
-        it.layer = 0
         self.lastMoved = it
         self.RefreshPossibilities()
         self.turn += 1

@@ -37,8 +37,18 @@ jQuery(function ($) {
         hex.css({
             top: top,
             left: left,
-            zIndex: -layer
+            zIndex: layer
+        }).data({
+            position_top: top,
+            position_left: left,
+            layer: layer,
         });
+
+        if (layer !== 0) {
+            hex.addClass('elevated');
+        } else {
+            hex.removeClass('elevated');
+        }
     }
 
     function MakeHex(options) {
@@ -466,6 +476,7 @@ jQuery(function ($) {
         y: 0,
         width: 800,
         height: 600,
+        showing_hidden: false,
     };
 
     function BoardMovement(action_on_board_position) {
@@ -555,4 +566,32 @@ jQuery(function ($) {
             });
         });
     });
+
+    function ShowHiddenFigures(is_show) {
+        board_position.showing_hidden = is_show;
+
+        var factor = is_show ? 0.7 : 0;
+
+        board.find('hex.elevated').each(function() {
+            var el = $(this);
+            var layer = el.data('layer');
+
+            el.stop();
+
+            el.animate({
+                top: el.data('position_top') - factor * g * layer,
+                left: el.data('position_left') - factor * b * layer,
+            });
+        });
+    }
+
+    $('#show_hidden').click(function(e) {
+        e.preventDefault();
+
+        if (board_position.showing_hidden) {
+            ShowHiddenFigures(false);
+        } else {
+            ShowHiddenFigures(true);
+        }
+    })
 });
