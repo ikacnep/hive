@@ -126,7 +126,9 @@ jQuery(function ($) {
     }
 
     function ClearSelection() {
-        board.find('hex').filter('.selected, .moved, .placed, .can_move_here').removeClass('selected moved placed can_move_here');
+        var hexes = board.find('hex');
+        hexes.filter('.selected, .moved, .placed').removeClass('selected moved placed');
+        hexes.filter('.can_move_here').remove();
     }
 
     function AddPieceToBoard(data) {
@@ -233,7 +235,21 @@ jQuery(function ($) {
                 game.selected_piece = FindPieceAt([r, q]);
 
                 if (game.selected_piece) {
-                    board.find('#piece_' + game.selected_piece.id).addClass('selected');
+                    var available_actions = game.state.available_actions[game.player_id][game.selected_piece.id];
+
+                    if (available_actions) {
+                        board.find('#piece_' + game.selected_piece.id).addClass('selected');
+
+                        for (var can_move_here of available_actions) {
+                            AddHex({
+                                position: can_move_here,
+                                layer: 10,
+                                state: 'can_move_here'
+                            });
+                        }
+                    } else {
+                        game.selected_piece = null;
+                    }
                 }
             }
         }
@@ -365,10 +381,26 @@ jQuery(function ($) {
         });
 
     available_area.on('click', '.select_figure', function() {
+        ClearSelection();
+
         var selected = available_area.find('.selected').removeClass('selected');
 
         if (!$(this).is(selected.closest('.select_figure'))) {
-            $(this).find('hex:last').addClass('selected');
+            var available_actions = game.state.available_placements[game.player_id];
+
+            if (available_actions.length > 0) {
+                $(this).find('hex:last').addClass('selected');
+
+                for (var can_move_here of available_actions) {
+                    AddHex({
+                        position: can_move_here,
+                        layer: 10,
+                        state: 'can_move_here'
+                    });
+                }
+            } else {
+                log('You cannot put that anywhere');
+            }
         }
     });
 
