@@ -74,6 +74,8 @@ jQuery(function ($) {
 
         MoveToCoordinates(hex, options.position, options.layer);
         board.append(hex);
+
+        return hex;
     }
 
     function AddPiece(piece, state) {
@@ -555,13 +557,15 @@ jQuery(function ($) {
         $.each('- selected moved placed can_move_here'.split(' '), function(state_id, state) {
             $.each(['white', 'black'], function (color_id, color) {
                 $.each('Queen Ant Spider Beetle Grasshopper Mosquito Ladybug Pillbug'.split(' '), function (figure_id, figure) {
+                    var position = [-3 + color_id + 2 * state_id, -2 + figure_id - state_id];
+
                     AddHex({
                         player: state === 'can_move_here' ? '' : color,
                         figure: state === 'can_move_here' ? '' : figure,
                         state: state,
-                        position: [figure_id, color_id  - (((figure_id + 1) / 2)|0) + 2 * state_id],
+                        position: position,
                         layer: 0,
-                    });
+                    }).find('b').text(JSON.stringify(position));
                 });
             });
         });

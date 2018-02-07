@@ -56,6 +56,16 @@ hex, hex b, hex i {
     z-index: 1;
 }
 
+hex i b {
+    text-align: center;
+    color: white;
+    text-shadow:
+        -1px -1px 0 black,
+        1px -1px 0 black,
+        -1px 1px 0 black,
+        1px 1px 0 black;
+}
+
 /* hex borders */
 hex.can_move_here b { background-image: url('/static/image/outline_can_move_here.svg'); }
 hex.moved b         { background-image: url('/static/image/outline_moved.svg'); }
