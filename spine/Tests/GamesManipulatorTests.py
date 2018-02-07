@@ -1,6 +1,8 @@
 import unittest
 
-from spine.Game.Utils.Exceptions import GameNotFoundException
+from time import sleep
+
+from spine.Game.Utils.Exceptions import *
 from ..Database.TestDatabase import *
 from ..Game.Settings.Figures.FigureTypes import FigureType
 from ..Game.Utils.Action import Action
@@ -395,6 +397,202 @@ class GameInstanceTests(unittest.TestCase):
 
         with self.assertRaises(GameNotFoundException):
             create_manipulator().GetGameInst(game_id)
+
+    def testLobby(self):
+        def create_manipulator():
+            return GamesManipulator(
+                player_type=TestPlayer,
+                game_type=TestGame,
+                arch_type=TestGameArchieved,
+                game_state_type=TestPersistedGameState
+            )
+
+        manipulator = create_manipulator()
+
+        player1 = manipulator.CreatePlayer(name='player 1', telegramId=73571).player
+        player2 = manipulator.CreatePlayer(name='player 2', telegramId=73572).player
+        player3 = manipulator.CreatePlayer(name='player 3', telegramId=73573).player
+
+        l1 = manipulator.CreateLobby("Test1", player1.id, duration=10)
+        self.assertEqual(l1.owner, player1.id)
+        self.assertEqual(l1.mosquito, False)
+        self.assertEqual(l1.tourney, False)
+        self.assertEqual(l1.ladybug, False)
+        self.assertEqual(l1.pillbug, False)
+
+        l2 = manipulator.CreateLobby("Test2", player2.id)
+
+        with self.assertRaises(Exception):
+             manipulator.CreateLobby("Test2", -1)
+
+        ltmp =  manipulator.CreateLobby("Test3", player1.id, True)
+        self.assertEqual(l1, ltmp)
+
+        gl = manipulator.GetLobby()
+        self.assertEqual(len(gl.lobbys), 2)
+
+        gl = manipulator.GetLobby(id=l1.id)
+        self.assertEqual(len(gl.lobbys), 1)
+        self.assertEqual(gl.lobbys[0], l1)
+
+        gl = manipulator.GetLobby(player=player2.id)
+        self.assertEqual(len(gl.lobbys), 1)
+        self.assertEqual(gl.lobbys[0], l2)
+
+        gl = manipulator.GetLobby(ready=False)
+        self.assertEqual(len(gl.lobbys), 2)
+
+        with self.assertRaises(Exception):
+            manipulator.GetLobby(ready=True)
+
+        with self.assertRaises(Exception):
+            manipulator.JoinLobby(l1.id, -1)
+
+        with self.assertRaises(Exception):
+            manipulator.JoinLobby(-1, player1.id)
+
+        with self.assertRaises(Exception):
+            manipulator.JoinLobby(l1.id, player1.id)
+
+        ltmp = manipulator.JoinLobby(l1.id, player2.id)
+        self.assertEqual(ltmp.owner, player1.id)
+        self.assertEqual(ltmp.guest, player2.id)
+
+        with self.assertRaises(Exception):
+            manipulator.JoinLobby(l1.id, player3.id)
+
+        with self.assertRaises(Exception):
+            manipulator.RefreshLobby(-1, player1.id)
+
+        with self.assertRaises(Exception):
+            manipulator.RefreshLobby(l1.id, player2.id)
+
+        manipulator.ReadyLobby(l1.id, player2.id)
+        self.assertEqual(ltmp.ownerReady, False)
+        self.assertEqual(ltmp.guestReady, True)
+
+        ltmp = manipulator.RefreshLobby(l1.id, player1.id, mosquito=True)
+        self.assertEqual(ltmp.mosquito, True)
+        self.assertEqual(ltmp.ownerReady, False)
+        self.assertEqual(ltmp.guestReady, False)
+
+        manipulator.ReadyLobby(l1.id, player2.id)
+        manipulator.ReadyLobby(l1.id, player1.id)
+        self.assertEqual(ltmp.ownerReady, True)
+        self.assertEqual(ltmp.guestReady, True)
+
+        gl = manipulator.GetLobby(ready=True)
+        self.assertEqual(len(gl.lobbys), 1)
+        self.assertEqual(gl.lobbys[0].id, l1.id)
+
+        sleep(20)
+
+        gl = manipulator.GetLobby(ready=False)
+        self.assertEqual(len(gl.lobbys), 1)
+        self.assertEqual(gl.lobbys[0].id, l2.id)
+
+        manipulator.JoinLobby(l2.id, player3.id)
+        game_id = manipulator.CreateGame(player2.id, player3.id, player2.id, tourney=False).gid
+
+        with self.assertRaises(Exception):
+            manipulator.GetLobby(ready=True)
+
+        with self.assertRaises(Exception):
+            manipulator.GetLobby(ready=False)
+
+    def testQuickmatch(self):
+        def create_manipulator():
+            return GamesManipulator(
+                player_type=TestPlayer,
+                game_type=TestGame,
+                arch_type=TestGameArchieved,
+                game_state_type=TestPersistedGameState
+            )
+
+        manipulator = create_manipulator()
+
+        player1 = manipulator.CreatePlayer(name='player 1', telegramId=73571).player
+        player2 = manipulator.CreatePlayer(name='player 2', telegramId=73572).player
+
+        with self.assertRaises(Exception):
+            manipulator.GetQuickGame()
+
+        q1 = manipulator.CreateQuickGame(player1.id)
+        self.assertEqual(q1.player, player1.id)
+        self.assertEqual(q1.mosquito, False)
+        self.assertEqual(q1.tourney, False)
+        self.assertEqual(q1.ladybug, False)
+        self.assertEqual(q1.pillbug, False)
+
+        with self.assertRaises(Exception):
+            manipulator.GetQuickGame(player=player2.id)
+
+        with self.assertRaises(Exception):
+            manipulator.RefreshQuickGame(player2.id)
+
+        qtmp = manipulator.RefreshQuickGame(player1.id)
+        self.assertIsNone(qtmp.player2)
+        self.assertEqual(qtmp.player, player1.id)
+
+        q2 = manipulator.CreateQuickGame(player2.id)
+
+        with self.assertRaises(Exception):
+             manipulator.CreateQuickGame(-1)
+
+        self.assertNotEqual(q1.id, q2.id)
+
+        qtmp = manipulator.CreateQuickGame(player1.id)
+        self.assertEqual(qtmp, q1)
+
+        gl = manipulator.GetQuickGame()
+        self.assertEqual(len(gl.quickGames), 2)
+
+        gl = manipulator.GetQuickGame(player=player1.id)
+        self.assertEqual(len(gl.quickGames), 1)
+        self.assertEqual(gl.quickGames[0], q1)
+
+        qtmp = manipulator.RefreshQuickGame(player1.id)
+        self.assertEqual(qtmp.player2, player2.id)
+        self.assertEqual(qtmp.player, player1.id)
+
+        gl = manipulator.GetQuickGame()
+        self.assertEqual(len(gl.quickGames), 1)
+        self.assertEqual(gl.quickGames[0], q1)
+
+        gl = manipulator.GetQuickGame(player=player2.id)
+        self.assertEqual(len(gl.quickGames), 1)
+        self.assertEqual(gl.quickGames[0], q1)
+
+        gl = manipulator.GetQuickGame(player=player1.id)
+        self.assertEqual(len(gl.quickGames), 1)
+        self.assertEqual(gl.quickGames[0], q1)
+
+        with self.assertRaises(Exception):
+             manipulator.RemoveQuickGame(-1, player1)
+
+        with self.assertRaises(Exception):
+             manipulator.RemoveQuickGame(q1.id, -1)
+
+        with self.assertRaises(Exception):
+            manipulator.RemoveQuickGame(q1.id, player2)
+
+        manipulator.RemoveQuickGame(q1.id, player1.id)
+
+        with self.assertRaises(Exception):
+            manipulator.GetQuickGame()
+
+        manipulator.CreateQuickGame(player1.id)
+        manipulator.CreateQuickGame(player2.id)
+        gl = manipulator.GetQuickGame()
+        self.assertEqual(len(gl.quickGames), 2)
+
+        manipulator.RefreshQuickGame(player2.id)
+        gl = manipulator.GetQuickGame()
+        self.assertEqual(len(gl.quickGames), 1)
+
+        manipulator.CreateGame(player1.id, player2.id, player1.id)
+        with self.assertRaises(Exception):
+            manipulator.GetQuickGame()
 
 
 if __name__ == '__main__':

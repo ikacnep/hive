@@ -1,4 +1,4 @@
-import crypt
+# import crypt
 import json
 import random
 import uuid
@@ -16,6 +16,7 @@ from .JsonPYAdaptors.CreatePlayerResult import CreatePlayerResult
 from .JsonPYAdaptors.GetGamesResult import GetGamesResult
 from .JsonPYAdaptors.GetPlayerResult import GetPlayerResult
 from .JsonPYAdaptors.ModifyPlayerResult import ModifyPlayerResult
+from .Lobby import *
 
 
 class GamesManipulator:
@@ -23,6 +24,10 @@ class GamesManipulator:
     games = None
     archive = None
     runningGames = Dict[int, GameInstance]
+    lobbys = []
+    quicks = []
+    lobbyid = 1
+    quickid = 1
 
     def __init__(self, player_type=Player, game_type=Game, arch_type=GameArchieved, game_state_type=PersistedGameState):
         self.players = player_type
@@ -45,6 +50,269 @@ class GamesManipulator:
         for game_state in game_state_type.select():
             self.runningGames[game_state.id] = GameInstance.deserialize(game_state.state)
 
+        self.lobbys = []
+        self.quicks = []
+
+    def CreateLobby(self, name, player, mosquito = False, ladybug = False, pillbug = False, tourney = False, duration=3600):
+        try:
+            p = self.players.get(self.players.id == player)
+        except Exception as ex:
+            raise PlayerNotFoundException("Player not found.", ex.args)
+
+        for l in self.lobbys:
+            if l.owner == player:
+                return l
+
+        l = LobbyRoom()
+        l.id = self.lobbyid
+        self.lobbyid += 1
+        l.name = name
+        l.owner = p.id
+        l.mosquito = mosquito
+        l.ladybug = ladybug
+        l.pillbug = pillbug
+        l.tourney = tourney
+        l.creationDate = datetime.datetime.now()
+        l.duration = duration
+        l.expirationDate = l.creationDate + datetime.timedelta(0, l.duration)
+
+        self.lobbys.append(l)
+
+        return l
+
+    def CreateQuickGame(self, player, mosquito=False, ladybug=False, pillbug=False, tourney=False):
+        try:
+            p = self.players.get(self.players.id == player)
+        except Exception as ex:
+            raise PlayerNotFoundException("Player not found.", ex.args)
+
+        for l in self.quicks:
+            if l.player == player:
+                return l
+
+        q = QuickGame()
+        q.id = self.quickid
+        self.quickid += 1
+        q.player = p.id
+        q.mosquito = mosquito
+        q.ladybug = ladybug
+        q.pillbug = pillbug
+        q.tourney = tourney
+        q.rating = p.rating
+        q.creationDate = datetime.datetime.now()
+
+        self.quicks.append(q)
+
+        return q
+
+    def GetLobby(self, id=None, player=None, ready=None):
+        dropUs = []
+        now = datetime.datetime.now()
+        for l in self.lobbys:
+            if l.expirationDate <= now:
+                dropUs.append(l)
+
+        for l in dropUs:
+            self.lobbys.remove(l)
+
+        rv = GetLobbyResult()
+        rv.lobbys = []
+
+        if id is not None:
+            for l in self.lobbys:
+                if l.id == id:
+                    rv.lobbys.append(l)
+                    break
+
+        elif player is not None:
+            for l in self.lobbys:
+                if l.owner == player:
+                    rv.lobbys.append(l)
+                    break
+
+        else:
+            for theLobby in self.lobbys:
+                if (ready is None) or ((theLobby.ownerReady and theLobby.guestReady) == ready):
+                    rv.lobbys.append(theLobby)
+
+        if len(rv.lobbys) == 0:
+            raise LobbyNotFoundException("Lobby with specified parameters does not exist")
+
+        return rv
+
+    def GetQuickGame(self, player=None):
+        rv = GetQuickGameResult()
+        rv.quickGames = []
+
+        if player is not None:
+            for qg in self.quicks:
+                if (qg.player == player) or (qg.player2 == player):
+                    rv.quickGames.append(qg)
+                    break
+
+        else:
+            try:
+                for theQg in self.quicks:
+                    rv.quickGames.append(theQg)
+            except:
+                rv.quickGames = []
+
+        if len(rv.quickGames) == 0:
+            raise QuickGameNotFoundException("Lobby with specified id does not exist")
+
+        return rv
+
+    def JoinLobby(self, id, player):
+        try:
+            p = self.players.get(self.players.id == player)
+        except Exception as ex:
+            raise PlayerNotFoundException("Player not found.", ex.args)
+
+        l = None
+        for lobby in self.lobbys:
+            if lobby.id == id:
+                l = lobby
+                break
+
+        if l is None:
+            raise LobbyNotFoundException("Lobby with specified id does not exist")
+
+        if l.owner == player:
+            raise CannotJoinLobbyException("Cannot join lobby you are already in")
+
+        if l.guest is not None:
+            raise CannotJoinLobbyException("Selected lobby is full")
+
+        l.guest = p.id
+        l.guestReady = False
+        l.ownerReady = False
+
+        return l
+
+    def RefreshLobby(self, id, player, mosquito=None, ladybug=None, pillbug=None, tourney=None, duration=None):
+        changeme = None
+        for l in self.lobbys:
+            if l.id == id:
+                changeme = l
+                break
+        if changeme is None:
+            raise LobbyNotFoundException("Lobby with specified id does not exist")
+
+        if changeme.owner != player:
+            raise AccessException("Only owner can refresh lobby")
+
+        somethingChanged = False
+        if mosquito is not None:
+            changeme.mosquito = mosquito
+            somethingChanged = True
+        if ladybug is not None:
+            changeme.mosquito = ladybug
+            somethingChanged = True
+        if pillbug is not None:
+            changeme.mosquito = pillbug
+            somethingChanged = True
+        if tourney is not None:
+            changeme.mosquito = tourney
+            somethingChanged = True
+        if duration is not None:
+            changeme.duration = duration
+
+        changeme.expiryDate = datetime.datetime.now() + datetime.timedelta(0, changeme.duration)
+        if somethingChanged:
+            changeme.ownerReady = False
+            changeme.guestReady = False
+
+        return changeme
+
+    def RefreshQuickGame(self, player):
+        mainQ = None
+        for q in self.quicks:
+            if (q.player == player) or (q.player2 == player):
+                mainQ = q
+                break
+        if mainQ is None:
+            raise QuickGameNotFoundException("Lobby with specified id does not exist")
+
+        if (mainQ.player2 != None):
+            return mainQ
+
+        dist = (((datetime.datetime.now() - mainQ.creationDate).total_seconds() // 5) * 0.01 + 1.05) * mainQ.rating
+        enemies = []
+        for q in self.quicks:
+            if (q != mainQ) and (q.player2 == None) and (q.mosquito == mainQ.mosquito) and (q.tourney == mainQ.tourney) and (q.pillbug == mainQ.pillbug) and (q.ladybug == mainQ.ladybug) and (abs(q.rating - mainQ.rating) < dist):
+                enemies.append(q)
+
+        if len(enemies) == 0:
+            return mainQ
+
+        enemy = random.choice(enemies)
+        mainQ.player2 = enemy.player
+        self.quicks.remove(enemy)
+
+        return mainQ
+
+    def RemoveQuickGame(self, id, player):
+        mainQ = None
+        for q in self.quicks:
+            if q.id == id:
+                mainQ = q
+                break
+        if mainQ is None:
+            raise QuickGameNotFoundException("Lobby with specified id does not exist")
+
+        if (mainQ.player != player):
+            raise AccessException("Only owner can stop search")
+
+        self.quicks.remove(mainQ)
+
+        rv = SuccessResult()
+        rv.success = True
+
+        return rv
+
+    def LeaveLobby(self, id, player):
+        lobby = None
+        for l in self.lobbys:
+            if l.id == id:
+                lobby = q
+                break
+        if lobby is None:
+            raise QuickGameNotFoundException("Lobby with specified id does not exist")
+
+        if lobby.guest == player:
+            lobby.guest = None
+            lobby.guestReady = False
+        elif lobby.owner == player:
+            self.lobbys.remove(lobby)
+        else:
+            raise AccessException("Cannot leave lobby you are not in")
+
+        rv = SuccessResult()
+        rv.success = True
+
+        return rv
+
+    def ReadyLobby(self, id, player):
+        lobby = None
+        for l in self.lobbys:
+            if l.id == id:
+                lobby = l
+                break
+        if lobby is None:
+            raise QuickGameNotFoundException("Lobby with specified id does not exist")
+
+        if lobby.guest == player:
+            lobby.guestReady = True
+        elif lobby.owner == player:
+            lobby.ownerReady = True
+        else:
+            raise AccessException("Cannot ready in lobby you are not in")
+
+        rv = SuccessResult()
+        rv.success = True
+
+        return rv
+
     def CreateGameInner(self, player1, player2, mosquito, ladybug, pillbug, tourney, rv):
         try:
             p1 = self.players.get(self.players.id == player1)
@@ -61,6 +329,24 @@ class GamesManipulator:
         rv.gid = game.id
         rv.player1 = player1
         rv.player2 = player2
+
+        quick = None
+        for q in self.quicks:
+            if (q.player == p1.id or q.player2 == p1.id) and (q.player == p2.id or q.player2 == p2.id):
+                quick = q
+                break
+        if quick is not None:
+            self.quicks.remove(quick)
+
+        lobby = None
+        for l in self.lobbys:
+            if (l.owner == p1.id or l.guest == p1.id) and (l.owner == p2.id or l.guest == p2.id):
+                lobby = l
+                break
+        if lobby is not None:
+            self.lobbys.remove(lobby)
+
+
 
         return actualGame
 
