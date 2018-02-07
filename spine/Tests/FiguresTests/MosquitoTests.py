@@ -187,9 +187,8 @@ class MosquitoTests(unittest.TestCase):
 
         beetle = self.addMosquito((-1, 1), field)
         turns = beetle.AvailableTurns(field)
-        ans = ((-2, 1), (-1, 2), (0, 1), (-1, 0), (0, 0))
-        self.assertEqual(len(turns), 5)
-        self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
+        ans = {(-2, 2), (-2, 1), (-1, 2), (0, 1), (-1, 0), (0, 0)}
+        self.assertEqual(set(turns), ans)
 
     def testMosquitBeetle(self):
         field = NegArray(2)
@@ -202,9 +201,8 @@ class MosquitoTests(unittest.TestCase):
 
         beetle = self.addMosquito((-1, 1), field)
         turns = beetle.AvailableTurns(field)
-        ans = ((-2, 1), (-1, 2), (0, 1), (-1, 0), (0, 0))
-        self.assertEqual(len(turns), 5)
-        self.assertTrue(Shared.ReallyEqual(Shared.Intersect(ans, turns), ans))
+        ans = {(-2, 2), (-2, 1), (-1, 2), (0, 1), (-1, 0), (0, 0)}
+        self.assertEqual(set(turns), ans)
 
     def testGrasshopperZeroPlus(self):
         field = NegArray(2)

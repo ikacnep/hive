@@ -13,9 +13,10 @@ class BeetleFigure:
             raise FigureMiss("Wrong figure selected")
 
         prerv = []
+        filled = set()
         near = me.CellsNearby()
-        filled = []
         isOnTop = len(field.Get(me.position)) > 1
+
         for cell in near:
             him = field.Get(cell)
             if him is not None:
@@ -25,16 +26,22 @@ class BeetleFigure:
                 else:
                     prerv = Shared.Except(prerv, inter) + Shared.Except(inter, prerv)
 
-                filled.append(cell)
+                filled.add(cell)
             else:
                 if isOnTop:
-                    prerv.append(cell)
+                    inter = Shared.Intersect(near, Shared.CellsNearby(cell))
 
-        rv = []
+                    for closing_cell in inter:
+                        in_closing_cell = field.Get(closing_cell)
+
+                        if in_closing_cell is None or in_closing_cell[0].layer < me.layer:
+                            prerv.append(cell)
+                            break
+
+        rv = filled
+
         for cell in prerv:
-            if field.Get(cell) is None:
-                rv.append(cell)
+            if cell not in rv and field.Get(cell) is None:
+                rv.add(cell)
 
-        rv += filled
-
-        return rv
+        return list(rv)
