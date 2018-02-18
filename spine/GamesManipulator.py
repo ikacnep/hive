@@ -274,10 +274,10 @@ class GamesManipulator:
         lobby = None
         for l in self.lobbys:
             if l.id == id:
-                lobby = q
+                lobby = l
                 break
         if lobby is None:
-            raise QuickGameNotFoundException("Lobby with specified id does not exist")
+            raise LobbyNotFoundException("Lobby with specified id does not exist")
 
         if lobby.guest == player:
             lobby.guest = None
@@ -299,7 +299,7 @@ class GamesManipulator:
                 lobby = l
                 break
         if lobby is None:
-            raise QuickGameNotFoundException("Lobby with specified id does not exist")
+            raise LobbyNotFoundException("Lobby with specified id does not exist")
 
         if lobby.guest == player:
             lobby.guestReady = True
