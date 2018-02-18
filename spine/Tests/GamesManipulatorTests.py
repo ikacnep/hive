@@ -431,7 +431,7 @@ class GameInstanceTests(unittest.TestCase):
         gl = manipulator.GetLobby()
         self.assertEqual(len(gl.lobbys), 2)
 
-        gl = manipulator.GetLobby(id=l1.id)
+        gl = manipulator.GetLobby(lobby_id=l1.id)
         self.assertEqual(len(gl.lobbys), 1)
         self.assertEqual(gl.lobbys[0], l1)
 
