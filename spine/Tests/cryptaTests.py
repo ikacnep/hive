@@ -31,5 +31,6 @@ class CryptaTests(unittest.TestCase):
         with self.assertRaises(InvalidSignature):
             crypta.verify('another-message', signature)
 
+
 if __name__ == '__main__':
     unittest.main()
