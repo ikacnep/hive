@@ -275,10 +275,15 @@ class GameInstanceTests(unittest.TestCase):
             "player": p1["id"]
         }
         rv = manipulator.ActJS(action)
+
         if "message" in rv:
             self.assertEqual(rv["message"], None)
         self.assertEqual(rv["result"], True)
         self.assertTrue(rv["ended"])
+
+        rv = manipulator.ActJS({"action": Action.CloseGame, "gid": gid1})
+
+        self.assertEqual(rv["result"], True)
         self.assertTrue(rv["rateChange"][p1["id"]] < 0)
         self.assertTrue(rv["rateChange"][p2["id"]] > 0)
 
@@ -391,6 +396,9 @@ class GameInstanceTests(unittest.TestCase):
         verify_game_instance()
 
         manipulator.Concede(game_id, player2.id)
+        verify_game_instance()
+
+        manipulator.CloseGame(game_id)
 
         with self.assertRaises(GameNotFoundException):
             manipulator.GetGameInst(game_id)

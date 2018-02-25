@@ -18,3 +18,5 @@ class Action(IntEnum):
     CreatePlayer = 10
     ModifyPlayer = 11
     GetOrCreatePlayer = 12
+
+    CloseGame = 20

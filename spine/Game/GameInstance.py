@@ -231,6 +231,20 @@ class GameInstance:
 
         return rv
 
+    def CloseGame(self):
+        rv = GameActionResult()
+
+        rv.result = True
+
+        rv.turn = self.game.turn
+        rv.ended = self.game.gameEnded
+        rv.lost = {
+            self.player0: self.game.hasLost[0],
+            self.player1: self.game.hasLost[1]
+        }
+
+        return rv
+
     def FillPositiveResult(self, rv):
         rv.result = True
         np = self.NextPlayer()

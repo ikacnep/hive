@@ -579,49 +579,47 @@ class GamesManipulator:
 
         return gameInst
 
-    def ProcessEndgame(self, gid, gameInst, rv):
-        if rv.ended:
-            self.runningGames.pop(gid)
-            try:
-                p1 = self.players.get(self.players.id == gameInst.player0)
-                p2 = self.players.get(self.players.id == gameInst.player1)
-            except Exception as ex:
-                raise PlayerNotFoundException("Player not found.", ex.args)
+    def _DoEndGame(self, gid, gameInst, rv):
+        try:
+            p1 = self.players.get(self.players.id == gameInst.player0)
+            p2 = self.players.get(self.players.id == gameInst.player1)
+        except Exception as ex:
+            raise PlayerNotFoundException("Player not found.", ex.args)
 
-            try:
-                game = self.games.get(self.games.id == gid)
-            except Exception as ex:
-                raise GameNotFoundException("No such ID in database.", ex.args)
+        try:
+            game = self.games.get(self.games.id == gid)
+        except Exception as ex:
+            raise GameNotFoundException("No such ID in database.", ex.args)
 
-            res = 0
-            if rv.lost[p1.id]:
-                res += 1
-            if rv.lost[p2.id]:
-                res -= 1
-            ratingChange = self.GetEloRate(p1.rating, p2.rating, res)
+        res = 0
+        if rv.lost[p1.id]:
+            res += 1
+        if rv.lost[p2.id]:
+            res -= 1
+        ratingChange = self.GetEloRate(p1.rating, p2.rating, res)
 
-            self.archive.create(
-                player1=p1,
-                player2=p2,
-                gameid=gid,
-                length=gameInst.game.turn,
-                result1=ratingChange[0],
-                result2=ratingChange[1],
-                start=game.start,
-                end=datetime.datetime.now(),
-                log=zlib.compress(json.dumps(gameInst.actions).encode("utf-8"))
-            )
-            game.delete_instance()
-            p1.rating += ratingChange[0]
-            p2.rating += ratingChange[1]
-            p1.lastGame = datetime.datetime.now()
-            p2.lastGame = datetime.datetime.now()
-            p1.save()
-            p2.save()
-            rv.rateChange = {
-                p1.id: ratingChange[0],
-                p2.id: ratingChange[1]
-            }
+        self.archive.create(
+            player1=p1,
+            player2=p2,
+            gameid=gid,
+            length=gameInst.game.turn,
+            result1=ratingChange[0],
+            result2=ratingChange[1],
+            start=game.start,
+            end=datetime.datetime.now(),
+            log=zlib.compress(json.dumps(gameInst.actions).encode("utf-8"))
+        )
+        game.delete_instance()
+        p1.rating += ratingChange[0]
+        p2.rating += ratingChange[1]
+        p1.lastGame = datetime.datetime.now()
+        p2.lastGame = datetime.datetime.now()
+        p1.save()
+        p2.save()
+        rv.rateChange = {
+            p1.id: ratingChange[0],
+            p2.id: ratingChange[1]
+        }
 
         self._persist_game(gid)
 
@@ -632,7 +630,8 @@ class GamesManipulator:
             rv.actions = game.GetActions()
         if addState:
             rv.state = game.GetState(addAllActions=addAllActions)
-        self.ProcessEndgame(gid, game, rv)
+
+        self._persist_game(gid)
 
         return rv
 
@@ -643,7 +642,8 @@ class GamesManipulator:
             rv.actions = game.GetActions()
         if addState:
             rv.state = game.GetState(addAllActions=addAllActions)
-        self.ProcessEndgame(gid, game, rv)
+
+        self._persist_game(gid)
 
         return rv
 
@@ -654,7 +654,8 @@ class GamesManipulator:
             rv.actions = game.GetActions()
         if addState:
             rv.state = game.GetState(addAllActions=addAllActions)
-        self.ProcessEndgame(gid, game, rv)
+
+        self._persist_game(gid)
 
         return rv
 
@@ -665,7 +666,8 @@ class GamesManipulator:
             rv.actions = game.GetActions()
         if addState:
             rv.state = game.GetState(addAllActions=addAllActions)
-        self.ProcessEndgame(gid, game, rv)
+
+        self._persist_game(gid)
 
         return rv
 
@@ -676,7 +678,8 @@ class GamesManipulator:
             rv.actions = game.GetActions()
         if addState:
             rv.state = game.GetState(addAllActions=addAllActions)
-        self.ProcessEndgame(gid, game, rv)
+
+        self._persist_game(gid)
 
         return rv
 
@@ -687,7 +690,16 @@ class GamesManipulator:
             rv.actions = game.GetActions()
         if addState:
             rv.state = game.GetState(addAllActions=addAllActions)
-        self.ProcessEndgame(gid, game, rv)
+
+        self._persist_game(gid)
+
+        return rv
+
+    def CloseGame(self, gid):
+        game = self.runningGames.pop(gid)
+        rv = game.CloseGame()
+
+        self._DoEndGame(gid, game, rv)
 
         return rv
 
@@ -959,6 +971,10 @@ class GamesManipulator:
                         addAllActions = action["addAllActions"]
 
                 tmpRv = self.Skip(gid, pid, addActions, addAllActions, addState)
+                tmpRv.FillJson(rv)
+            elif act == Action.CloseGame:
+                gid = action["gid"]
+                tmpRv = self.CloseGame(gid)
                 tmpRv.FillJson(rv)
             elif act == Action.Undefined:
                 raise UnknownAction("Undefined action is not allowed")
