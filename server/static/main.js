@@ -225,6 +225,8 @@ jQuery(function ($) {
                 if (adding_figure_area.children().length === 0) {
                     adding_figure_area.remove();
                 }
+
+                CanIMove();
             });
         } else {
             if (game.selected_piece) {
@@ -239,7 +241,10 @@ jQuery(function ($) {
                         figure_id: game.selected_piece.id,
                         from: position,
                         to: [r, q],
-                    }).done(MovePiece);
+                    }).done(function(data) {
+                        MovePiece(data);
+                        CanIMove();
+                    });
                 }
             } else {
                 ClearSelection();
@@ -298,10 +303,6 @@ jQuery(function ($) {
     }
 
     function CanIMove() {
-        if (game.state.next_player !== game.player_id) {
-            return;
-        }
-
         if (game.state.ended) {
             window.clearInterval(poll_for_moves_interval);
 
@@ -309,7 +310,7 @@ jQuery(function ($) {
                 var players_lost = 0;
 
                 for (var player_id in game.state.lost) {
-                    players_lost += game.state.lost[player];
+                    players_lost += game.state.lost[player_id];
                 }
 
                 if (players_lost === 2) {
@@ -322,6 +323,10 @@ jQuery(function ($) {
             }
 
             window.location = '/';
+        }
+
+        if (game.state.next_player !== game.player_id) {
+            return;
         }
 
         if (Object.keys(game.state.available_actions[game.player_id]).length === 0

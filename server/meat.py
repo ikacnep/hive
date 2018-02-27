@@ -226,7 +226,7 @@ def get_moves(game_id):
         return flask.jsonify()
 
     if state.ended:
-        games_manipulator.CloseGame(game_id, player_id)
+        games_manipulator.CloseGame(game_id)
 
     return flask.jsonify(
             state=state.GetJson(),
