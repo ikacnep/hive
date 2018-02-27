@@ -508,10 +508,14 @@ jQuery(function ($) {
         }
     }
 
-    function ChangeScale(is_out) {
-        var new_scale = is_out ? board_position.scale / 1.1 : board_position.scale * 1.1;
+    function ChangeScale(w, h, is_out) {
+        var ratio = is_out ? 1 / 1.1 : 1.1;
+        var new_scale = ratio * board_position.scale;
 
         // TODO: придумать правильную формулу для интуитивно понятного приближения/удаления, как в картах
+        board_position.x = w / 2 + ratio * (board_position.x - w / 2);
+        board_position.y = h / 2 + ratio * (board_position.y - h / 2);
+
         board_position.scale = new_scale;
     }
 
@@ -520,8 +524,8 @@ jQuery(function ($) {
     controls.find('.up').click(BoardMovement(function(w, h, step) { board_position.y -= step / board_position.scale; }));
     controls.find('.down').click(BoardMovement(function(w, h, step) { board_position.y += step / board_position.scale; }));
 
-    controls.find('.out').click(BoardMovement(function(w, h, step) { ChangeScale(true); }));
-    controls.find('.in').click(BoardMovement(function(w, h, step) { ChangeScale(false); }));
+    controls.find('.out').click(BoardMovement(function(w, h, step) { ChangeScale(w, h, true); }));
+    controls.find('.in').click(BoardMovement(function(w, h, step) { ChangeScale(w, h, false); }));
 
     function OnResize(is_initial) {
         log('OnResize', is_initial);
