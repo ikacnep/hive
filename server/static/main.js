@@ -495,11 +495,9 @@ jQuery(function ($) {
 
     function BoardMovement(action_on_board_position) {
         return function() {
-            var table_width = table.width();
-            var table_height = table.height();
-            var step = table_width / 6;
+            var step = board_position.width / 6;
 
-            action_on_board_position(table_width, table_height, step);
+            action_on_board_position(step);
 
             Apply();
 
@@ -515,12 +513,12 @@ jQuery(function ($) {
         }
     }
 
-    function ChangeScale(w, h, is_out, fixed_point) {
+    function ChangeScale(is_out, fixed_point) {
         var ratio = is_out ? 1 / 1.1 : 1.1;
         var new_scale = ratio * board_position.scale;
 
         if (fixed_point === undefined) {
-            fixed_point = [w / 2, h / 2]
+            fixed_point = [board_position.width / 2, board_position.height / 2]
         }
 
         var on_board = ScreenToBoardCoordinates.apply(null, fixed_point);
@@ -531,13 +529,48 @@ jQuery(function ($) {
         board_position.y = fixed_point[1] / board_position.scale - on_board[1];
     }
 
-    controls.find('.left').click(BoardMovement(function(w, h, step) { board_position.x -= step / board_position.scale; }));
-    controls.find('.right').click(BoardMovement(function(w, h, step) { board_position.x += step / board_position.scale; }));
-    controls.find('.up').click(BoardMovement(function(w, h, step) { board_position.y -= step / board_position.scale; }));
-    controls.find('.down').click(BoardMovement(function(w, h, step) { board_position.y += step / board_position.scale; }));
+    controls.find('.left').click(BoardMovement(function(step) { board_position.x -= step / board_position.scale; }));
+    controls.find('.right').click(BoardMovement(function(step) { board_position.x += step / board_position.scale; }));
+    controls.find('.up').click(BoardMovement(function(step) { board_position.y -= step / board_position.scale; }));
+    controls.find('.down').click(BoardMovement(function(step) { board_position.y += step / board_position.scale; }));
 
-    controls.find('.out').click(BoardMovement(function(w, h) { ChangeScale(w, h, true); }));
-    controls.find('.in').click(BoardMovement(function(w, h) { ChangeScale(w, h, false); }));
+    controls.find('.out').click(BoardMovement(function() { ChangeScale(true); }));
+    controls.find('.in').click(BoardMovement(function() { ChangeScale(false); }));
+
+    table.bind('mousewheel DOMMouseScroll', function(event) {
+        log('Mouse wheel action', event);
+
+        var point = [event.originalEvent.pageX, event.originalEvent.pageY];
+
+        var is_scroll_down = true;
+
+        if (event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0) {
+            is_scroll_down = false;
+        }
+
+        BoardMovement(function() { ChangeScale(is_scroll_down, point); })();
+    });
+
+    table.mousedown(function(event) {
+        board_position.drag = {x: event.pageX, y: event.pageY};
+    });
+
+    table.mouseup(function() {
+        board_position.drag = undefined;
+    });
+
+    table.mousemove(function(event) {
+        if (!board_position.drag) {
+            return;
+        }
+
+        BoardMovement(function() {
+            board_position.x += (event.pageX - board_position.drag.x) / board_position.scale;
+            board_position.y += (event.pageY - board_position.drag.y) / board_position.scale;
+
+            board_position.drag = {x: event.pageX, y: event.pageY};
+        })();
+    });
 
     function OnResize(is_initial) {
         log('OnResize', is_initial);
