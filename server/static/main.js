@@ -421,19 +421,22 @@ jQuery(function ($) {
         }
     });
 
+    function ScreenToBoardCoordinates(screen_x, screen_y) {
+        var board_x = (screen_x) / board_position.scale - board_position.x + board_position.x_discrepancy();
+        var board_y = (screen_y) / board_position.scale - board_position.y;
+
+        return [board_x, board_y];
+    }
+
     function ConvertScreenToPosition(click_x, click_y) {
-        var bs = b;
-        var gs = g;
+        var board_coordinates = ScreenToBoardCoordinates(click_x, click_y);
 
-        // Я понятия не имею, откуда это берётся. Подобрано опытным путём.
-        var x_discrepancy = board_position.width / 2 * (1 - 1 / board_position.scale);
+        var x = board_coordinates[0] - g;
+        var y = board_coordinates[1] - b;
 
-        var x = (click_x) / board_position.scale - board_position.x - bs + x_discrepancy;
-        var y = (click_y) / board_position.scale - board_position.y - gs;
-
-        var m = Math.ceil(y / gs);
-        var v = Math.ceil((y + sqrt3 * x) / (2 * gs));
-        var l = Math.ceil((y - sqrt3 * x) / (2 * gs));
+        var m = Math.ceil(y / g);
+        var v = Math.ceil((y + sqrt3 * x) / (2 * g));
+        var l = Math.ceil((y - sqrt3 * x) / (2 * g));
 
         var r = Math.floor((v - l + 1) / 3);
         var q = Math.floor((m + l) / 3);
@@ -484,6 +487,10 @@ jQuery(function ($) {
         width: 800,
         height: 600,
         showing_hidden: false,
+        x_discrepancy: function() {
+            // Я понятия не имею, откуда это берётся. Подобрано опытным путём.
+            return board_position.width / 2 * (1 - 1 / board_position.scale);
+        }
     };
 
     function BoardMovement(action_on_board_position) {
@@ -508,15 +515,20 @@ jQuery(function ($) {
         }
     }
 
-    function ChangeScale(w, h, is_out) {
+    function ChangeScale(w, h, is_out, fixed_point) {
         var ratio = is_out ? 1 / 1.1 : 1.1;
         var new_scale = ratio * board_position.scale;
 
-        // TODO: придумать правильную формулу для интуитивно понятного приближения/удаления, как в картах
-        board_position.x = w / 2 + ratio * (board_position.x - w / 2);
-        board_position.y = h / 2 + ratio * (board_position.y - h / 2);
+        if (fixed_point === undefined) {
+            fixed_point = [w / 2, h / 2]
+        }
+
+        var on_board = ScreenToBoardCoordinates.apply(null, fixed_point);
 
         board_position.scale = new_scale;
+
+        board_position.x = fixed_point[0] / board_position.scale - on_board[0] + board_position.x_discrepancy();
+        board_position.y = fixed_point[1] / board_position.scale - on_board[1];
     }
 
     controls.find('.left').click(BoardMovement(function(w, h, step) { board_position.x -= step / board_position.scale; }));
@@ -524,8 +536,8 @@ jQuery(function ($) {
     controls.find('.up').click(BoardMovement(function(w, h, step) { board_position.y -= step / board_position.scale; }));
     controls.find('.down').click(BoardMovement(function(w, h, step) { board_position.y += step / board_position.scale; }));
 
-    controls.find('.out').click(BoardMovement(function(w, h, step) { ChangeScale(w, h, true); }));
-    controls.find('.in').click(BoardMovement(function(w, h, step) { ChangeScale(w, h, false); }));
+    controls.find('.out').click(BoardMovement(function(w, h) { ChangeScale(w, h, true); }));
+    controls.find('.in').click(BoardMovement(function(w, h) { ChangeScale(w, h, false); }));
 
     function OnResize(is_initial) {
         log('OnResize', is_initial);
