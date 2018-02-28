@@ -563,6 +563,9 @@ jQuery(function ($) {
         e.preventDefault();
         board.empty();
 
+        available_area.empty();
+        window.clearInterval(poll_for_moves_interval);
+
         $.each('- selected moved placed can_move_here'.split(' '), function(state_id, state) {
             $.each(['white', 'black'], function (color_id, color) {
                 $.each('Queen Ant Spider Beetle Grasshopper Mosquito Ladybug Pillbug'.split(' '), function (figure_id, figure) {
