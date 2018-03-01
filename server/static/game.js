@@ -431,8 +431,8 @@ jQuery(function ($) {
     function ConvertScreenToPosition(click_x, click_y) {
         var board_coordinates = ScreenToBoardCoordinates(click_x, click_y);
 
-        var x = board_coordinates[0] - g;
-        var y = board_coordinates[1] - b;
+        var x = board_coordinates[0] - b;
+        var y = board_coordinates[1] - g;
 
         var m = Math.ceil(y / g);
         var v = Math.ceil((y + sqrt3 * x) / (2 * g));

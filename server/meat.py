@@ -55,7 +55,7 @@ def main_page():
     except GameNotFoundException:
         games = []
 
-    return flask.render_template('lobby.html', games=games, player_id=player_id)
+    return flask.render_template('main.html', games=games, player_id=player_id)
 
 
 @app.route('/login', methods=['GET'])
