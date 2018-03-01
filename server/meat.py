@@ -239,10 +239,7 @@ def get_moves(game_id):
 
 @app.route('/game/<int:game_id>/board', methods=['GET'])
 def get_board(game_id):
-    print('get_board')
     game, player_id = verify_i_play_game(game_id)
-
-    print('State (json): %s' % game.GetState().GetJson())
 
     return flask.jsonify(
         state=game.GetState().GetJson(),
