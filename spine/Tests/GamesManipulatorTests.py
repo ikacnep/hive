@@ -421,7 +421,7 @@ class GameInstanceTests(unittest.TestCase):
         player2 = manipulator.CreatePlayer(name='player 2', telegramId=73572).player
         player3 = manipulator.CreatePlayer(name='player 3', telegramId=73573).player
 
-        l1 = manipulator.CreateLobby("Test1", player1.id, duration=10)
+        l1 = manipulator.CreateLobby("Test1", player1.id, duration=1)
         self.assertEqual(l1.owner, player1.id)
         self.assertEqual(l1.mosquito, False)
         self.assertEqual(l1.tourney, False)
@@ -493,7 +493,7 @@ class GameInstanceTests(unittest.TestCase):
         self.assertEqual(len(gl.lobbys), 1)
         self.assertEqual(gl.lobbys[0].id, l1.id)
 
-        sleep(20)
+        sleep(2)
 
         gl = manipulator.GetLobby(ready=False)
         self.assertEqual(len(gl.lobbys), 1)
