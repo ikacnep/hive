@@ -11,6 +11,9 @@ from ..JsonPYAdaptors.PossibleActionsData import PossibleActionsData
 
 class GameInstance:
     def __init__(self, p0, p1, settings):
+        if p0 == p1:
+            raise GameCreationException('You shall not play with yourself here (͡° ͜ʖ ͡°)')
+
         self.game = GameState(settings)
         self.player0 = p0
         self.player1 = p1

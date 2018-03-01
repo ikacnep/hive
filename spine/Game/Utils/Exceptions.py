@@ -30,6 +30,10 @@ class GameNotFoundException(HiveError):
     pass
 
 
+class GameCreationException(HiveError):
+    pass
+
+
 class PlayerCreationException(HiveError):
     pass
 
@@ -37,17 +41,22 @@ class PlayerCreationException(HiveError):
 class PlayerModificationException(HiveError):
     pass
 
+
 class QuickGameCreationException(HiveError):
     pass
+
 
 class LobbyNotFoundException(HiveError):
     pass
 
+
 class QuickGameNotFoundException(HiveError):
     pass
 
+
 class CannotJoinLobbyException(HiveError):
     pass
+
 
 class AccessException(HiveError):
     pass

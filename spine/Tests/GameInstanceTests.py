@@ -36,6 +36,9 @@ class GameInstanceTests(unittest.TestCase):
         self.assertEqual(result["reason"], UnknownAction)
         self.assertIsNotNone(result["message"])
 
+        with self.assertRaises(HiveError):
+            GameInstance(42, 42, GameSettings.GetSettings())
+
     def testUndefined(self):
         game = GameInstance(10, 11, GameSettings.GetSettings())
         action = {
