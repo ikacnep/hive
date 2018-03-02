@@ -3,6 +3,7 @@ from spine.JsonPYAdaptors.ActionResult import ActionResult
 class LobbyRoom:
     def __init__(self):
         self.id = None
+        self.gid = None  # Идентификатор созданной игры
         self.name = None
         self.owner = None
         self.guest = None
@@ -30,7 +31,8 @@ class LobbyRoom:
             "ladybug": self.ladybug,
             "pillbug": self.pillbug,
             "tourney": self.tourney,
-            "id": self.id
+            "id": self.id,
+            "gid": self.gid
         }
 
         return rv

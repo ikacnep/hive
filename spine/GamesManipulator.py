@@ -190,13 +190,7 @@ class GamesManipulator:
         return lobby
 
     def RefreshLobby(self, lobby_id, player, mosquito=None, ladybug=None, pillbug=None, tourney=None, duration=None):
-        change_me = None
-        for l in self.lobbys:
-            if l.id == lobby_id:
-                change_me = l
-                break
-        if change_me is None:
-            raise LobbyNotFoundException("Lobby with specified id does not exist")
+        change_me = self._get_lobby_by_id(lobby_id)
 
         if change_me.owner != player:
             raise AccessException("Only owner can refresh lobby")
@@ -277,13 +271,7 @@ class GamesManipulator:
         return rv
 
     def LeaveLobby(self, lobby_id, player):
-        lobby = None
-        for l in self.lobbys:
-            if l.id == lobby_id:
-                lobby = l
-                break
-        if lobby is None:
-            raise LobbyNotFoundException("Lobby with specified id does not exist")
+        lobby = self._get_lobby_by_id(lobby_id)
 
         if lobby.guest == player:
             lobby.guest = None
@@ -293,19 +281,10 @@ class GamesManipulator:
         else:
             raise AccessException("Cannot leave lobby you are not in")
 
-        rv = SuccessResult()
-        rv.success = True
-
-        return rv
+        return lobby
 
     def ReadyLobby(self, lobby_id, player):
-        lobby = None
-        for l in self.lobbys:
-            if l.id == lobby_id:
-                lobby = l
-                break
-        if lobby is None:
-            raise LobbyNotFoundException("Lobby with specified id does not exist")
+        lobby = self._get_lobby_by_id(lobby_id)
 
         if lobby.guest == player:
             lobby.guestReady = True
@@ -314,8 +293,18 @@ class GamesManipulator:
         else:
             raise AccessException("Cannot ready in lobby you are not in")
 
-        rv = SuccessResult()
-        rv.success = True
+        return lobby
+
+    def CreateGameFromLobby(self, lobby_id, addActions=False, addAllActions=False, addState=False):
+        lobby = self._get_lobby_by_id(lobby_id)
+
+        rv = self.CreateGame(
+            lobby.owner, lobby.guest, lobby.owner,
+            mosquito=lobby.mosquito, ladybug=lobby.ladybug, pillbug=lobby.pillbug, tourney=lobby.tourney,
+            addActions=addActions, addAllActions=addAllActions, addState=addState
+        )
+
+        lobby.gid = rv.gid
 
         return rv
 
@@ -343,14 +332,6 @@ class GamesManipulator:
                 break
         if quick is not None:
             self.quicks.remove(quick)
-
-        lobby = None
-        for l in self.lobbys:
-            if (l.owner == p1.id or l.guest == p1.id) and (l.owner == p2.id or l.guest == p2.id):
-                lobby = l
-                break
-        if lobby is not None:
-            self.lobbys.remove(lobby)
 
         return actualGame
 
@@ -1037,3 +1018,10 @@ class GamesManipulator:
                     game_state.save()
             else:
                 self.game_state_table.delete().where(self.game_state_table.id == game_id).execute()
+
+    def _get_lobby_by_id(self, lobby_id):
+        for l in self.lobbys:
+            if l.id == lobby_id:
+                return l
+
+        raise LobbyNotFoundException("Lobby with specified id does not exist")

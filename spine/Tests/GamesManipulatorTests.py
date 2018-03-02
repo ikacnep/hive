@@ -500,7 +500,20 @@ class GameInstanceTests(unittest.TestCase):
         self.assertEqual(gl.lobbys[0].id, l2.id)
 
         manipulator.JoinLobby(l2.id, player3.id)
-        game_id = manipulator.CreateGame(player2.id, player3.id, player2.id, tourney=False).gid
+        manipulator.ReadyLobby(l2.id, player2.id)
+        manipulator.ReadyLobby(l2.id, player3.id)
+
+        game_id = manipulator.CreateGameFromLobby(l2.id).gid
+
+        gl = manipulator.GetLobby(lobby_id=l2.id, ready=True)
+        self.assertEqual(len(gl.lobbys), 1)
+        self.assertEqual(gl.lobbys[0].id, l2.id)
+        self.assertEqual(gl.lobbys[0].gid, game_id)
+
+        with self.assertRaises(Exception):
+            manipulator.GetLobby(ready=False)
+
+        manipulator.LeaveLobby(l2.id, player2.id)
 
         with self.assertRaises(Exception):
             manipulator.GetLobby(ready=True)
