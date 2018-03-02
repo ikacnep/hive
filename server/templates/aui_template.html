@@ -8,6 +8,9 @@
 
     <link rel="stylesheet" href="//aui-cdn.atlassian.com/aui-adg/6.0.6/css/aui.min.css" media="all">
     <script src="//aui-cdn.atlassian.com/aui-adg/6.0.6/js/aui.min.js"></script>
+
+    {% block head %}
+    {% endblock %}
 </head>
 
 <body class="{% block page_class %}{% endblock %}">
@@ -19,12 +22,16 @@
             <div class="aui-page-panel">
                 <div class="aui-page-panel-inner">
                     <section class="aui-page-panel-content">
-                        {% if error_message %}
-                            <div class="aui-message aui-message-error">
-                                <p class="title">Ошибка</p>
-                                <p>{{ error_message }}</p>
-                            </div>
-                        {% endif %}
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% for category, message in messages %}
+                                {% with title, message_text = message.split(':') %}
+                                    <div class="aui-message aui-message-{{ category }}">
+                                        <p class="title">{{ title }}</p>
+                                        <p>{{ message_text }}</p>
+                                    </div>
+                                {% endwith %}
+                            {% endfor %}
+                        {% endwith %}
 
                         {% block content %}
                         {% endblock %}

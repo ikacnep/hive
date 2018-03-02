@@ -82,7 +82,8 @@ def do_login():
         flask.session['player_id'] = player.player.id
     except Exception as error:
         traceback.print_exc()
-        return flask.render_template('login.html', error_message=str(error.args[0]))
+        flask.flash('Что-то пошло не так:%s' % error.args[0], 'error')
+        return flask.redirect(flask.url_for('login'))
 
     return flask.redirect(flask.url_for('main_page'))
 
@@ -118,7 +119,8 @@ def do_register():
         flask.session['player_id'] = player.player.id
     except Exception as error:
         traceback.print_exc()
-        return flask.render_template('register.html', error_message=str(error.args[0]))
+        flask.flash('Регистрация не пошла:%s' % error.args[0], 'error')
+        return flask.redirect(flask.url_for('register'))
 
     return flask.redirect(flask.url_for('main_page'))
 
@@ -127,23 +129,86 @@ def do_register():
 def start_game():
     data = flask.request.values
 
-    player_id = flask.session.get('player_id')
-    other_player_id = data['other_player_id']
+    try:
+        player_id = flask.session.get('player_id')
+        player = games_manipulator.GetPlayer(pid=player_id).player
 
-    player = games_manipulator.GetPlayer(pid=player_id).player
-    other_player = games_manipulator.GetPlayer(pid=other_player_id).player
+        game_type = data['game_type']
 
-    game = games_manipulator.CreateGame(player.id, other_player.id, turn=player.id)
+        if game_type == 'direct_game':
+            other_player_id = data['other_player_id']
 
-    if not game.result:
-        raise Exception('something\'s wrong: {}'.format(game.message))
+            other_player = games_manipulator.GetPlayer(pid=other_player_id).player
 
-    return flask.redirect(flask.url_for('resume_game', game_id=game.gid))
+            game = games_manipulator.CreateGame(player.id, other_player.id, turn=player.id)
+
+            return flask.redirect(flask.url_for('resume_game', game_id=game.gid))
+        elif game_type == 'create_lobby':
+            lobby = games_manipulator.CreateLobby('My Game Lobby', player_id)
+
+            return flask.redirect(flask.url_for('show_lobby', lobby_id=lobby.id))
+        else:
+            raise Exception('Ничего не понимаю')
+    except Exception as error:
+        traceback.print_exc()
+        flask.flash('Не удалось начать игру:%s' % error.args[0], 'error')
+        return flask.redirect(flask.url_for('main_page'))
 
 
 @app.route('/game/<int:game_id>', methods=['GET'])
 def resume_game(game_id):
     return flask.render_template('game.html', game_id=game_id)
+
+
+def _check_lobby(lobby_id):
+    lobby_result = games_manipulator.GetLobby(lobby_id=lobby_id)
+    lobby = lobby_result.lobbys[0]
+
+    player_id = flask.session.get('player_id')
+
+    if lobby.gid:
+        return lobby
+
+    if lobby.owner != player_id and not lobby.guest:
+        games_manipulator.JoinLobby(lobby_id, player_id)
+
+    lobby = games_manipulator.ReadyLobby(lobby_id, player_id)
+
+    if lobby.ownerReady and lobby.guestReady:
+        games_manipulator.CreateGameFromLobby(lobby_id=lobby_id)
+
+    return lobby
+
+
+@app.route('/lobby/<int:lobby_id>', methods=['GET'])
+def show_lobby(lobby_id):
+    try:
+        lobby = _check_lobby(lobby_id)
+
+        if lobby.gid:
+            return flask.redirect(flask.url_for('resume_game', game_id=lobby.gid))
+
+        return flask.render_template('lobby.html', lobby=lobby)
+    except Exception as error:
+        traceback.print_exc()
+        flask.flash('Чо-т комната сгорела:%s' % error.args[0], 'error')
+        return flask.redirect(flask.url_for('main_page'))
+
+
+@app.route('/lobby/<int:lobby_id>/check', methods=['GET'])
+def check_lobby_rest(lobby_id):
+    lobby = _check_lobby(lobby_id)
+
+    if lobby.gid:
+        return flask.jsonify(game_id=lobby.gid, is_owner=lobby.owner == flask.session.get('player_id'))
+
+    return flask.jsonify()
+
+
+@app.route('/lobby/<int:lobby_id>/leave', methods=['POST'])
+def leave_lobby_rest(lobby_id):
+    games_manipulator.LeaveLobby(lobby_id, flask.session.get('player_id'))
+    return flask.jsonify()
 
 
 def verify_i_play_game(game_id):

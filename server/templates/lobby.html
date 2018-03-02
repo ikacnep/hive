@@ -1,0 +1,29 @@
+{% extends 'aui_template.html' %}
+
+{% block title %}
+    Комната {{ lobby.name }}
+{% endblock %}
+
+{% block page_class %}
+    aui-page-focused aui-page-size-medium
+{% endblock %}
+
+{% block head %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+    <script src="{{ url_for('static', filename='lobby.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+    <script>var lobby_id = {{ lobby.id }}</script>
+
+    <p>Ожидаем, когда придёт второй игрок…</p>
+
+    <p id="invite_link">
+        Ссылка для подключения:
+
+        {% with url = url_for('show_lobby', _external=True, lobby_id=lobby.id) %}
+            <code><a href="{{ url }}">{{ url }}</a></p></code>
+        {% endwith %}
+    </p>
+{% endblock %}

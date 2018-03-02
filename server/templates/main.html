@@ -12,6 +12,12 @@
     Прихожая
 {% endblock %}
 
+{% block head %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+{% endblock %}
+
 {% block content %}
     <p>Привет, {{ player_id }}</p>
 
@@ -30,11 +36,18 @@
         {% endif %}
     </div>
 
+    <hr>
+
     <div>
         <form class="aui" method="post" action="{{ url_for('start_game') }}">
-            <input type="text" class="text" name="other_player_id" placeholder="С кем рубанём?">
+            <button id="create_lobby" class="aui-button" name="game_type" value="create_lobby">Создать комнату</button>
 
-            <button class="aui-button">Начать игру</button>
+            <a id="choose_opponent" class="aui-button">Выбрать противника</a>
+
+            <div id="choose_opponent_block" style="display: none; margin-top: 8px">
+                <input type="text" class="text" name="other_player_id" placeholder="С кем рубанём?">
+                <button class="aui-button" name="game_type" value="direct_game">Начать игру</button>
+            </div>
         </form>
     </div>
 {% endblock %}
