@@ -161,6 +161,10 @@ def resume_game(game_id):
 
 
 def _check_lobby(lobby_id):
+    if 'telegramId' in flask.request.values and 'player_id' not in flask.session:
+        player = games_manipulator.GetPlayer(telegramId=flask.request.values['telegramId']).player
+        flask.session['player_id'] = player.id
+
     lobby_result = games_manipulator.GetLobby(lobby_id=lobby_id)
     lobby = lobby_result.lobbys[0]
 
