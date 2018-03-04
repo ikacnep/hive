@@ -5,7 +5,7 @@ jQuery(function($) {
             $('<code/>').html(
                 $('<a/>')
                     .text(location.href)
-                    .attr({href: location.href})
+                    .attr({href: location.origin + location.pathname})
             )
         );
 
