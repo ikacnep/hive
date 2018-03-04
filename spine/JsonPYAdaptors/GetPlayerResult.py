@@ -10,6 +10,7 @@ class PlayerResult:
         self.rating = None
         self.premium = None
         self.id = None
+        self.telegramId = None
 
     def GetJson(self):
         rv = {
@@ -19,7 +20,8 @@ class PlayerResult:
             "token": self.token,
             "rating": self.rating,
             "premium": self.premium,
-            "id": self.id
+            "id": self.id,
+            "telegramId": self.telegramId,
         }
 
         return rv

@@ -12,7 +12,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-bot = telegram_bot.create_bot(open('conf/telegram.bot.token').read().strip())
+bot = telegram_bot.HiveTelegramBot(open('conf/telegram.bot.token').read().strip())
 
 
 def stop_and_quit(*unused_args):

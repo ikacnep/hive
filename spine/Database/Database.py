@@ -46,6 +46,7 @@ class Player(BaseModel):
         rv.rating = player.rating
         rv.premium = player.premium
         rv.id = player.id
+        rv.telegramId = player.telegramId
 
         return rv
 

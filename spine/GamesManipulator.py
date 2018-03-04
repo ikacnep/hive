@@ -509,8 +509,9 @@ class GamesManipulator:
 
     def GetOrCreatePlayer(self, token=None, name=None, login=None, password=None, telegramId=None, premium=False,
                           refreshToken=False):
-        rv = self.GetPlayer(None, token, telegramId, login, password, refreshToken)
-        if not rv.result:
+        try:
+            rv = self.GetPlayer(None, token, telegramId, login, password, refreshToken)
+        except:
             rv = self.CreatePlayer(name, login, password, telegramId, premium)
 
         return rv
