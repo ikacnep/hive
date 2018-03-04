@@ -324,7 +324,7 @@ def letsencrypt(challenge):
         return ''
 
 
-def start(tls_cert, tls_key, secret_key):
+def start(tls_cert, tls_key, secret_key, **kwargs):
     try:
         app.secret_key = open(secret_key, 'rb').read()
     except IOError as err:
@@ -339,4 +339,4 @@ def start(tls_cert, tls_key, secret_key):
             context = None
             break
 
-    app.run('0.0.0.0', debug=True, port=5443, threaded=True, ssl_context=context)
+    app.run('0.0.0.0', debug=True, port=5443, threaded=True, ssl_context=context, **kwargs)
