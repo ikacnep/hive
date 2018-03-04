@@ -40,7 +40,7 @@ class HiveTelegramBot:
 
     @staticmethod
     def pick_user_name(update):
-        user = update.message.from_user
+        user = update.from_user
 
         if user.username:
             return user.username
@@ -52,10 +52,10 @@ class HiveTelegramBot:
 
         return name
 
-    def choose_player_from_message(self, update):
+    def choose_player_from_message(self, message):
         return games_manipulator.GetOrCreatePlayer(
-            name=self.pick_user_name(update),
-            telegramId=update.message.from_user.id
+            name=self.pick_user_name(message),
+            telegramId=message.from_user.id
         ).player
 
     # Define a few command handlers. These usually take the two arguments bot and
@@ -83,7 +83,7 @@ class HiveTelegramBot:
 
         inline_message_id = update.callback_query.inline_message_id
 
-        player = self.choose_player_from_message(update)
+        player = self.choose_player_from_message(update.callback_query)
 
         if inline_message_id in self._inline_message_id_to_lobby:
             lobby_id = self._inline_message_id_to_lobby[inline_message_id]
