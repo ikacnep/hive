@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+
 import json
 import logging
+import os
 import textwrap
 
 import telegram
@@ -26,6 +28,7 @@ class HiveTelegramBot:
         # on different commands - answer in Telegram
         dp.add_handler(CommandHandler("start", self.start))
         dp.add_handler(CommandHandler("help", self.help))
+        dp.add_handler(CommandHandler("reload", self.reload))
 
         dp.add_handler(CallbackQueryHandler(self.game))
 
@@ -77,6 +80,11 @@ class HiveTelegramBot:
         """Echo the user message."""
         logger.info('Received message: {}'.format(update))
         update.message.reply_text(update.message.text)
+
+    def reload(self, bot, update):
+        """ Reload everything, done externally in ~/prod.sh """
+        update.message.reply_text("'kay")
+        os._exit(42)
 
     def game(self, bot, update):
         self.log_update('Launch game', update)
