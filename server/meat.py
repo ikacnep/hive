@@ -328,6 +328,18 @@ def letsencrypt(challenge):
         return ''
 
 
+# Чо-то фласк не хочет сам нормально кэшировать, лишних заголовков накидал
+@app.route('/resource/<path:path>', methods=['GET'])
+def caching(path):
+    response = flask.send_from_directory('static', path)
+
+    del response.headers['Last-Modified']
+    del response.headers['Expires']
+    del response.headers['Cache-Control']
+
+    return response
+
+
 def start(tls_cert, tls_key, secret_key, **kwargs):
     try:
         app.secret_key = open(secret_key, 'rb').read()
