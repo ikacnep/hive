@@ -27,6 +27,9 @@ jQuery(function ($) {
 
     var game = {};
 
+    var is_mobile = window.matchMedia("only screen and (max-width: 760px)");
+    is_mobile = is_mobile ? is_mobile.matches : false;
+
     function MoveToCoordinates(hex, position, layer) {
         var r = position[0];
         var q = position[1];
@@ -599,7 +602,18 @@ jQuery(function ($) {
 
         $('#right').height(board_position.height);
 
+        if (is_initial === true && is_mobile) {
+            ChangeScale(true);
+            ChangeScale(true);
+            ChangeScale(true);
+            ChangeScale(true);
+        }
+
         BoardMovement(function() {})();
+    }
+
+    if (is_mobile) {
+        $('body').addClass('mobile');
     }
 
     OnResize(true);
@@ -656,5 +670,5 @@ jQuery(function ($) {
         } else {
             ShowHiddenFigures(true);
         }
-    })
+    });
 });

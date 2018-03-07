@@ -1,6 +1,10 @@
 * { margin:0; padding:0; } /* to remove the top and left whitespace */
 
-html, body { width:100%; height:100%; } /* just to be sure these are full screen */
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
 
 form#right {
     overflow-y: scroll;
@@ -11,6 +15,10 @@ form#right {
     width: 250px;
     padding-left: 10px;
     padding-right: 10px;
+}
+
+.mobile form#right {
+    width: 120px;
 }
 
 #right p {
@@ -24,6 +32,12 @@ form#right {
 
 #available_figures .select_figure {
     height: 120px;
+}
+
+.mobile #available_figures .select_figure {
+    height: 60px;
+    transform: scale(0.5);
+    margin-left: -30px;
 }
 
 #your_player {
