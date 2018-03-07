@@ -4,7 +4,7 @@ jQuery(function($) {
         .append(
             $('<code/>').html(
                 $('<a/>')
-                    .text(location.href)
+                    .text(location.origin + location.pathname)
                     .attr({href: location.origin + location.pathname})
             )
         );
