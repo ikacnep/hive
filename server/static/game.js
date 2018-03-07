@@ -597,6 +597,8 @@ jQuery(function ($) {
         board_position.width = new_width;
         board_position.height = new_height;
 
+        $('#right').height(board_position.height);
+
         BoardMovement(function() {})();
     }
 
