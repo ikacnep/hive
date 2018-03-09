@@ -65,7 +65,7 @@ class HiveTelegramBot:
     # update. Error handlers also receive the raised TelegramError object in error.
     def start(self, bot, update):
         """Send a message when the command /start is issued."""
-        self.log_update('/start request', update)
+        logger.debug('/start request in ', update.message.chat.id)
 
         bot.send_game(
             chat_id=update.message.chat.id,
@@ -87,9 +87,10 @@ class HiveTelegramBot:
         os._exit(42)
 
     def game(self, bot, update):
-        self.log_update('Launch game', update)
+        logger.debug('Launch game')
 
         inline_message_id = update.callback_query.inline_message_id
+        logger.debug('Inline message id:', inline_message_id)
 
         player = self.choose_player_from_message(update.callback_query)
 
@@ -104,6 +105,8 @@ class HiveTelegramBot:
             lobby_id = games_manipulator.CreateLobby(name=player.name, player=player.id).id
 
             self._inline_message_id_to_lobby[inline_message_id] = lobby_id
+
+        logger.debug('Player id:', player.id, '; lobby id:', lobby_id)
 
         url = 'https://playhive.club/lobby/{}?telegramId={}'.format(lobby_id, player.telegramId)
 
