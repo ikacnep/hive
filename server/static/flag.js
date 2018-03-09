@@ -45,13 +45,6 @@ jQuery(function($) {
             + '</div>'
             + '</div>';
 
-        /*var rendered = AJS.template(html).fill({
-            'body:html': options.body || '',
-            closeable: options.close === 'never' ? '' : 'closeable',
-            title: options.title || '',
-            type: options.type
-        }).toString();*/
-
         var rendered = html
             .replace(/{body}/g, options.body || '')
             .replace(/{closeable}/g, options.close === 'never' ? '' : 'closeable')
@@ -62,20 +55,9 @@ jQuery(function($) {
     }
 
     function makeCloseable($flag) {
-        var $icon = $('<span class="aui-icon icon-close" role="button" tabindex="0"></span>');
-
-        $icon.click(function () {
+        $flag.click(function () {
             closeFlag($flag);
         });
-
-        $icon.keypress(function (e) {
-            if (e.which === keyCode.ENTER || e.which === keyCode.SPACE) {
-                closeFlag($flag);
-                e.preventDefault();
-            }
-        });
-
-        return $flag.find('.aui-message').append($icon)[0];
     }
 
     function makeAutoClosable($flag) {
