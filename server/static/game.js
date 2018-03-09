@@ -202,7 +202,7 @@ jQuery(function ($) {
         log('OnHexClick', [].slice.apply(arguments));
 
         if (game.player_id !== game.state.next_player) {
-            alert("That's not your turn");
+            AJS.flag({body: "That's not your turn", type: 'info'});
             return;
         }
 
@@ -317,15 +317,17 @@ jQuery(function ($) {
                 }
 
                 if (players_lost === 2) {
-                    alert("Tie some tie");
+                    AJS.flag({body: "Well, that's a tie", type: 'info'});
                 } else {
-                    alert('Oh shi~');
+                    AJS.flag({body: "Sorry, you've lost", type: 'info'});
                 }
             } else {
-                alert('Congrats!');
+                AJS.flag({body: "Congratulations, you've won", type: 'info'});
             }
 
-            window.location = '/';
+            window.setTimeout(function() {
+                window.location = '/';
+            }, 3000);
         }
 
         if (game.state.next_player !== game.player_id) {
@@ -381,7 +383,7 @@ jQuery(function ($) {
             error_message = jqxhr.responseJSON.error_message;
         }
 
-        alert(error_message);
+        AJS.flag({body: error_message, type: 'error'});
     });
 
     $.getJSON('/game/' + game_id + '/board')
@@ -401,6 +403,11 @@ jQuery(function ($) {
         });
 
     available_area.on('click', '.select_figure', function() {
+        if (game.player_id !== game.state.next_player) {
+            AJS.flag({body: "That's not your turn", type: 'info'});
+            return;
+        }
+
         ClearSelection();
 
         var selected = available_area.find('.selected').removeClass('selected');
@@ -419,7 +426,7 @@ jQuery(function ($) {
                     });
                 }
             } else {
-                log('You cannot put that anywhere');
+                AJS.flag({body: 'You cannot put that anywhere', type: 'warning'});
             }
         }
     });
@@ -448,6 +455,10 @@ jQuery(function ($) {
     }
 
     table.click(function (event) {
+        if (board_position.prevent_click) {
+            return;
+        }
+
         var position = ConvertScreenToPosition(event.pageX, event.pageY);
         OnHexClick.apply(null, position);
     });
@@ -516,10 +527,7 @@ jQuery(function ($) {
         }
     }
 
-    function ChangeScale(is_out, fixed_point) {
-        var ratio = is_out ? 1 / 1.1 : 1.1;
-        var new_scale = ratio * board_position.scale;
-
+    function ChangeScale(new_scale, fixed_point) {
         if (fixed_point === undefined) {
             fixed_point = [board_position.width / 2, board_position.height / 2]
         }
@@ -537,28 +545,35 @@ jQuery(function ($) {
     controls.find('.up').click(BoardMovement(function(step) { board_position.y -= step / board_position.scale; }));
     controls.find('.down').click(BoardMovement(function(step) { board_position.y += step / board_position.scale; }));
 
-    controls.find('.out').click(BoardMovement(function() { ChangeScale(true); }));
-    controls.find('.in').click(BoardMovement(function() { ChangeScale(false); }));
+    controls.find('.out').click(BoardMovement(function() { ChangeScale(board_position.scale / 1.1); }));
+    controls.find('.in').click(BoardMovement(function() { ChangeScale(board_position.scale * 1.1); }));
 
     table.bind('mousewheel DOMMouseScroll', function(event) {
-        log('Mouse wheel action', event);
+        log('Mouse wheel action', event.originalEvent);
 
         var point = [event.originalEvent.pageX, event.originalEvent.pageY];
 
-        var is_scroll_down = true;
+        var new_scale = board_position.scale / 1.1;
 
         if (event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0) {
-            is_scroll_down = false;
+            new_scale = board_position.scale * 1.1;
         }
 
-        BoardMovement(function() { ChangeScale(is_scroll_down, point); })();
+        BoardMovement(function() { ChangeScale(new_scale, point); })();
     });
 
     table.mousedown(function(event) {
         board_position.drag = {x: event.pageX, y: event.pageY};
+        board_position.drag_moved = false;
     });
 
-    table.mouseup(function() {
+    table.mouseup(function(event) {
+        if (board_position.drag_moved) {
+            board_position.prevent_click = true;
+        } else {
+            board_position.prevent_click = false;
+        }
+
         board_position.drag = undefined;
     });
 
@@ -566,6 +581,8 @@ jQuery(function ($) {
         if (!board_position.drag) {
             return;
         }
+
+        board_position.drag_moved = true;
 
         BoardMovement(function() {
             board_position.x += (event.pageX - board_position.drag.x) / board_position.scale;
@@ -603,10 +620,7 @@ jQuery(function ($) {
         $('#right').height(board_position.height);
 
         if (is_initial === true && is_mobile) {
-            ChangeScale(true);
-            ChangeScale(true);
-            ChangeScale(true);
-            ChangeScale(true);
+            ChangeScale(board_position.scale / 2);
         }
 
         BoardMovement(function() {})();
