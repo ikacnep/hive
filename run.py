@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import logging.handlers
 import os
 import signal
 
@@ -33,10 +34,18 @@ def setup_logging():
 
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
+    def create_handler(filename):
+        return logging.handlers.TimedRotatingFileHandler(
+            filename=os.path.join(log_directory, filename),
+            when='d',
+            interval=1,
+            backupCount=20,
+        )
+
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=logging.INFO,
-        filename=os.path.join(log_directory, 'everything.log')
+        handlers=[create_handler('everything.log')],
     )
 
     for logger_name, settings in logging_settings.items():
@@ -48,7 +57,7 @@ def setup_logging():
 
         other_logger.setLevel(level)
 
-        handler = logging.FileHandler(filename=os.path.join(log_directory, filename))
+        handler = create_handler(filename)
         handler.setFormatter(formatter)
 
         other_logger.addHandler(handler)
