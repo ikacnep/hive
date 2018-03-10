@@ -16,8 +16,6 @@ logger.setLevel(logging.INFO)
 
 
 class HiveTelegramBot:
-    _inline_message_id_to_lobby = {}
-
     def __init__(self, token):
         # Create the EventHandler and pass it your bot's token.
         updater = Updater(token)
@@ -94,17 +92,12 @@ class HiveTelegramBot:
 
         player = self.choose_player_from_message(update.callback_query)
 
-        if inline_message_id in self._inline_message_id_to_lobby:
-            lobby_id = self._inline_message_id_to_lobby[inline_message_id]
-
-            try:
-                games_manipulator.GetLobby(lobby_id=lobby_id)
-            except:
-                del self._inline_message_id_to_lobby[inline_message_id]
-        else:
-            lobby_id = games_manipulator.CreateLobby(name=player.name, player=player.id, duration=0).id
-
-            self._inline_message_id_to_lobby[inline_message_id] = lobby_id
+        lobby_id = games_manipulator.CreateLobby(
+            name=player.name,
+            player=player.id,
+            duration=0,
+            source=inline_message_id,
+        ).id
 
         logger.debug('Player id:', player.id, '; lobby id:', lobby_id)
 

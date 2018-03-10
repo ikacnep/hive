@@ -52,7 +52,7 @@ class GamesManipulator:
         self.lobbys = []
         self.quicks = []
 
-    def CreateLobby(self, name, player, mosquito=False, ladybug=False, pillbug=False, tourney=False, duration=3600):
+    def CreateLobby(self, name, player, source=None, mosquito=False, ladybug=False, pillbug=False, tourney=False, duration=3600):
         try:
             p = self.players.get(self.players.id == player)
         except Exception as ex:
@@ -62,9 +62,13 @@ class GamesManipulator:
             if lobby.owner == player:
                 return lobby
 
+            if lobby.source and lobby.source == source:
+                return lobby
+
         lobby_room = LobbyRoom()
         lobby_room.id = self.lobbyid
         self.lobbyid += 1
+        lobby_room.source = source
         lobby_room.name = name
         lobby_room.owner = p.id
         lobby_room.mosquito = mosquito

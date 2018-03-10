@@ -1,9 +1,11 @@
 from spine.JsonPYAdaptors.ActionResult import ActionResult
 
+
 class LobbyRoom:
     def __init__(self):
         self.id = None
         self.gid = None  # Идентификатор созданной игры
+        self.source = None  # Внешний идентификатор, например, inline_message_id в телеге
         self.name = None
         self.owner = None
         self.guest = None
