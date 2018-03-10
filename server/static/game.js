@@ -597,7 +597,7 @@ jQuery(function ($) {
 
         var table = board.parent();
 
-        var new_width = $(window).width() - $('#right').outerWidth();
+        var new_width = $(window).width() - $('#right').outerWidth() + 20;
         var new_height = $(window).height();
 
         var current_width = table.width();
