@@ -4,3 +4,4 @@ __pycache__
 hive.db
 test.db
 conf/
+work/

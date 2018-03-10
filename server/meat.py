@@ -1,15 +1,18 @@
 import flask
+import logging
 import os
-import traceback
 
 from spine.Game.Settings.Figures import FigureTypes
 from spine.Game.Utils.Action import Action
 from spine.Game.Utils.Exceptions import HiveError, GameNotFoundException
 from spine.GamesManipulator import GamesManipulator
 
+
 app = flask.Flask(__name__)
 
 games_manipulator = GamesManipulator()
+
+logger = logging.getLogger('hive.meat')
 
 
 class IncorrectMove(HiveError):
@@ -18,7 +21,7 @@ class IncorrectMove(HiveError):
 
 @app.errorhandler(HiveError)
 def handle_incorrect_move(error):
-    traceback.print_exc()
+    logger.exception('Returning exception', exc_info=error)
 
     response = flask.jsonify({"error_message": str(error)})
     response.status_code = 400
@@ -81,7 +84,7 @@ def do_login():
 
         flask.session['player_id'] = player.player.id
     except Exception as error:
-        traceback.print_exc()
+        logger.exception('Error in do_login')
         flask.flash('Что-то пошло не так:%s' % error.args[0], 'error')
         return flask.redirect(flask.url_for('login'))
 
@@ -118,7 +121,7 @@ def do_register():
 
         flask.session['player_id'] = player.player.id
     except Exception as error:
-        traceback.print_exc()
+        logger.exception('Error in do_register')
         flask.flash('Регистрация не пошла:%s' % error.args[0], 'error')
         return flask.redirect(flask.url_for('register'))
 
@@ -150,7 +153,7 @@ def start_game():
         else:
             raise Exception('Ничего не понимаю')
     except Exception as error:
-        traceback.print_exc()
+        logger.exception('Error in start_game')
         flask.flash('Не удалось начать игру:%s' % error.args[0], 'error')
         return flask.redirect(flask.url_for('main_page'))
 
@@ -194,7 +197,7 @@ def show_lobby(lobby_id):
 
         return flask.render_template('lobby.html', lobby=lobby)
     except Exception as error:
-        traceback.print_exc()
+        logger.exception('Error in show_lobby')
         flask.flash('Чо-т комната сгорела:%s' % error.args[0], 'error')
         return flask.redirect(flask.url_for('main_page'))
 
@@ -344,14 +347,14 @@ def start(tls_cert, tls_key, secret_key, **kwargs):
     try:
         app.secret_key = open(secret_key, 'rb').read()
     except IOError as err:
-        print('Cannot read secret key file: %s, will use developer\'s key' % err)
+        logger.warning('Cannot read secret key file: %s, will use developer\'s key' % err)
         app.secret_key = "developer's key. Yup, that's it."
 
     context = (tls_cert, tls_key)
 
     for path in context:
         if not os.path.exists(path):
-            print('Cannot create TLS context: {} does not exist'.format(path))
+            logger.warning('Cannot create TLS context: {} does not exist'.format(path))
             context = None
             break
 
