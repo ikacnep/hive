@@ -521,6 +521,27 @@ class GameInstanceTests(unittest.TestCase):
         with self.assertRaises(Exception):
             manipulator.GetLobby(ready=False)
 
+        l3 = manipulator.CreateLobby("Test3", player1.id, source='testing')
+
+        # Создание с тем же источником
+        same_source_lobby = manipulator.CreateLobby("Test same source", player1.id, source='testing')
+        self.assertEqual(l3.id, same_source_lobby.id)
+
+        # Создание с тем же источником, но от другого пользователя
+        same_source_lobby = manipulator.CreateLobby("Test same source", player2.id, source='testing')
+        self.assertEqual(l3.id, same_source_lobby.id)
+
+        # Завершение игры, связанной с лобби, должно закрыть лобби
+        manipulator.JoinLobby(l3.id, player2.id)
+        manipulator.ReadyLobby(l3.id, player1.id)
+        manipulator.ReadyLobby(l3.id, player2.id)
+        game_id = manipulator.CreateGameFromLobby(l3.id).gid
+
+        manipulator.CloseGame(game_id)
+
+        with self.assertRaises(Exception):
+            manipulator.GetLobby(lobby_id=l3.id)
+
     def testQuickmatch(self):
         def create_manipulator():
             return GamesManipulator(
