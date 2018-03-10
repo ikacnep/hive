@@ -102,7 +102,7 @@ class HiveTelegramBot:
             except:
                 del self._inline_message_id_to_lobby[inline_message_id]
         else:
-            lobby_id = games_manipulator.CreateLobby(name=player.name, player=player.id).id
+            lobby_id = games_manipulator.CreateLobby(name=player.name, player=player.id, duration=0).id
 
             self._inline_message_id_to_lobby[inline_message_id] = lobby_id
 

@@ -73,7 +73,11 @@ class GamesManipulator:
         lobby_room.tourney = tourney
         lobby_room.creationDate = datetime.datetime.now()
         lobby_room.duration = duration
-        lobby_room.expirationDate = lobby_room.creationDate + datetime.timedelta(0, lobby_room.duration)
+
+        if lobby_room.duration:
+            lobby_room.expirationDate = lobby_room.creationDate + datetime.timedelta(0, lobby_room.duration)
+        else:
+            lobby_room.expirationDate = datetime.datetime.max
 
         self.lobbys.append(lobby_room)
 
@@ -682,6 +686,11 @@ class GamesManipulator:
         rv = game.CloseGame()
 
         self._DoEndGame(gid, game, rv)
+
+        lobbies = (lobby for lobby in self.lobbys if lobby.gid == gid)
+
+        for lobby in lobbies:
+            self.lobbys.remove(lobby)
 
         return rv
 
