@@ -3,7 +3,7 @@ import unittest
 from time import sleep
 
 from spine.Game.Utils.Exceptions import *
-from ..Database.TestDatabase import *
+from ..Database import Database
 from ..Game.Settings.Figures.FigureTypes import FigureType
 from ..Game.Utils.Action import Action
 from ..GamesManipulator import GamesManipulator
@@ -11,21 +11,16 @@ from ..GamesManipulator import GamesManipulator
 
 class GameInstanceTests(unittest.TestCase):
     def setUp(self):
-        for table in (TestGameArchieved, TestGame, TestPlayer, TestPersistedGameState):
+        for table in Database.testing.tables:
             if table.table_exists():
                 table.drop_table()
 
     def tearDown(self):
-        for table in (TestGameArchieved, TestGame, TestPlayer, TestPersistedGameState):
+        for table in Database.testing.tables:
             table.drop_table()
 
     def testEverything(self):
-        manipulator = GamesManipulator(
-            player_type=TestPlayer,
-            game_type=TestGame,
-            arch_type=TestGameArchieved,
-            game_state_type=TestPersistedGameState
-        )
+        manipulator = GamesManipulator(Database.testing)
 
         # Creating players
         action = {
@@ -361,12 +356,7 @@ class GameInstanceTests(unittest.TestCase):
 
     def testGameStatePersistence(self):
         def create_manipulator():
-            return GamesManipulator(
-                player_type=TestPlayer,
-                game_type=TestGame,
-                arch_type=TestGameArchieved,
-                game_state_type=TestPersistedGameState
-            )
+            return GamesManipulator(Database.testing)
 
         manipulator = create_manipulator()
 
@@ -408,12 +398,7 @@ class GameInstanceTests(unittest.TestCase):
 
     def testLobby(self):
         def create_manipulator():
-            return GamesManipulator(
-                player_type=TestPlayer,
-                game_type=TestGame,
-                arch_type=TestGameArchieved,
-                game_state_type=TestPersistedGameState
-            )
+            return GamesManipulator(Database.testing)
 
         manipulator = create_manipulator()
 
@@ -544,12 +529,7 @@ class GameInstanceTests(unittest.TestCase):
 
     def testQuickmatch(self):
         def create_manipulator():
-            return GamesManipulator(
-                player_type=TestPlayer,
-                game_type=TestGame,
-                arch_type=TestGameArchieved,
-                game_state_type=TestPersistedGameState
-            )
+            return GamesManipulator(Database.testing)
 
         manipulator = create_manipulator()
 

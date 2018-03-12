@@ -1,3 +1,4 @@
+import datetime
 import json
 import random
 import uuid
@@ -5,7 +6,7 @@ import zlib
 from typing import Dict
 
 from .crypta import crypta
-from .Database.Database import *
+from .Database import Database
 from .Game.GameInstance import GameInstance
 from .Game.Settings.GameSettings import GameSettings
 from .Game.Utils.Action import Action
@@ -28,25 +29,17 @@ class GamesManipulator:
     lobbyid = 1
     quickid = 1
 
-    def __init__(self, player_type=Player, game_type=Game, arch_type=GameArchieved, game_state_type=PersistedGameState):
-        self.players = player_type
-        if not self.players.table_exists():
-            self.players.create_table()
+    def __init__(self, database=Database.production):
+        self.database = database
 
-        self.games = game_type
-        if not self.games.table_exists():
-            self.games.create_table()
+        self.players, self.games, self.archive, self.game_state_table = self.database.tables
 
-        self.archive = arch_type
-        if not self.archive.table_exists():
-            self.archive.create_table()
-
-        self.game_state_table = game_state_type
-        if not self.game_state_table.table_exists():
-            self.game_state_table.create_table()
+        for table in self.database.tables:
+            if not table.table_exists():
+                table.create_table()
 
         self.runningGames = {}
-        for game_state in game_state_type.select():
+        for game_state in self.game_state_table.select():
             self.runningGames[game_state.id] = GameInstance.deserialize(game_state.state)
 
         self.lobbys = []
@@ -377,10 +370,10 @@ class GamesManipulator:
         if gid is not None:
             if gid in self.runningGames:
                 theGame = self.games.get(self.games.id == gid)
-                rv.games.append(Game.ToClass(theGame))
+                rv.games.append(self.database.Game.ToClass(theGame))
             elif includeArch:
                 theGame = self.archive.get(self.archive.gameid == gid)
-                rv.games.append(GameArchieved.ToClass(theGame))
+                rv.games.append(self.database.GameArchieved.ToClass(theGame))
         else:
             if players is not None:
                 try:
@@ -396,7 +389,7 @@ class GamesManipulator:
                         for theGame in self.games.select().where(
                                 (self.games.player1 == p1) | (self.games.player2 == p1)
                         ):
-                            rv.games.append(Game.ToClass(theGame))
+                            rv.games.append(self.database.Game.ToClass(theGame))
                     except Exception:
                         pass
                     if includeArch:
@@ -404,7 +397,7 @@ class GamesManipulator:
                             for theGame in self.archive.select().where(
                                     (self.archive.player1 == p1) | (self.archive.player2 == p1)
                             ):
-                                rv.games.append(GameArchieved.ToClass(theGame))
+                                rv.games.append(self.database.GameArchieved.ToClass(theGame))
                         except:
                             pass
                 else:
@@ -413,7 +406,7 @@ class GamesManipulator:
                                 ((self.games.player1 == p1) & (self.games.player2 == p2))
                                 | ((self.games.player1 == p2) & (self.games.player2 == p1))
                         ):
-                            rv.games.append(Game.ToClass(theGame))
+                            rv.games.append(self.database.Game.ToClass(theGame))
                     except:
                         pass
 
@@ -423,16 +416,16 @@ class GamesManipulator:
                                     ((self.archive.player1 == p1) & (self.archive.player2 == p2))
                                     | ((self.archive.player1 == p2) & (self.archive.player2 == p1))
                             ):
-                                rv.games.append(GameArchieved.ToClass(theGame))
+                                rv.games.append(self.database.GameArchieved.ToClass(theGame))
                         except:
                             pass
             else:
                 rv.games = []
                 for theGame in self.games.select():
-                    rv.games.append(Game.ToClass(theGame))
+                    rv.games.append(self.database.Game.ToClass(theGame))
                 if includeArch:
                     for theGame in self.archive.select():
-                        rv.games.append(GameArchieved.ToClass(theGame))
+                        rv.games.append(self.database.GameArchieved.ToClass(theGame))
 
         if len(rv.games) == 0:
             raise GameNotFoundException("Game with specified parameters not found")
@@ -469,7 +462,7 @@ class GamesManipulator:
         rv = GetPlayerResult()
 
         player = self.GetPlayerInner(pid, token, telegramId, login, password, refreshToken)
-        rv.player = Player.ToClass(player)
+        rv.player = self.database.Player.ToClass(player)
 
         return rv
 
@@ -511,7 +504,7 @@ class GamesManipulator:
             premium=premium,
             token=str(self.GetToken())
         )
-        rv.player = Player.ToClass(p)
+        rv.player = self.database.Player.ToClass(p)
 
         return rv
 
@@ -558,7 +551,7 @@ class GamesManipulator:
 
         p.save()
 
-        rv.player = Player.ToClass(p)
+        rv.player = self.database.Player.ToClass(p)
 
         return rv
 
@@ -1021,7 +1014,7 @@ class GamesManipulator:
                 return newToken
 
     def _persist_game(self, game_id):
-        with self.game_state_table._meta.database.atomic():
+        with self.database.peewee_database.atomic():
             if game_id in self.runningGames:
                 state_str = self.runningGames[game_id].serialize()
 
