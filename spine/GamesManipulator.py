@@ -24,7 +24,7 @@ class GamesManipulator:
     games = None
     archive = None
     runningGames = Dict[int, GameInstance]
-    lobbys = []
+    lobbys = {}
     quicks = []
     lobbyid = 1
     quickid = 1
@@ -32,7 +32,7 @@ class GamesManipulator:
     def __init__(self, database=Database.production):
         self.database = database
 
-        self.players, self.games, self.archive, self.game_state_table = self.database.tables
+        self.players, self.games, self.archive, self.game_state_table, self.lobby_table = self.database.tables
 
         for table in self.database.tables:
             if not table.table_exists():
@@ -42,7 +42,12 @@ class GamesManipulator:
         for game_state in self.game_state_table.select():
             self.runningGames[game_state.id] = GameInstance.deserialize(game_state.state)
 
-        self.lobbys = []
+        for lobby in self.lobby_table.select():
+            self.lobbys[lobby.id] = lobby.to_instance(self)
+
+            if lobby.id >= self.lobbyid:
+                self.lobbyid = lobby.id + 1
+
         self.quicks = []
 
     def CreateLobby(self, name, player, source=None, mosquito=False, ladybug=False, pillbug=False, tourney=False, duration=3600):
@@ -51,7 +56,7 @@ class GamesManipulator:
         except Exception as ex:
             raise PlayerNotFoundException("Player not found.", ex.args)
 
-        for lobby in self.lobbys:
+        for lobby in self.lobbys.values():
             if lobby.owner == player:
                 return lobby
 
@@ -76,7 +81,9 @@ class GamesManipulator:
         else:
             lobby_room.expirationDate = datetime.datetime.max
 
-        self.lobbys.append(lobby_room)
+        self.lobbys[lobby_room.id] = lobby_room
+
+        self._persist_lobby(lobby_room)
 
         return lobby_room
 
@@ -108,30 +115,26 @@ class GamesManipulator:
     def GetLobby(self, lobby_id=None, player=None, ready=None):
         dropUs = []
         now = datetime.datetime.now()
-        for l in self.lobbys:
+        for l in self.lobbys.values():
             if l.expirationDate <= now:
-                dropUs.append(l)
+                dropUs.append(l.id)
 
         for l in dropUs:
-            self.lobbys.remove(l)
+            self._delete_lobby(self.lobbys[l])
 
         rv = GetLobbyResult()
         rv.lobbys = []
 
         if lobby_id is not None:
-            for l in self.lobbys:
-                if l.id == lobby_id:
-                    rv.lobbys.append(l)
-                    break
-
+            if lobby_id in self.lobbys:
+                rv.lobbys.append(self.lobbys[lobby_id])
         elif player is not None:
-            for l in self.lobbys:
+            for l in self.lobbys.values():
                 if l.owner == player:
                     rv.lobbys.append(l)
                     break
-
         else:
-            for theLobby in self.lobbys:
+            for theLobby in self.lobbys.values():
                 if (ready is None) or ((theLobby.ownerReady and theLobby.guestReady) == ready):
                     rv.lobbys.append(theLobby)
 
@@ -158,7 +161,7 @@ class GamesManipulator:
                 rv.quickGames = []
 
         if len(rv.quickGames) == 0:
-            raise QuickGameNotFoundException("Lobby with specified id does not exist")
+            raise QuickGameNotFoundException("Quick with specified id does not exist")
 
         return rv
 
@@ -168,12 +171,7 @@ class GamesManipulator:
         except Exception as ex:
             raise PlayerNotFoundException("Player not found.", ex.args)
 
-        lobby = None
-
-        for a_lobby in self.lobbys:
-            if a_lobby.id == lobby_id:
-                lobby = a_lobby
-                break
+        lobby = self.lobbys.get(lobby_id)
 
         if lobby is None:
             raise LobbyNotFoundException("Lobby with specified id does not exist")
@@ -187,6 +185,8 @@ class GamesManipulator:
         lobby.guest = p.id
         lobby.guestReady = False
         lobby.ownerReady = False
+
+        self._persist_lobby(lobby)
 
         return lobby
 
@@ -216,6 +216,7 @@ class GamesManipulator:
         if somethingChanged:
             change_me.ownerReady = False
             change_me.guestReady = False
+            self._persist_lobby(change_me)
 
         return change_me
 
@@ -226,7 +227,7 @@ class GamesManipulator:
                 mainQ = quick
                 break
         if mainQ is None:
-            raise QuickGameNotFoundException("Lobby with specified id does not exist")
+            raise QuickGameNotFoundException("Quick with specified id does not exist")
 
         if mainQ.player2 is not None:
             return mainQ
@@ -259,7 +260,7 @@ class GamesManipulator:
                 mainQ = q
                 break
         if mainQ is None:
-            raise QuickGameNotFoundException("Lobby with specified id does not exist")
+            raise QuickGameNotFoundException("Quick with specified id does not exist")
 
         if mainQ.player != player:
             raise AccessException("Only owner can stop search")
@@ -278,7 +279,7 @@ class GamesManipulator:
             lobby.guest = None
             lobby.guestReady = False
         elif lobby.owner == player:
-            self.lobbys.remove(lobby)
+            self._delete_lobby(lobby)
         else:
             raise AccessException("Cannot leave lobby you are not in")
 
@@ -306,6 +307,8 @@ class GamesManipulator:
         )
 
         lobby.gid = rv.gid
+
+        self._persist_lobby(lobby)
 
         return rv
 
@@ -684,10 +687,10 @@ class GamesManipulator:
 
         self._DoEndGame(gid, game, rv)
 
-        lobbies = (lobby for lobby in self.lobbys if lobby.gid == gid)
+        lobbies = [lobby for lobby in self.lobbys.values() if lobby.gid == gid]
 
         for lobby in lobbies:
-            self.lobbys.remove(lobby)
+            self._delete_lobby(lobby)
 
         return rv
 
@@ -1026,9 +1029,15 @@ class GamesManipulator:
             else:
                 self.game_state_table.delete().where(self.game_state_table.id == game_id).execute()
 
+    def _persist_lobby(self, lobby):
+        self.lobby_table.from_instance(lobby).save()
+
+    def _delete_lobby(self, lobby):
+        self.lobby_table.delete().where(self.lobby_table.id == lobby.id).execute()
+        del self.lobbys[lobby.id]
+
     def _get_lobby_by_id(self, lobby_id):
-        for l in self.lobbys:
-            if l.id == lobby_id:
-                return l
+        if lobby_id in self.lobbys:
+            return self.lobbys[lobby_id]
 
         raise LobbyNotFoundException("Lobby with specified id does not exist")

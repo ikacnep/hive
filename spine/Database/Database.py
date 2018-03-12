@@ -2,6 +2,7 @@ import datetime
 
 from peewee import *
 
+from spine.Lobby import LobbyRoom
 from ..JsonPYAdaptors.GetGamesResult import *
 from ..JsonPYAdaptors.GetPlayerResult import PlayerResult
 
@@ -113,14 +114,73 @@ def generate_schema(db):
     class PersistedGameState(BaseModel):
         state = TextField()
 
-    return Player, Game, GameArchieved, PersistedGameState
+    class LobbyModel(BaseModel):
+        gid = IntegerField(null=True)
+        source = CharField(max_length=100, null=True)
+        name = CharField(max_length=200)
+        owner_id = IntegerField()
+        guest_id = IntegerField(null=True)
+        creationDate = DateTimeField()
+        duration = IntegerField()
+        ownerReady = BooleanField()
+        guestReady = BooleanField()
+        mosquito = BooleanField()
+        ladybug = BooleanField()
+        pillbug = BooleanField()
+        tourney = BooleanField()
+
+        @classmethod
+        def from_instance(cls, lobby):
+            model = cls()
+
+            model.id = lobby.id
+            model.gid = lobby.gid
+            model.source = lobby.source
+            model.owner_id = lobby.owner
+            model.guest_id = lobby.guest
+            model.creationDate = lobby.creationDate
+            model.duration = lobby.duration
+            model.ownerReady = lobby.ownerReady
+            model.guestReady = lobby.guestReady
+            model.mosquito = lobby.mosquito
+            model.ladybug = lobby.ladybug
+            model.pillbug = lobby.pillbug
+            model.tourney = lobby.tourney
+
+            return model
+
+        def to_instance(self, games_manipulator):
+            lobby = LobbyRoom()
+
+            lobby.id = self.id
+            lobby.gid = self.gid
+            lobby.source = self.source
+            lobby.owner = self.owner_id
+            lobby.guest = self.guest_id
+            lobby.creationDate = self.creationDate
+            lobby.duration = self.duration
+            lobby.ownerReady = self.ownerReady
+            lobby.guestReady = self.guestReady
+            lobby.mosquito = self.mosquito
+            lobby.ladybug = self.ladybug
+            lobby.pillbug = self.pillbug
+            lobby.tourney = self.tourney
+
+            if lobby.duration:
+                lobby.expirationDate = lobby.creationDate + datetime.timedelta(0, lobby.duration)
+            else:
+                lobby.expirationDate = datetime.datetime.max
+
+            return lobby
+
+    return Player, Game, GameArchieved, PersistedGameState, LobbyModel
 
 
 class Database:
     def __init__(self, peewee_database):
         self.peewee_database = peewee_database
         self.tables = generate_schema(self.peewee_database)
-        self.Player, self.Game, self.GameArchieved, self.PersistedGameState = self.tables
+        self.Player, self.Game, self.GameArchieved, self.PersistedGameState, self.LobbyModel = self.tables
 
 
 production = Database(SqliteDatabase("hive.db"))
