@@ -1,3 +1,5 @@
+import datetime
+
 from spine.JsonPYAdaptors.ActionResult import ActionResult
 
 
@@ -19,6 +21,12 @@ class LobbyRoom:
         self.pillbug = False
         self.tourney = False
 
+    def update_expiration_date(self):
+        if self.duration:
+            self.expirationDate = datetime.datetime.now() + datetime.timedelta(0, self.duration)
+        else:
+            self.expirationDate = datetime.datetime.max
+
     def GetJson(self):
         rv = {
             "name": self.name,
@@ -38,6 +46,16 @@ class LobbyRoom:
         }
 
         return rv
+
+    def __eq__(self, other):
+        return (
+                other is not None
+                and all(
+                    self.__dict__[key] == other.__dict__[key]
+                    for key in self.__dict__
+                        if key not in ('ownerReady', 'guestReady')
+                )
+        )
 
 class QuickGame:
     def __init__(self):

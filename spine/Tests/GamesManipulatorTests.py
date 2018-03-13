@@ -19,8 +19,11 @@ class GameInstanceTests(unittest.TestCase):
         for table in Database.testing.tables:
             table.drop_table()
 
+    def _create_manipulator(self):
+        return GamesManipulator(Database.testing)
+
     def testEverything(self):
-        manipulator = GamesManipulator(Database.testing)
+        manipulator = self._create_manipulator()
 
         # Creating players
         action = {
@@ -355,10 +358,7 @@ class GameInstanceTests(unittest.TestCase):
         self.assertTrue(p3["rating"] < p2["rating"])
 
     def testGameStatePersistence(self):
-        def create_manipulator():
-            return GamesManipulator(Database.testing)
-
-        manipulator = create_manipulator()
+        manipulator = self._create_manipulator()
 
         player1 = manipulator.CreatePlayer(name='player 1', telegramId=73571).player
         player2 = manipulator.CreatePlayer(name='player 2', telegramId=73572).player
@@ -367,7 +367,7 @@ class GameInstanceTests(unittest.TestCase):
 
         # Imitates server restart and checks that game is restored correctly
         def verify_game_instance():
-            new_manipulator = create_manipulator()
+            new_manipulator = self._create_manipulator()
 
             running_game = manipulator.GetGameInst(game_id)
             reloaded_game = new_manipulator.GetGameInst(game_id)
@@ -394,13 +394,10 @@ class GameInstanceTests(unittest.TestCase):
             manipulator.GetGameInst(game_id)
 
         with self.assertRaises(GameNotFoundException):
-            create_manipulator().GetGameInst(game_id)
+            self._create_manipulator().GetGameInst(game_id)
 
     def testLobby(self):
-        def create_manipulator():
-            return GamesManipulator(Database.testing)
-
-        manipulator = create_manipulator()
+        manipulator = self._create_manipulator()
 
         player1 = manipulator.CreatePlayer(name='player 1', telegramId=73571).player
         player2 = manipulator.CreatePlayer(name='player 2', telegramId=73572).player
@@ -527,11 +524,40 @@ class GameInstanceTests(unittest.TestCase):
         with self.assertRaises(Exception):
             manipulator.GetLobby(lobby_id=l3.id)
 
-    def testQuickmatch(self):
-        def create_manipulator():
-            return GamesManipulator(Database.testing)
+    def testLobbyPersistence(self):
+        manipulator = self._create_manipulator()
 
-        manipulator = create_manipulator()
+        player1 = manipulator.CreatePlayer(name='player 1', telegramId=421).player
+        player2 = manipulator.CreatePlayer(name='player 2', telegramId=422).player
+
+        lobby = manipulator.CreateLobby("Test Lobby", player1.id)
+
+        def validate_lobby():
+            current = manipulator.GetLobby(lobby_id=lobby.id).lobbys[0]
+            reloaded = self._create_manipulator().GetLobby(lobby_id=lobby.id).lobbys[0]
+
+            self.assertEqual(current, reloaded)
+
+        validate_lobby()
+
+        manipulator.RefreshLobby(lobby_id=lobby.id, player=player1.id, tourney=True)
+        validate_lobby()
+
+        manipulator.JoinLobby(lobby_id=lobby.id, player=player2.id)
+        validate_lobby()
+
+        manipulator.ReadyLobby(lobby_id=lobby.id, player=player1.id)
+        validate_lobby()
+
+        manipulator.ReadyLobby(lobby_id=lobby.id, player=player2.id)
+        validate_lobby()
+
+        lobby.duration = 42
+        with self.assertRaises(Exception):
+            validate_lobby()
+
+    def testQuickmatch(self):
+        manipulator = self._create_manipulator()
 
         player1 = manipulator.CreatePlayer(name='player 1', telegramId=73571).player
         player2 = manipulator.CreatePlayer(name='player 2', telegramId=73572).player

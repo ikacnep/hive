@@ -1,9 +1,8 @@
-import datetime
 import json
 import random
 import uuid
 import zlib
-from typing import Dict
+from typing import Dict, List
 
 from .crypta import crypta
 from .Database import Database
@@ -24,8 +23,8 @@ class GamesManipulator:
     games = None
     archive = None
     runningGames = Dict[int, GameInstance]
-    lobbys = {}
-    quicks = []
+    lobbys = Dict[int, LobbyRoom]
+    quicks = List[QuickGame]
     lobbyid = 1
     quickid = 1
 
@@ -42,8 +41,10 @@ class GamesManipulator:
         for game_state in self.game_state_table.select():
             self.runningGames[game_state.id] = GameInstance.deserialize(game_state.state)
 
+        self.lobbys = {}
+
         for lobby in self.lobby_table.select():
-            self.lobbys[lobby.id] = lobby.to_instance(self)
+            self.lobbys[lobby.id] = lobby.to_instance()
 
             if lobby.id >= self.lobbyid:
                 self.lobbyid = lobby.id + 1
@@ -76,10 +77,7 @@ class GamesManipulator:
         lobby_room.creationDate = datetime.datetime.now()
         lobby_room.duration = duration
 
-        if lobby_room.duration:
-            lobby_room.expirationDate = lobby_room.creationDate + datetime.timedelta(0, lobby_room.duration)
-        else:
-            lobby_room.expirationDate = datetime.datetime.max
+        lobby_room.update_expiration_date()
 
         self.lobbys[lobby_room.id] = lobby_room
 
@@ -201,22 +199,25 @@ class GamesManipulator:
             change_me.mosquito = mosquito
             somethingChanged = True
         if ladybug is not None:
-            change_me.mosquito = ladybug
+            change_me.ladybug = ladybug
             somethingChanged = True
         if pillbug is not None:
-            change_me.mosquito = pillbug
+            change_me.pillbug = pillbug
             somethingChanged = True
         if tourney is not None:
-            change_me.mosquito = tourney
+            change_me.tourney = tourney
             somethingChanged = True
         if duration is not None:
             change_me.duration = duration
 
-        change_me.expiryDate = datetime.datetime.now() + datetime.timedelta(0, change_me.duration)
+        change_me.update_expiration_date()
+
         if somethingChanged:
             change_me.ownerReady = False
             change_me.guestReady = False
             self._persist_lobby(change_me)
+
+        #self.lobbys[change_me.id] = change_me
 
         return change_me
 
@@ -1030,7 +1031,20 @@ class GamesManipulator:
                 self.game_state_table.delete().where(self.game_state_table.id == game_id).execute()
 
     def _persist_lobby(self, lobby):
-        self.lobby_table.from_instance(lobby).save()
+        with self.database.peewee_database.atomic():
+            lobby_model = self.lobby_table.from_instance(lobby)
+
+            persisted, is_created = self.lobby_table.get_or_create(id=lobby_model.id, defaults=lobby_model.__dict__)
+
+            if not is_created:
+                #persisted.gid = lobby_model.gid
+                if True:
+                    for key in self.lobby_table.fields():
+                        value = getattr(lobby_model, key)
+                        if key != 'id' and not key.startswith('_'):
+                            setattr(persisted, key, value)
+
+                persisted.save()
 
     def _delete_lobby(self, lobby):
         self.lobby_table.delete().where(self.lobby_table.id == lobby.id).execute()

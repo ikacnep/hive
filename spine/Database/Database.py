@@ -123,12 +123,20 @@ def generate_schema(db):
         guest_id = IntegerField(null=True)
         creationDate = DateTimeField()
         duration = IntegerField()
+        expirationDate = DateTimeField()
         ownerReady = BooleanField()
         guestReady = BooleanField()
         mosquito = BooleanField()
         ladybug = BooleanField()
         pillbug = BooleanField()
         tourney = BooleanField()
+
+        @staticmethod
+        def fields():
+            return [
+                'gid', 'source', 'name', 'owner_id', 'guest_id', 'creationDate', 'duration', 'expirationDate',
+                'ownerReady', 'guestReady', 'mosquito', 'ladybug', 'pillbug', 'tourney'
+            ]
 
         @classmethod
         def from_instance(cls, lobby):
@@ -137,10 +145,12 @@ def generate_schema(db):
             model.id = lobby.id
             model.gid = lobby.gid
             model.source = lobby.source
+            model.name = lobby.name
             model.owner_id = lobby.owner
             model.guest_id = lobby.guest
             model.creationDate = lobby.creationDate
             model.duration = lobby.duration
+            model.expirationDate = lobby.expirationDate
             model.ownerReady = lobby.ownerReady
             model.guestReady = lobby.guestReady
             model.mosquito = lobby.mosquito
@@ -150,27 +160,24 @@ def generate_schema(db):
 
             return model
 
-        def to_instance(self, games_manipulator):
+        def to_instance(self):
             lobby = LobbyRoom()
 
             lobby.id = self.id
             lobby.gid = self.gid
             lobby.source = self.source
+            lobby.name = self.name
             lobby.owner = self.owner_id
             lobby.guest = self.guest_id
             lobby.creationDate = self.creationDate
             lobby.duration = self.duration
+            lobby.expirationDate = self.expirationDate
             lobby.ownerReady = self.ownerReady
             lobby.guestReady = self.guestReady
             lobby.mosquito = self.mosquito
             lobby.ladybug = self.ladybug
             lobby.pillbug = self.pillbug
             lobby.tourney = self.tourney
-
-            if lobby.duration:
-                lobby.expirationDate = lobby.creationDate + datetime.timedelta(0, lobby.duration)
-            else:
-                lobby.expirationDate = datetime.datetime.max
 
             return lobby
 
