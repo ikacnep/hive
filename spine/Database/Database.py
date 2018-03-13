@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from peewee import *
 
@@ -183,5 +184,7 @@ class Database:
         self.Player, self.Game, self.GameArchieved, self.PersistedGameState, self.LobbyModel = self.tables
 
 
-production = Database(SqliteDatabase("hive.db"))
-testing = Database(SqliteDatabase("test.db"))
+database_directory = os.getenv('HIVE_DATABASE_DIR') or '.'
+
+production = Database(SqliteDatabase(os.path.join(database_directory, "hive.db")))
+testing = Database(SqliteDatabase(os.path.join(database_directory, "test.db")))
