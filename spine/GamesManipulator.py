@@ -33,10 +33,6 @@ class GamesManipulator:
 
         self.players, self.games, self.archive, self.game_state_table, self.lobby_table = self.database.tables
 
-        for table in self.database.tables:
-            if not table.table_exists():
-                table.create_table()
-
         self.runningGames = {}
         for game_state in self.game_state_table.select():
             self.runningGames[game_state.id] = GameInstance.deserialize(game_state.state)
