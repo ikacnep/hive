@@ -15,6 +15,8 @@ class GameInstanceTests(unittest.TestCase):
             if table.table_exists():
                 table.drop_table()
 
+            table.create_table()
+
     def tearDown(self):
         for table in Database.testing.tables:
             table.drop_table()

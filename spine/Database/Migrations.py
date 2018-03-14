@@ -36,8 +36,7 @@ def migrate_everything():
     migrations_done = 0
 
     for table in db.tables:
-        if not table.table_exists():
-            table.create_table()
+        table.create_table(fail_silently=True)
 
     with db.peewee_database.transaction():
         migrations_done += _lobby_add_expiration_date(migrator)
