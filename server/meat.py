@@ -10,13 +10,23 @@ from spine.GamesManipulator import GamesManipulator
 
 app = flask.Flask(__name__)
 
-games_manipulator = GamesManipulator()
-
 logger = logging.getLogger('hive.meat')
 
 
 class IncorrectMove(HiveError):
     pass
+
+
+_games_manipulator = None
+
+
+def games_manipulator():
+    global _games_manipulator
+
+    if not _games_manipulator:
+        _games_manipulator = GamesManipulator()
+
+    return _games_manipulator
 
 
 @app.errorhandler(HiveError)
@@ -37,12 +47,12 @@ def main_page():
         player_id = session['player_id']
 
         try:
-            player = games_manipulator.GetPlayer(pid=player_id).player
+            player = games_manipulator().GetPlayer(pid=player_id).player
         except:
             return flask.redirect(flask.url_for('login'))
     else:
         if 'telegram_id' in data or 'token' in data:  # opened link from telegram
-            find_player = games_manipulator.GetOrCreatePlayer(
+            find_player = games_manipulator().GetOrCreatePlayer(
                 token=data.get('token'),
                 telegramId=data.get('telegram_id'),
             )
@@ -54,7 +64,7 @@ def main_page():
         session['player_id'] = player_id
 
     try:
-        games = games_manipulator.GetGames(players=[player.id])
+        games = games_manipulator().GetGames(players=[player.id])
     except GameNotFoundException:
         games = []
 
@@ -80,7 +90,7 @@ def do_login():
         if not password:
             raise Exception('А парольчик? :(')
 
-        player = games_manipulator.GetPlayer(login=login, password=password)
+        player = games_manipulator().GetPlayer(login=login, password=password)
 
         flask.session['player_id'] = player.player.id
     except Exception as error:
@@ -117,7 +127,7 @@ def do_register():
         if password != confirm:
             raise Exception('Одинаковые пароль и подтверждалку, пожалуйста')
 
-        player = games_manipulator.CreatePlayer(login=login, password=password)
+        player = games_manipulator().CreatePlayer(login=login, password=password)
 
         flask.session['player_id'] = player.player.id
     except Exception as error:
@@ -134,20 +144,20 @@ def start_game():
 
     try:
         player_id = flask.session.get('player_id')
-        player = games_manipulator.GetPlayer(pid=player_id).player
+        player = games_manipulator().GetPlayer(pid=player_id).player
 
         game_type = data['game_type']
 
         if game_type == 'direct_game':
             other_player_id = data['other_player_id']
 
-            other_player = games_manipulator.GetPlayer(pid=other_player_id).player
+            other_player = games_manipulator().GetPlayer(pid=other_player_id).player
 
-            game = games_manipulator.CreateGame(player.id, other_player.id, turn=player.id)
+            game = games_manipulator().CreateGame(player.id, other_player.id, turn=player.id)
 
             return flask.redirect(flask.url_for('resume_game', game_id=game.gid))
         elif game_type == 'create_lobby':
-            lobby = games_manipulator.CreateLobby('My Game Lobby', player_id)
+            lobby = games_manipulator().CreateLobby('My Game Lobby', player_id)
 
             return flask.redirect(flask.url_for('show_lobby', lobby_id=lobby.id))
         else:
@@ -165,10 +175,10 @@ def resume_game(game_id):
 
 def _check_lobby(lobby_id):
     if 'telegramId' in flask.request.values:
-        player = games_manipulator.GetPlayer(telegramId=flask.request.values['telegramId']).player
+        player = games_manipulator().GetPlayer(telegramId=flask.request.values['telegramId']).player
         flask.session['player_id'] = player.id
 
-    lobby_result = games_manipulator.GetLobby(lobby_id=lobby_id)
+    lobby_result = games_manipulator().GetLobby(lobby_id=lobby_id)
     lobby = lobby_result.lobbys[0]
 
     player_id = flask.session.get('player_id')
@@ -177,12 +187,12 @@ def _check_lobby(lobby_id):
         return lobby
 
     if lobby.owner != player_id and not lobby.guest:
-        games_manipulator.JoinLobby(lobby_id, player_id)
+        games_manipulator().JoinLobby(lobby_id, player_id)
 
-    lobby = games_manipulator.ReadyLobby(lobby_id, player_id)
+    lobby = games_manipulator().ReadyLobby(lobby_id, player_id)
 
     if lobby.ownerReady and lobby.guestReady:
-        games_manipulator.CreateGameFromLobby(lobby_id=lobby_id)
+        games_manipulator().CreateGameFromLobby(lobby_id=lobby_id)
 
     return lobby
 
@@ -214,7 +224,7 @@ def check_lobby_rest(lobby_id):
 
 @app.route('/lobby/<int:lobby_id>/leave', methods=['POST'])
 def leave_lobby_rest(lobby_id):
-    games_manipulator.LeaveLobby(lobby_id, flask.session.get('player_id'))
+    games_manipulator().LeaveLobby(lobby_id, flask.session.get('player_id'))
     return flask.jsonify()
 
 
@@ -224,7 +234,7 @@ def verify_i_play_game(game_id):
     if not player_id:
         raise IncorrectMove(r'Залогиньтесь сперва')
 
-    game = games_manipulator.GetGameInst(game_id)
+    game = games_manipulator().GetGameInst(game_id)
 
     player_id = int(player_id)
 
@@ -250,7 +260,7 @@ def game_action(game_id):
     action = Action[data['action']]
 
     if action == Action.Place:
-        result = games_manipulator.Place(
+        result = games_manipulator().Place(
             gid=game_id,
             player=player_id,
             figure=FigureTypes.FigureType[data['figure']],
@@ -258,7 +268,7 @@ def game_action(game_id):
             addState=True,
         )
     elif action == Action.Move:
-        result = games_manipulator.Move(
+        result = games_manipulator().Move(
             gid=game_id,
             player=player_id,
             fid=data['figure_id'],
@@ -267,13 +277,13 @@ def game_action(game_id):
             addState=True,
         )
     elif action == Action.Skip:
-        result = games_manipulator.Skip(
+        result = games_manipulator().Skip(
             gid=game_id,
             player=player_id,
             addState=True,
         )
     elif action == Action.Concede:
-        result = games_manipulator.Concede(
+        result = games_manipulator().Concede(
             gid=game_id,
             player=player_id,
             addState=True,
@@ -298,7 +308,7 @@ def get_moves(game_id):
         return flask.jsonify()
 
     if state.ended:
-        games_manipulator.CloseGame(game_id)
+        games_manipulator().CloseGame(game_id)
 
     return flask.jsonify(
             state=state.GetJson(),
@@ -344,6 +354,8 @@ def caching(path):
 
 
 def start(tls_cert, tls_key, secret_key, **kwargs):
+    games_manipulator()  # Инициализируем GamesManipulator сразу
+
     try:
         app.secret_key = open(secret_key, 'rb').read()
     except IOError as err:

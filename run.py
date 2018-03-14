@@ -6,6 +6,7 @@ import os
 import signal
 
 from server import meat, telegram_bot
+from spine.Database import Migrations
 
 
 logger = logging.getLogger('hive.launcher')
@@ -63,11 +64,24 @@ def setup_logging():
         other_logger.addHandler(handler)
 
 
+def migrate_db():
+    try:
+        migrations_done = Migrations.migrate_everything()
+
+        if migrations_done:
+            logger.info('Performed {} migrations'.format(migrations_done))
+    except:
+        logger.exception('Failed to migrate')
+        raise
+
+
 def main():
     setup_signals()
     setup_logging()
 
     logger.info('Starting up')
+
+    migrate_db()
 
     try:
         telegram_token = open('conf/telegram.bot.token').read().strip()
