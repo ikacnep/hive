@@ -592,6 +592,48 @@ jQuery(function ($) {
         })();
     });
 
+    table.on('touchstart', function(event) {
+        var touches = event.originalEvent.touches;
+
+        if (event.touches.length == 1) {
+            board_position.drag = {x: event.touches[0].pageX, y: event.touches[0].pageY};
+            board_position.drag_moved = false;
+        }
+    });
+
+    table.on('touchend', function(event) {
+        var touches = event.originalEvent.touches;
+
+        if (touches.length == 1) {
+            if (board_position.drag_moved) {
+                board_position.prevent_click = true;
+            } else {
+                board_position.prevent_click = false;
+            }
+
+            board_position.drag = undefined;
+        }
+    });
+
+    table.on('touchmove', function(event) {
+        var touches = event.originalEvent.touches;
+
+        if (touches.length == 1) {
+            if (!board_position.drag) {
+                return;
+            }
+
+            board_position.drag_moved = true;
+
+            BoardMovement(function() {
+                board_position.x += (touches[0].pageX - board_position.drag.x) / board_position.scale;
+                board_position.y += (touches[0].pageY - board_position.drag.y) / board_position.scale;
+
+                board_position.drag = {x: touches[0].pageX, y: touches[0].pageY};
+            })();
+        }
+    });
+
     function OnResize(is_initial) {
         log('OnResize', is_initial);
 
