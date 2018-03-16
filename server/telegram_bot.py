@@ -54,7 +54,7 @@ class HiveTelegramBot:
         return name
 
     def choose_player_from_message(self, message):
-        return games_manipulator.GetOrCreatePlayer(
+        return games_manipulator().GetOrCreatePlayer(
             name=self.pick_user_name(message),
             telegramId=message.from_user.id
         ).player
@@ -92,7 +92,7 @@ class HiveTelegramBot:
 
         player = self.choose_player_from_message(update.callback_query)
 
-        lobby_id = games_manipulator.CreateLobby(
+        lobby_id = games_manipulator().CreateLobby(
             name=player.name,
             player=player.id,
             duration=0,
