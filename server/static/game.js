@@ -595,8 +595,8 @@ jQuery(function ($) {
     table.on('touchstart', function(event) {
         var touches = event.originalEvent.touches;
 
-        if (event.touches.length == 1) {
-            board_position.drag = {x: event.touches[0].pageX, y: event.touches[0].pageY};
+        if (touches.length == 1) {
+            board_position.drag = {x: touches[0].pageX, y: touches[0].pageY};
             board_position.drag_moved = false;
         }
     });
