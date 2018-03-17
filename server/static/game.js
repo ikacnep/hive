@@ -608,6 +608,11 @@ jQuery(function ($) {
 
         if (touches.length == 1) {
             StartDrag(touches[0].pageX, touches[0].pageY);
+        } else if (touches.length == 2) {
+            board_position.pinch = {};
+
+            board_position.pinch[touches[0].identifier] = {x: touches[0].pageX, y: touches[0].pageY};
+            board_position.pinch[touches[1].identifier] = {x: touches[1].pageX, y: touches[1].pageY};
         }
     });
 
@@ -615,15 +620,49 @@ jQuery(function ($) {
         var touches = event.originalEvent.changedTouches;
 
         if (touches.length == 1) {
-            EndDrag();
+            if (board_position.drag) {
+                EndDrag();
+            } else if (board_position.pinch) {
+                delete board_position.pinch[touches[0].identifier];
+            }
         }
     });
+
+    function PitchSize(id1, id2) {
+        var p1 = board_position.pinch[id1];
+        var p2 = board_position.pinch[id2];
+
+        return Distance(p1, p2);
+    }
+
+    function Distance(p1, p2) {
+        return Math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
+    }
 
     table.on('touchmove', function(event) {
         var touches = event.originalEvent.touches;
 
         if (touches.length == 1) {
             MoveDrag(touches[0].pageX, touches[0].pageY);
+        } else if (touches.length == 2 && board_position.pinch) {
+            if (board_position.pinch[touches[0].identifier] && board_position.pinch[touches[1].identifier]) {
+                var old_size = PitchSize(touches[0].identifier, touches[1].identifier);
+
+                var p1 = {x: touches[0].pageX, y: touches[0].pageY};
+                var p2 = {x: touches[1].pageX, y: touches[1].pageY};
+
+                var new_size = Distance(p1, p2);
+
+                board_position.pinch[touches[0].identifier] = p1;
+                board_position.pinch[touches[1].identifier] = p2;
+
+                var center = {
+                    x: (p1.x + p2.x) / 2,
+                    y: (p1.y + p2.y) / 2,
+                };
+
+                BoardMovement(function() { ChangeScale(board_position.scale * new_size / old_size, center); })();
+            }
         }
     });
 
