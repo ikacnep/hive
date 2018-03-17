@@ -644,7 +644,7 @@ jQuery(function ($) {
         var touches = event.originalEvent.changedTouches;
         var all_touches = event.originalEvent.touches;
 
-        var center = CenterPoint(touches);
+        var center = CenterPoint(all_touchess);
         board_position.drag = center;
 
         if (all_touches.length == 0) {
