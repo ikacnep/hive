@@ -634,6 +634,28 @@ jQuery(function ($) {
         }
     });
 
+    $('#debug_touches').click(function(e) {
+        e.preventDefault();
+
+        $('#touch_log').remove();
+
+        $('#right').prepend(
+            $('<div id="touch_log" />')
+                .attr('id', 'touch_log')
+                .css({
+                    whiteSpace: 'pre-wrap',
+                    height: 200,
+                    fontSize: 6,
+                    overflowY: 'hidden',
+                    fontFamily: 'monospace',
+                })
+        );
+    });
+
+    function LogTouch(event_type, message) {
+        $('#touch_log').prepend(event_type + ': ' + message + '\n');
+    }
+
     function OnResize(is_initial) {
         log('OnResize', is_initial);
 
