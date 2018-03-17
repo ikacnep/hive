@@ -562,22 +562,13 @@ jQuery(function ($) {
         BoardMovement(function() { ChangeScale(new_scale, point); })();
     });
 
-    table.mousedown(function(event) {
-        board_position.drag = {x: event.pageX, y: event.pageY};
+    function StartDrag(x, y) {
+        board_position.drag = {x: x, y: y};
+        board_position.drag_start = {x: x, y: y};
         board_position.drag_moved = false;
-    });
+    }
 
-    table.mouseup(function(event) {
-        if (board_position.drag_moved) {
-            board_position.prevent_click = true;
-        } else {
-            board_position.prevent_click = false;
-        }
-
-        board_position.drag = undefined;
-    });
-
-    table.mousemove(function(event) {
+    function MoveDrag(x, y) {
         if (!board_position.drag) {
             return;
         }
@@ -585,67 +576,54 @@ jQuery(function ($) {
         board_position.drag_moved = true;
 
         BoardMovement(function() {
-            board_position.x += (event.pageX - board_position.drag.x) / board_position.scale;
-            board_position.y += (event.pageY - board_position.drag.y) / board_position.scale;
+            board_position.x += (x - board_position.drag.x) / board_position.scale;
+            board_position.y += (y - board_position.drag.y) / board_position.scale;
 
-            board_position.drag = {x: event.pageX, y: event.pageY};
+            board_position.drag = {x: x, y: y};
         })();
-    });
-
-    function GatherTouchesFromEvent(event) {
-        var evt = event.originalEvent;
-        var touches = [];
-
-        for (var touch of evt.changedTouches) {
-            touches[touch.identifier] = touch;
-        }
-
-        for (var touch of evt.touches) {
-            touches[touch.identifier] = touch;
-        }
-
-        return touches;
     }
 
+    function EndDrag() {
+        if (board_position.drag_moved) {
+            board_position.prevent_click = true;
+        } else {
+            board_position.prevent_click = false;
+        }
+
+        board_position.drag = undefined;
+    }
+
+    table.mousedown(function(event) {
+        StartDrag(event.pageX, event.pageY);
+    });
+
+    table.mouseup(EndDrag);
+
+    table.mousemove(function(event) {
+        MoveDrag(event.pageX, event.pageY);
+    });
+
     table.on('touchstart', function(event) {
-        var touches = GatherTouchesFromEvent(event);
+        var touches = event.originalEvent.touches;
 
         if (touches.length == 1) {
-            board_position.drag = {x: touches[0].pageX, y: touches[0].pageY};
-            board_position.drag_moved = false;
+            StartDrag(touches[0].pageX, touches[0].pageY);
         }
     });
 
     table.on('touchend', function(event) {
-        var touches = GatherTouchesFromEvent(event);
+        var touches = event.originalEvent.changedTouches;
 
         if (touches.length == 1) {
-            if (board_position.drag_moved) {
-                board_position.prevent_click = true;
-            } else {
-                board_position.prevent_click = false;
-            }
-
-            board_position.drag = undefined;
+            EndDrag();
         }
     });
 
     table.on('touchmove', function(event) {
-        var touches = GatherTouchesFromEvent(event);
+        var touches = event.originalEvent.touches;
 
         if (touches.length == 1) {
-            if (!board_position.drag) {
-                return;
-            }
-
-            board_position.drag_moved = true;
-
-            BoardMovement(function() {
-                board_position.x += (touches[0].pageX - board_position.drag.x) / board_position.scale;
-                board_position.y += (touches[0].pageY - board_position.drag.y) / board_position.scale;
-
-                board_position.drag = {x: touches[0].pageX, y: touches[0].pageY};
-            })();
+            MoveDrag(touches[0].pageX, touches[0].pageY);
         }
     });
 
@@ -679,15 +657,15 @@ jQuery(function ($) {
         $('#touch_log').prepend(message + ': ' + touch_string + '\n');
     }
 
-    function LogTouchesFromEvent(message) {
+    function LogTouchesFromEvent(message, key) {
         return function(event) {
-            LogTouch(message, GatherTouchesFromEvent(event));
+            LogTouch(message, event.originalEvent[key]);
         };
     }
 
-    table.on('touchstart', LogTouchesFromEvent('s'));
-    table.on('touchmove', LogTouchesFromEvent('m'));
-    table.on('touchend', LogTouchesFromEvent('e'));
+    table.on('touchstart', LogTouchesFromEvent('s', 'touches'));
+    table.on('touchmove', LogTouchesFromEvent('m', 'touches'));
+    table.on('touchend', LogTouchesFromEvent('e', 'changedTouches'));
 
     function OnResize(is_initial) {
         log('OnResize', is_initial);
