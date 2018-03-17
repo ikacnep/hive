@@ -623,7 +623,7 @@ jQuery(function ($) {
             y += touch.pageY;
         }
 
-        return {x: x / touches.length, y: y / touches.length];
+        return {x: x / touches.length, y: y / touches.length};
     }
 
     table.on('touchstart', function(event) {
