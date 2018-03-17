@@ -603,31 +603,6 @@ jQuery(function ($) {
         MoveDrag(event.pageX, event.pageY);
     });
 
-    table.on('touchstart', function(event) {
-        var touches = event.originalEvent.touches;
-
-        if (touches.length == 1) {
-            StartDrag(touches[0].pageX, touches[0].pageY);
-        } else if (touches.length == 2) {
-            board_position.pinch = {};
-
-            board_position.pinch[touches[0].identifier] = {x: touches[0].pageX, y: touches[0].pageY};
-            board_position.pinch[touches[1].identifier] = {x: touches[1].pageX, y: touches[1].pageY};
-        }
-    });
-
-    table.on('touchend', function(event) {
-        var touches = event.originalEvent.changedTouches;
-
-        if (touches.length == 1) {
-            if (board_position.drag) {
-                EndDrag();
-            } else if (board_position.pinch) {
-                delete board_position.pinch[touches[0].identifier];
-            }
-        }
-    });
-
     function PitchSize(id1, id2) {
         var p1 = board_position.pinch[id1];
         var p2 = board_position.pinch[id2];
@@ -639,12 +614,59 @@ jQuery(function ($) {
         return Math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
     }
 
+    function CenterPoint(touches) {
+        var x = 0;
+        var y = 0;
+
+        for (var touch of touches) {
+            x += touch.pageX;
+            y += touch.pageY;
+        }
+
+        return {x: x / touches.length, y: y / touches.length];
+    }
+
+    table.on('touchstart', function(event) {
+        var touches = event.originalEvent.touches;
+
+        var center = CenterPoint(touches);
+        StartDrag(center.x, center.y);
+
+        if (touches.length == 2) {
+            board_position.pinch = {};
+
+            board_position.pinch[touches[0].identifier] = {x: touches[0].pageX, y: touches[0].pageY};
+            board_position.pinch[touches[1].identifier] = {x: touches[1].pageX, y: touches[1].pageY};
+        }
+    });
+
+    table.on('touchend', function(event) {
+        var touches = event.originalEvent.changedTouches;
+        var all_touches = event.originalEvent.touches;
+
+        var center = CenterPoint(touches);
+        board_position.drag = center;
+
+        if (all_touches.length == 0) {
+            if (board_position.drag) {
+                EndDrag();
+            }
+        }
+
+        if (board_position.pinch) {
+            for (var touch of touches) {
+                delete board_position.pinch[touch.identifier];
+            }
+        }
+    });
+
     table.on('touchmove', function(event) {
         var touches = event.originalEvent.touches;
 
-        if (touches.length == 1) {
-            MoveDrag(touches[0].pageX, touches[0].pageY);
-        } else if (touches.length == 2 && board_position.pinch) {
+        var center = CenterPoint(touches);
+        MoveDrag(center.x, center.y);
+
+        if (touches.length == 2 && board_position.pinch) {
             if (board_position.pinch[touches[0].identifier] && board_position.pinch[touches[1].identifier]) {
                 var old_size = PitchSize(touches[0].identifier, touches[1].identifier);
 
@@ -656,10 +678,7 @@ jQuery(function ($) {
                 board_position.pinch[touches[0].identifier] = p1;
                 board_position.pinch[touches[1].identifier] = p2;
 
-                var center = {
-                    x: (p1.x + p2.x) / 2,
-                    y: (p1.y + p2.y) / 2,
-                };
+                var center = [(p1.x + p2.x) / 2, (p1.y + p2.y) / 2];
 
                 BoardMovement(function() { ChangeScale(board_position.scale * new_size / old_size, center); })();
             }
