@@ -1,7 +1,7 @@
 {% extends 'aui_template.html' %}
 
 {% block title %}
-    Комната {{ lobby.name }}
+    {{ _('Room') }} {{ lobby.name }}
 {% endblock %}
 
 {% block page_class %}
@@ -17,10 +17,10 @@
 {% block content %}
     <script>var lobby_id = {{ lobby.id }}</script>
 
-    <p>Ожидаем, когда придёт второй игрок…</p>
+    <p>{{ _('Waiting for the second player') }}</p>
 
     <p id="invite_link">
-        Ссылка для подключения:
+        {{ _('ConnectionLink') }}:
 
         {% with url = url_for('show_lobby', _external=True, lobby_id=lobby.id) %}
             <code><a href="{{ url }}">{{ url }}</a></p></code>

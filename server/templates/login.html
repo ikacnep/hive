@@ -1,7 +1,7 @@
 {% extends 'aui_template.html' %}
 
 {% block title %}
-    Представьтесь мне
+    {{ _('LoginPage') }}
 {% endblock %}
 
 {% block page_class %}
@@ -9,23 +9,23 @@
 {% endblock %}
 
 {% block heading %}
-    Представьтесь мне
+    {{ _('LoginPage') }}
 {% endblock %}
 
 {% block content %}
     <form class="aui top-label" method="post" action="{{ url_for('do_login') }}">
         <div class="field-group">
-            <input name="login" type="text" class="text long-field" placeholder="Логинчик" required value="{{ request.form.login }}">
+            <input name="login" type="text" class="text long-field" placeholder="{{ _('login') }}" required value="{{ request.form.login }}">
         </div>
 
         <div class="field-group">
-            <input name="password" type="password" class="password long-field" placeholder="Парольчик" required value="{{ request.form.password }}">
+            <input name="password" type="password" class="password long-field" placeholder="{{ _('password') }}" required value="{{ request.form.password }}">
         </div>
 
         <div class="buttons-container">
             <div class="buttons">
-                <button class="aui-button aui-button-primary" type="submit">Логнуться</button>
-                <a href="{{ url_for('register') }}" class="aui-button aui-button-link">Регнуться</a>
+                <button class="aui-button aui-button-primary" type="submit">{{ _('Login') }}</button>
+                <a href="{{ url_for('register') }}" class="aui-button aui-button-link">{{ _('Register') }}</a>
             </div>
         </div>
     </form>

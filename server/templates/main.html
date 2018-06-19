@@ -1,7 +1,7 @@
 {% extends 'aui_template.html' %}
 
 {% block title %}
-    Прихожая
+    {{ _('Lobby') }}
 {% endblock %}
 
 {% block page_class %}
@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block heading %}
-    Прихожая
+    {{ _('Lobby') }}
 {% endblock %}
 
 {% block head %}
@@ -19,11 +19,11 @@
 {% endblock %}
 
 {% block content %}
-    <p>Привет, {{ player_id }}</p>
+    <p>{{ _('Hello') }}, {{ player_id }}</p>
 
     <div>
         {% if games.games %}
-            Ваши игры:
+            {{ _('YourGames') }}:
             <ul>
                 {% for game in games.games %}
                     <li><a href="{{ url_for('resume_game', game_id=game.gid) }}">
@@ -32,7 +32,7 @@
                 {% endfor %}
             </ul>
         {% else %}
-            У вас нет начатых игр.
+            {{ _('YouHaveNoGames') }}
         {% endif %}
     </div>
 
@@ -40,13 +40,13 @@
 
     <div>
         <form class="aui" method="post" action="{{ url_for('start_game') }}">
-            <button id="create_lobby" class="aui-button" name="game_type" value="create_lobby">Создать комнату</button>
+            <button id="create_lobby" class="aui-button" name="game_type" value="create_lobby">{{ _('CreateARoom') }}</button>
 
-            <a id="choose_opponent" class="aui-button">Выбрать противника</a>
+            <a id="choose_opponent" class="aui-button">{{ _('ChooseOpponent') }}</a>
 
             <div id="choose_opponent_block" style="display: none; margin-top: 8px">
                 <input type="text" class="text" name="other_player_id" placeholder="С кем рубанём?">
-                <button class="aui-button" name="game_type" value="direct_game">Начать игру</button>
+                <button class="aui-button" name="game_type" value="direct_game">{{ _('GameStart') }}</button>
             </div>
         </form>
     </div>

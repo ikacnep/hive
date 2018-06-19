@@ -1,0 +1,109 @@
+# Russian translations for PROJECT.
+# Copyright (C) 2018 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2018-06-18 23:26-0700\n"
+"PO-Revision-Date: 2018-06-18 23:29-0700\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ru\n"
+"Language-Team: ru <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: server/templates/aui_template.html:7
+msgid "Hive"
+msgstr "Улей"
+
+#: server/templates/game.html:45
+msgid "DebugBoard"
+msgstr "Отладочная доска"
+
+#: server/templates/game.html:46
+msgid "DebugFingers"
+msgstr "Отладка пальцев"
+
+#: server/templates/lobby.html:4
+msgid "Room"
+msgstr "Комната"
+
+#: server/templates/lobby.html:20
+msgid "Waiting for the second player"
+msgstr "Ожидание второго игрока"
+
+#: server/templates/lobby.html:23
+msgid "ConnectionLink"
+msgstr "Ссылка для подключения"
+
+#: server/templates/login.html:4 server/templates/login.html:12
+msgid "LoginPage"
+msgstr "Войти"
+
+#: server/templates/login.html:18 server/templates/register.html:22
+msgid "login"
+msgstr "Логин"
+
+#: server/templates/login.html:22 server/templates/register.html:26
+msgid "password"
+msgstr "Пароль"
+
+#: server/templates/login.html:27
+msgid "Login"
+msgstr "Войти"
+
+#: server/templates/login.html:28 server/templates/register.html:35
+msgid "Register"
+msgstr "Зарегистрироваться"
+
+#: server/templates/main.html:4 server/templates/main.html:12
+msgid "Lobby"
+msgstr "Комната"
+
+#: server/templates/main.html:22
+msgid "Hello"
+msgstr "Привет"
+
+#: server/templates/main.html:26
+msgid "YourGames"
+msgstr "Ваши игры"
+
+#: server/templates/main.html:35
+msgid "YouHaveNoGames"
+msgstr "У вас еще нет игр"
+
+#: server/templates/main.html:43
+msgid "CreateARoom"
+msgstr "Создать комнату"
+
+#: server/templates/main.html:45
+msgid "ChooseOpponent"
+msgstr "Выбрать оппонента"
+
+#: server/templates/main.html:49
+msgid "GameStart"
+msgstr "Начать игру"
+
+#: server/templates/register.html:4 server/templates/register.html:12
+msgid "NewUser"
+msgstr "Новый пользователь"
+
+#: server/templates/register.html:18
+msgid "username"
+msgstr "Имя"
+
+#: server/templates/register.html:30
+msgid "repassword"
+msgstr "Повторите пароль"
+
+#: server/templates/register.html:36
+msgid "IHaveAnAccount"
+msgstr "у меня уже есть аккаунт"
+

@@ -1,7 +1,7 @@
 {% extends 'aui_template.html' %}
 
 {% block title %}
-    Новый пользователь
+    {{ _('NewUser') }}
 {% endblock %}
 
 {% block page_class %}
@@ -9,27 +9,31 @@
 {% endblock %}
 
 {% block heading %}
-    Новый пользователь
+    {{ _('NewUser') }}
 {% endblock %}
 
 {% block content %}
     <form class="aui top-label" method="post" action="{{ url_for('do_register') }}">
         <div class="field-group">
-            <input name="login" type="text" class="text long-field" placeholder="Логинчик" required value="{{ request.form.login }}">
+            <input name="username" type="text" class="text long-field" placeholder="{{ _('username') }}" required value="{{ request.form.username }}">
         </div>
 
         <div class="field-group">
-            <input name="password" type="password" class="password long-field" placeholder="Парольчик" required value="{{ request.form.password }}">
+            <input name="login" type="text" class="text long-field" placeholder="{{ _('login') }}" required value="{{ request.form.login }}">
         </div>
 
         <div class="field-group">
-            <input name="confirm" type="password" class="password long-field" placeholder="Подтверждалка" required value="{{ request.form.confirm }}">
+            <input name="password" type="password" class="password long-field" placeholder="{{ _('password') }}" required value="{{ request.form.password }}">
+        </div>
+
+        <div class="field-group">
+            <input name="confirm" type="password" class="password long-field" placeholder="{{ _('repassword') }}" required value="{{ request.form.confirm }}">
         </div>
 
         <div class="buttons-container">
             <div class="buttons">
-                <button name="action" class="aui-button aui-button-primary" type="submit" value="login">Регнуться</button>
-                <a href="{{ url_for('login') }}" class="aui-button aui-button-link">А, у меня уже есть учётка</a>
+                <button name="action" class="aui-button aui-button-primary" type="submit" value="login">{{ _('Register') }}</button>
+                <a href="{{ url_for('login') }}" class="aui-button aui-button-link">{{ _('IHaveAnAccount') }}</a>
             </div>
         </div>
     </form>

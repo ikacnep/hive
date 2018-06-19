@@ -2,6 +2,8 @@ import flask
 import logging
 import os
 
+from flask import abort, Flask, g, render_template, request
+from flask_babel import Babel
 from spine.Game.Settings.Figures import FigureTypes
 from spine.Game.Utils.Action import Action
 from spine.Game.Utils.Exceptions import HiveError, GameNotFoundException
@@ -9,9 +11,9 @@ from spine.GamesManipulator import GamesManipulator
 
 
 app = flask.Flask(__name__)
+babel = Babel(app)
 
 logger = logging.getLogger('hive.meat')
-
 
 class IncorrectMove(HiveError):
     pass
@@ -111,18 +113,19 @@ def do_register():
     data = flask.request.form
 
     try:
+        username = data.get('username')
         login = data.get('login')
         password = data.get('password')
         confirm = data.get('confirm')
 
         if not login:
-            raise Exception('А логинчик? :(')
+            raise Exception('Login required :(')
 
         if not password:
-            raise Exception('А парольчик? :(')
+            raise Exception('Password required :(')
 
         if not confirm:
-            raise Exception('А подтверждалку? :(')
+            raise Exception('repeat password please :(')
 
         if password != confirm:
             raise Exception('Одинаковые пароль и подтверждалку, пожалуйста')
@@ -371,3 +374,30 @@ def start(tls_cert, tls_key, secret_key, **kwargs):
             break
 
     app.run('0.0.0.0', debug=True, port=5443, threaded=True, ssl_context=context, **kwargs)
+
+def get_locale():
+    return g.get('lang_code', app.config['BABEL_DEFAULT_LOCALE'])
+
+@babel.timezoneselector
+def get_timezone():
+    user = g.get('user', None)
+    if user is not None:
+        return user.timezone
+
+@app.url_defaults
+def set_language_code(endpoint, values):
+    if 'lang_code' in values or not g.get('lang_code', None):
+        return
+    if app.url_map.is_endpoint_expecting(endpoint, 'lang_code'):
+        values['lang_code'] = g.lang_code
+
+@app.url_value_preprocessor
+def get_lang_code(endpoint, values):
+    if values is not None:
+        g.lang_code = values.pop('lang_code', None)
+
+@app.before_request
+def ensure_lang_support():
+    lang_code = g.get('lang_code', None)
+    if lang_code and lang_code not in app.config['SUPPORTED_LANGUAGES'].keys():
+        return abort(404)
